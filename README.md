@@ -1,291 +1,205 @@
-customer-debt-management/
-│   frontend/
-│   ├── package.json
-│   ├── vite.config.js
-│   ├── .env
-│   ├── .env.example
-│   │
-│   ├── public/
-│   │   └── index.html
-│   │
-│   ├── src/
-│   │   ├── main.jsx                  # Entry point
-│   │   ├── App.jsx                   # Root component
-│   │
-│   │   ├── api/                      # GIAO TIẾP BACKEND (REST)
-│   │   │   ├── axiosClient.js        # Axios + JWT interceptor
-│   │   │   │
-│   │   │   ├── auth.api.js
-│   │   │   ├── customer.api.js
-│   │   │   ├── invoice.api.js
-│   │   │   ├── payment.api.js
-│   │   │   └── report.api.js
-│   │
-│   │   ├── store/                    # REDUX STATE
-│   │   │   ├── index.js              # Configure store
-│   │   │
-│   │   │   ├── auth.slice.js
-│   │   │   ├── customer.slice.js
-│   │   │   ├── invoice.slice.js
-│   │   │   ├── payment.slice.js
-│   │   │   └── report.slice.js
-│   │
-│   │   ├── routes/                   # ROUTING
-│   │   │   ├── AppRoutes.jsx
-│   │   │   ├── PrivateRoute.jsx      # Require login
-│   │   │   └── RoleRoute.jsx         # Admin / Kế toán
-│   │
-│   │   ├── layouts/                  # KHUNG GIAO DIỆN
-│   │   │   ├── AuthLayout.jsx        # Login layout
-│   │   │   └── DashboardLayout.jsx   # Sidebar + Header
-│   │
-│   │   ├── pages/                    # CÁC TRANG WEB (LEVEL ROUTE)
-│   │   │
-│   │   │   ├── auth/
-│   │   │   │   └── LoginPage.jsx
-│   │   │   │
-│   │   │   ├── dashboard/
-│   │   │   │   └── DashboardPage.jsx
-│   │   │   │
-│   │   │   ├── customers/
-│   │   │   │   ├── CustomerListPage.jsx
-│   │   │   │   ├── CustomerDetailPage.jsx
-│   │   │   │   └── CustomerFormPage.jsx
-│   │   │   │
-│   │   │   ├── invoices/
-│   │   │   │   ├── InvoiceListPage.jsx
-│   │   │   │   ├── InvoiceDetailPage.jsx
-│   │   │   │   └── InvoiceFormPage.jsx
-│   │   │   │
-│   │   │   ├── payments/
-│   │   │   │   └── PaymentPage.jsx
-│   │   │   │
-│   │   │   └── reports/
-│   │   │       ├── AgingReportPage.jsx
-│   │   │       ├── OverdueARPage.jsx
-│   │   │       └── HighRiskCustomerPage.jsx
-│   │
-│   │   ├── components/               # COMPONENT TÁI SỬ DỤNG
-│   │   │   ├── PageHeader.jsx
-│   │   │   ├── DataTable.jsx
-│   │   │   ├── StatusTag.jsx
-│   │   │   ├── ConfirmModal.jsx
-│   │   │   ├── Loading.jsx
-│   │   │   └── charts/
-│   │   │       ├── AgingBarChart.jsx
-│   │   │       └── ARPieChart.jsx
-│   │
-│   │   ├── hooks/                    # CUSTOM HOOKS
-│   │   │   ├── useAuth.js
-│   │   │   ├── usePermission.js
-│   │   │   └── useDebounce.js
-│   │
-│   │   ├── utils/                    # XỬ LÝ DỮ LIỆU PHỤ TRỢ
-│   │   │   ├── date.util.js
-│   │   │   ├── money.util.js
-│   │   │   └── aging.util.js
-│   │
-│   │   ├── constants/                # ENUM / MAP HIỂN THỊ
-│   │   │   ├── roles.js
-│   │   │   ├── invoiceStatus.js
-│   │   │   ├── paymentTerms.js
-│   │   │   └── riskLevels.js
-│   │
-│   │   ├── styles/
-│   │   │   └── global.css
-│   │
-│   │   └── assets/
-│   │       └── images/
-│   │
-│   └── docs/
-│       ├── ui-flow.png
-│       ├── screen-dashboard.png
-│       └── demo-screens.png
-│   
-│   Backend/
-│   ├── package.json
-│   ├── .env
-│   ├── .env.example
-│   ├── docker-compose.yml            # (Optional) Demo nhanh hệ thống
-│   │
-│   ├── src/
-│   │   │
-│   │   ├── main/                     # FRAMEWORK & BOOTSTRAP
-│   │   │   ├── server.js             # Start HTTP server
-│   │   │   ├── app.js                # Express app, global middleware
-│   │   │   │
-│   │   │   ├── routes/               # Định nghĩa REST API
-│   │   │   │   ├── auth.routes.js
-│   │   │   │   ├── customer.routes.js
-│   │   │   │   ├── invoice.routes.js
-│   │   │   │   ├── payment.routes.js
-│   │   │   │   └── report.routes.js
-│   │   │   │
-│   │   │   ├── middlewares/
-│   │   │   │   ├── auth.middleware.js
-│   │   │   │   ├── role.middleware.js
-│   │   │   │   ├── validate.middleware.js
-│   │   │   │   └── error.middleware.js
-│   │   │   │
-│   │   │   └── config/
-│   │   │       ├── database.js
-│   │   │       ├── orm.config.js     # Sequelize / Prisma config
-│   │   │       ├── jwt.config.js
-│   │   │       ├── mail.config.js
-│   │   │       ├── cron.config.js
-│   │   │       └── env.config.js
-│   │
-│   │   ├── presentation/             # INTERFACE ADAPTERS (CONTROLLER)
-│   │   │   ├── controllers/
-│   │   │   │   ├── auth.controller.js
-│   │   │   │   ├── customer.controller.js
-│   │   │   │   ├── invoice.controller.js
-│   │   │   │   ├── payment.controller.js
-│   │   │   │   └── report.controller.js
-│   │   │   │
-│   │   │   ├── presenters/           # Format response cho client
-│   │   │   │   ├── customer.presenter.js
-│   │   │   │   ├── invoice.presenter.js
-│   │   │   │   └── aging.presenter.js
-│   │   │   │
-│   │   │   └── validators/
-│   │   │       ├── auth.schema.js
-│   │   │       ├── customer.schema.js
-│   │   │       ├── invoice.schema.js
-│   │   │       └── payment.schema.js
-│   │
-│   │   ├── application/              # USE CASES – TRÁI TIM ĐỒ ÁN
-│   │   │   ├── use-cases/
-│   │   │   │   │
-│   │   │   │   ├── auth/
-│   │   │   │   │   ├── login.usecase.js
-│   │   │   │   │   └── refreshToken.usecase.js
-│   │   │   │   │
-│   │   │   │   ├── customer/
-│   │   │   │   │   ├── createCustomer.usecase.js
-│   │   │   │   │   ├── updateCustomer.usecase.js
-│   │   │   │   │   ├── updateCustomerStatus.usecase.js
-│   │   │   │   │   │
-│   │   │   │   │   ├── assessCustomerRisk.usecase.js
-│   │   │   │   │   └── listCustomers.usecase.js
-│   │   │   │   │
-│   │   │   │   ├── invoice/
-│   │   │   │   │   ├── createInvoice.usecase.js
-│   │   │   │   │   ├── validateCreditLimit.usecase.js
-│   │   │   │   │   ├── updateInvoice.usecase.js
-│   │   │   │   │   ├── markInvoicePaid.usecase.js
-│   │   │   │   │   ├── recalcInvoiceBalance.usecase.js
-│   │   │   │   │   └── updateOverdueInvoices.usecase.js
-│   │   │   │   │
-│   │   │   │   ├── payment/
-│   │   │   │   │   ├── recordPayment.usecase.js
-│   │   │   │   │   └── reversePayment.usecase.js
-│   │   │   │   │
-│   │   │   │   ├── report/
-│   │   │   │   │   ├── generateAgingReport.usecase.js
-│   │   │   │   │   ├── getTotalAR.usecase.js
-│   │   │   │   │   ├── getOverdueAR.usecase.js
-│   │   │   │   │   └── getHighRiskCustomers.usecase.js
-│   │   │   │   │
-│   │   │   │   └── notification/
-│   │   │   │       ├── sendReminderEmail.usecase.js
-│   │   │   │       └── logEmailHistory.usecase.js
-│   │   │   │
-│   │   │   └── interfaces/
-│   │   │       ├── repositories/
-│   │   │       │   ├── user.repository.interface.js
-│   │   │       │   ├── customer.repository.interface.js
-│   │   │       │   ├── invoice.repository.interface.js
-│   │   │       │   ├── payment.repository.interface.js
-│   │   │       │   └── emailLog.repository.interface.js
-│   │   │       │
-│   │   │       └── services/
-│   │   │           ├── email.service.interface.js
-│   │   │           └── clock.service.interface.js
-│   │
-│   │   ├── domain/                   # CORE DOMAIN – NGHIỆP VỤ KẾ TOÁN
-│   │   │   ├── entities/
-│   │   │   │   ├── User.js
-│   │   │   │   ├── Customer.js
-│   │   │   │   ├── Invoice.js
-│   │   │   │   ├── Payment.js
-│   │   │   │   └── EmailLog.js
-│   │   │   │
-│   │   │   ├── value-objects/
-│   │   │   │   ├── Money.js
-│   │   │   │   ├── PaymentTerm.js
-│   │   │   │   ├── InvoiceStatus.js
-│   │   │   │   ├── CustomerRiskLevel.js
-│   │   │   │   └── EmailType.js
-│   │   │   │
-│   │   │   ├── services/
-│   │   │   │   ├── AgingService.js
-│   │   │   │   ├── CreditLimitService.js
-│   │   │   │   └── RiskAssessmentService.js
-│   │   │   │
-│   │   │   └── events/
-│   │   │       ├── InvoiceOverdue.event.js
-│   │   │       └── PaymentReceived.event.js
-│   │
-│   │   ├── infrastructure/           # TRIỂN KHAI KỸ THUẬT
-│   │   │   ├── database/
-│   │   │   │   ├── migrations/
-│   │   │   │   ├── seeders/
-│   │   │   │   ├── models/
-│   │   │   │   │   ├── user.model.js
-│   │   │   │   │   ├── customer.model.js
-│   │   │   │   │   ├── invoice.model.js
-│   │   │   │   │   ├── payment.model.js
-│   │   │   │   │   └── emailLog.model.js
-│   │   │   │   │
-│   │   │   │   └── repositories/
-│   │   │   │       ├── user.repository.js
-│   │   │   │       ├── customer.repository.js
-│   │   │   │       ├── invoice.repository.js
-│   │   │   │       ├── payment.repository.js
-│   │   │   │       └── emailLog.repository.js
-│   │   │   │
-│   │   │   ├── email/
-│   │   │   │   ├── nodemailer.service.js
-│   │   │   │   └── emailTemplate.factory.js
-│   │   │   │
-│   │   │   ├── scheduler/
-│   │   │   │   ├── cron.registry.js
-│   │   │   │   ├── updateInvoiceStatus.job.js
-│   │   │   │   └── sendReminderEmail.job.js
-│   │   │   │
-│   │   │   └── auth/
-│   │   │       ├── jwt.service.js
-│   │   │       └── passwordHasher.js
-│   │
-│   │   ├── shared/                   # DÙNG CHUNG TOÀN HỆ THỐNG
-│   │   │   ├── utils/
-│   │   │   │   ├── date.util.js
-│   │   │   │   ├── money.util.js
-│   │   │   │   └── aging.util.js
-│   │   │   │
-│   │   │   ├── constants/
-│   │   │   │   ├── roles.js
-│   │   │   │   └── enums.js
-│   │   │   │
-│   │   │   └── errors/
-│   │   │       ├── AppError.js
-│   │   │       ├── ValidationError.js
-│   │   │       └── BusinessRuleError.js
-│   │
-│   │   └── tests/
-│   │       ├── unit/
-│   │       │   ├── domain/
-│   │       │   └── application/
-│   │       └── integration/
-│   │           └── api/
-│   │
-│   └── docs/                         # TÀI LIỆU ĐỒ ÁN
-│       ├── system-architecture.png
-│       ├── clean-architecture-diagram.png
-│       ├── erd-diagram.png
-│       ├── business-flow.png
-│       ├── api-specification.md
-│       └── thesis-report.docx
-│
-└── README.md                     # Thuyết minh tổng quan đồ án
+# ACCOUNTS RECEIVABLE MANAGEMENT SYSTEM (ARMS)
+
+## 1. Giới thiệu chung
+
+**Accounts Receivable Management System (ARMS)** là hệ thống quản lý công nợ khách hàng được xây dựng theo mô hình **Full-stack JavaScript**, áp dụng **Clean Architecture**, hướng tới việc **số hóa toàn bộ quy trình công nợ phải thu (Accounts Receivable)** cho doanh nghiệp vừa và nhỏ (SME).
+
+Đây là đồ án phục vụ môn học **"Xây dựng Hệ thống Thông tin Quản lý"**, đồng thời được thiết kế đủ thực tế để có thể triển khai thử nghiệm trong môi trường doanh nghiệp.
+
+---
+
+## 2. Mục tiêu hệ thống
+
+### 2.1. Mục tiêu nghiệp vụ
+
+* Quản lý tập trung thông tin khách hàng
+* Theo dõi công nợ phát sinh từ hóa đơn
+* Phân loại tuổi nợ (Aging)
+* Tự động nhắc nợ theo lịch
+* Cảnh báo rủi ro tài chính
+* Hỗ trợ ra quyết định cho kế toán và quản lý
+
+### 2.2. Mục tiêu học thuật
+
+* Áp dụng mô hình **Clean Architecture**
+* Phân tách rõ **Business Logic – Application – Infrastructure**
+* Thiết kế hệ thống đúng chuẩn ERP/Accounting
+* Dễ demo, dễ thuyết trình, dễ bảo vệ đồ án
+
+---
+
+## 3. Phạm vi hệ thống
+
+### Người dùng hệ thống
+
+* **Admin**: quản lý người dùng, cấu hình hệ thống
+* **Kế toán**: quản lý khách hàng, hóa đơn, công nợ, báo cáo
+
+### Đối tượng quản lý
+
+* Khách hàng
+* Hóa đơn bán hàng
+* Thanh toán
+* Công nợ phải thu
+* Email nhắc nợ
+
+---
+
+## 4. Tổng quan kiến trúc hệ thống
+
+Hệ thống được thiết kế theo mô hình **Client – Server – Services**:
+
+```
+[ React Client ]
+        |
+        v
+[ REST API - Node.js / Express ]
+        |
+        v
+[ PostgreSQL Database ]
+        |
+        +--> Email Service (Nodemailer)
+        +--> Scheduler (Cron Jobs)
+```
+
+### Vai trò các thành phần
+
+* **Frontend (React)**: giao diện người dùng, dashboard, báo cáo
+* **Backend (Node.js)**: xử lý nghiệp vụ, API, bảo mật
+* **Database (PostgreSQL)**: lưu trữ dữ liệu kế toán
+* **Email Service**: gửi email nhắc nợ
+* **Scheduler**: cập nhật trạng thái hóa đơn, gửi email tự động
+
+---
+
+## 5. Công nghệ sử dụng
+
+### Backend
+
+* Node.js + Express
+* PostgreSQL
+* Sequelize / Prisma
+* JWT Authentication
+* Role-based Authorization
+* Nodemailer
+* node-cron
+
+### Frontend
+
+* React + Vite
+* Redux Toolkit
+* Axios
+* Chart Library (Dashboard)
+
+---
+
+## 6. Thiết kế nghiệp vụ cốt lõi
+
+### 6.1. Nguyên tắc nghiệp vụ
+
+* **Không lưu công nợ trực tiếp ở Customer**
+* Công nợ phát sinh từ **Invoice**
+* **Payment chỉ làm giảm công nợ**
+* Aging & Risk được **tính toán động**
+
+### 6.2. Luồng quản lý công nợ
+
+1. Tạo khách hàng
+2. Tạo hóa đơn
+3. Phát sinh công nợ
+4. Theo dõi đến hạn
+5. Quá hạn → Overdue
+6. Gửi email nhắc nợ
+7. Đánh giá rủi ro khách hàng
+
+---
+
+## 7. Thiết kế cơ sở dữ liệu
+
+### Các bảng chính
+
+* Users
+* Customers
+* Invoices
+* Payments
+* EmailLogs
+
+### Các View phục vụ báo cáo
+
+* vw_invoice_aging_days
+* vw_aging_report
+* vw_total_ar
+* vw_overdue_ar
+* vw_high_risk_customers
+
+Thiết kế tuân thủ chuẩn **kế toán – ERP**, đảm bảo dữ liệu chính xác và dễ mở rộng.
+
+---
+
+## 8. Clean Architecture trong hệ thống
+
+### Các tầng chính
+
+```
+Presentation (Controllers, Validators)
+Application (Use Cases)
+Domain (Entities, Business Rules)
+Infrastructure (DB, Email, Auth, Scheduler)
+```
+
+### Ý nghĩa
+
+* Business Logic **độc lập framework**
+* Dễ test, dễ bảo trì
+* Dễ mở rộng nghiệp vụ
+
+---
+
+## 9. Cấu trúc thư mục dự án
+
+Hệ thống được tổ chức theo **Full-stack Clean Architecture**, gồm:
+
+* Frontend (React)
+* Backend (Node.js)
+* Docs (tài liệu đồ án)
+
+> Chi tiết xem trong phần cây thư mục của đồ án.
+
+---
+
+## 10. Dashboard & Báo cáo
+
+* Tổng công nợ phải thu
+* Tổng công nợ quá hạn
+* Biểu đồ phân bố tuổi nợ
+* Danh sách khách hàng rủi ro cao
+
+Dashboard được thiết kế trực quan, phù hợp demo và thuyết trình.
+
+---
+
+## 11. Tính mở rộng của hệ thống
+
+Hệ thống có thể mở rộng thêm:
+
+* Phân quyền chi tiết hơn
+* Tích hợp SMS/Zalo nhắc nợ
+* Kết nối hệ thống kế toán khác
+* Xuất báo cáo Excel/PDF
+
+---
+
+## 12. Giá trị thực tế cho doanh nghiệp
+
+* Giảm thất thoát công nợ
+* Tăng tốc thu hồi tiền
+* Minh bạch tài chính
+* Hỗ trợ ra quyết định quản lý
+
+---
+
+## 13. Kết luận
+
+Accounts Receivable Management System là đồ án kết hợp **tính học thuật và tính thực tế**, phản ánh đúng nghiệp vụ kế toán doanh nghiệp, áp dụng kiến trúc phần mềm hiện đại, phù hợp cho việc **demo, thuyết trình và bảo vệ đồ án đại học**.
+
+---
