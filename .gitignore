@@ -1,0 +1,113 @@
+# =====================================================
+# YARN (ROOT)
+# =====================================================
+node_modules/
+
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/sdks
+!.yarn/versions
+
+.pnp.*
+.yarnrc.yml
+
+yarn-error.log*
+
+# =====================================================
+# ENVIRONMENT VARIABLES (SECURITY)
+# =====================================================
+.env
+.env.*
+!.env.example
+
+# =====================================================
+# FRONTEND (React + Vite)
+# =====================================================
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+frontend/.env
+frontend/.env.*
+!frontend/.env.example
+
+# IDE / Editor (Frontend)
+frontend/.vscode/
+frontend/.idea/
+
+# =====================================================
+# BACKEND (Node.js + Express)
+# =====================================================
+backend/node_modules/
+backend/dist/
+backend/build/
+backend/.cache/
+
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# Logs
+backend/logs/
+backend/*.log
+
+# =====================================================
+# DATABASE (LOCAL / DOCKER VOLUMES)
+# =====================================================
+backend/postgres-data/
+backend/mysql-data/
+backend/db-data/
+
+# ORM / Generated files
+backend/prisma/generated/
+backend/src/infrastructure/database/generated/
+
+# =====================================================
+# DOCKER
+# =====================================================
+docker-compose.override.yml
+*.tar
+
+# =====================================================
+# TESTING / COVERAGE
+# =====================================================
+coverage/
+.nyc_output/
+
+# =====================================================
+# DOCUMENTATION BUILD
+# =====================================================
+docs/.cache/
+docs/build/
+docs/dist/
+
+# =====================================================
+# TEMP / RUNTIME FILES
+# =====================================================
+tmp/
+temp/
+*.tmp
+*.swp
+*.swo
+
+# =====================================================
+# OS FILES
+# =====================================================
+.DS_Store
+Thumbs.db
+
+# =====================================================
+# IDE / EDITOR
+# =====================================================
+.vscode/
+.idea/
+*.iml
+
+# =====================================================
+# SECURITY
+# =====================================================
+*.pem
+*.key
+*.crt
