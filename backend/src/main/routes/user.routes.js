@@ -18,14 +18,24 @@ const userController = new UserController(userRepository);
 router.use(authMiddleware);
 router.use(roleMiddleware(["ADMIN"]));
 
-router.post("/", validateMiddleware(createUserSchema), (req, res) =>
-  userController.createUser(req, res)
+router.post(
+  "/",
+  validateMiddleware(createUserSchema),
+  (req, res) => userController.createUser(req, res)
 );
 
 router.get("/", (req, res) => userController.getAllUsers(req, res));
 
-router.put("/:userId", validateMiddleware(updateUserSchema), (req, res) =>
-  userController.updateUser(req, res)
+router.get("/:userId", (req, res) => userController.getUser(req, res));
+
+router.put(
+  "/:userId",
+  validateMiddleware(updateUserSchema),
+  (req, res) => userController.updateUser(req, res)
 );
+
+router.post("/:userId/lock", (req, res) => userController.lockUser(req, res));
+
+router.post("/:userId/unlock", (req, res) => userController.unlockUser(req, res));
 
 export default router;
