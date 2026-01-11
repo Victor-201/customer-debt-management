@@ -1,10 +1,12 @@
-import { Router } from "express";
-import { buildArRoutes } from "./ar.routes.js";
+import express from 'express';
+import authRoutes from './auth.routes.js';
+import userRoutes from './user.routes.js';
+import customerRoutes from './customer.routes.js';
 
-export function buildRoutes({ controllers }) {
-  const router = Router();
+const router = express.Router();
 
-  router.use("/api/v1", buildArRoutes({ controllers }));
+router.use('/auth', authRoutes);
+router.use('/users', userRoutes);
+router.use('/customers', customerRoutes);
 
-  return router;
-}
+export default router;
