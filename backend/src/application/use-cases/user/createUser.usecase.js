@@ -27,10 +27,6 @@ export default class CreateUserUseCase {
     return this.userRepository.create(user);
   }
 
-  /* =====================
-     PRIVATE METHODS
-  ===================== */
-
   #validateInput(userData) {
     if (!userData.name?.trim() || userData.name.trim().length < 2) {
       throw new BusinessRuleError('Name must be at least 2 characters long');
