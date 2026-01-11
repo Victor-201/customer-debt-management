@@ -178,7 +178,109 @@ Dashboard được thiết kế trực quan, phù hợp demo và thuyết trình
 
 ---
 
-## 11. Tính mở rộng của hệ thống
+## 11. Cài đặt và Chạy hệ thống
+
+### 11.1. Yêu cầu hệ thống
+
+* **Node.js** (v16 hoặc cao hơn)
+* **PostgreSQL** (v12 hoặc cao hơn)
+* **npm** hoặc **yarn**
+
+### 11.2. Cài đặt Backend
+
+1. **Cài đặt dependencies:**
+   ```bash
+   cd backend
+   npm install
+   ```
+
+2. **Setup Database:**
+   
+   **Tự động (Khuyến nghị):**
+   ```bash
+   # Windows
+   setup-db.bat
+   
+   # Linux/macOS
+   chmod +x setup-db.sh
+   ./setup-db.sh
+   ```
+   
+   **Thủ công:**
+   ```sql
+   CREATE DATABASE ar_management;
+   CREATE USER ar_user WITH PASSWORD 'postgres123';
+   GRANT ALL PRIVILEGES ON DATABASE ar_management TO ar_user;
+   ```
+   
+   Sau đó chạy schema:
+   ```bash
+   psql -U ar_user -d ar_management -f database/schema/ar_management_schema.sql
+   ```
+
+3. **Chạy migrations và seed data:**
+   ```bash
+   npm run migrate
+   npm run seed
+   ```
+
+4. **Chạy server:**
+   ```bash
+   # Development
+   npm run dev
+   
+   # Production
+   npm start
+   ```
+
+### 11.3. Cài đặt Frontend
+
+1. **Cài đặt dependencies:**
+   ```bash
+   cd frontend
+   npm install
+   ```
+
+2. **Chạy development server:**
+   ```bash
+   npm run dev
+   ```
+
+### 11.4. Truy cập hệ thống
+
+* **Backend API:** http://localhost:3000
+* **Frontend:** http://localhost:5173
+
+**Tài khoản Admin mặc định:**
+- Email: `admin@company.com`
+- Password: `admin123`
+
+### 11.5. Testing
+
+```bash
+# Backend API tests
+cd backend
+npm run test:api
+
+# Frontend (nếu có)
+cd frontend
+npm run test
+```
+
+### 11.6. Troubleshooting
+
+**Lỗi kết nối Database:**
+- Kiểm tra PostgreSQL đang chạy
+- Kiểm tra credentials trong `.env`
+- Xem hướng dẫn chi tiết: `backend/SETUP-DATABASE.md`
+
+**Lỗi Port bị chiếm:**
+- Thay đổi PORT trong `.env` (backend)
+- Thay đổi port trong `vite.config.js` (frontend)
+
+---
+
+## 12. Tính mở rộng của hệ thống
 
 Hệ thống có thể mở rộng thêm:
 
@@ -189,7 +291,7 @@ Hệ thống có thể mở rộng thêm:
 
 ---
 
-## 12. Giá trị thực tế cho doanh nghiệp
+## 13. Giá trị thực tế cho doanh nghiệp
 
 * Giảm thất thoát công nợ
 * Tăng tốc thu hồi tiền
@@ -198,7 +300,7 @@ Hệ thống có thể mở rộng thêm:
 
 ---
 
-## 13. Kết luận
+## 14. Kết luận
 
 Accounts Receivable Management System là đồ án kết hợp **tính học thuật và tính thực tế**, phản ánh đúng nghiệp vụ kế toán doanh nghiệp, áp dụng kiến trúc phần mềm hiện đại, phù hợp cho việc **demo, thuyết trình và bảo vệ đồ án đại học**.
 
