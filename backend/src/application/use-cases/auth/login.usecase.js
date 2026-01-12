@@ -1,3 +1,4 @@
+// backend/src/application/use-cases/auth/login.usecase.js
 import JWTService from "../../../infrastructure/auth/jwt.service.js";
 import PasswordHasher from "../../../infrastructure/auth/passwordHasher.js";
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
@@ -9,8 +10,13 @@ class LoginUseCase {
 
   async execute(email, password) {
     const user = await this.userRepository.findByEmail(email);
+
     if (!user) {
       throw new BusinessRuleError("Invalid email or password");
+    }
+
+    if (user.isDeleted()) {
+      throw new BusinessRuleError("Account has been deleted");
     }
 
     if (!user.isActive) {
@@ -21,6 +27,7 @@ class LoginUseCase {
       password,
       user.passwordHash
     );
+
     if (!isPasswordValid) {
       throw new BusinessRuleError("Invalid email or password");
     }
@@ -32,9 +39,6 @@ class LoginUseCase {
       role: user.role,
     };
 
-    const accessToken = JWTService.generateAccessToken(payload);
-    const refreshToken = JWTService.generateRefreshToken(payload);
-
     return {
       user: {
         id: user.id,
@@ -42,8 +46,8 @@ class LoginUseCase {
         email: user.email,
         role: user.role,
       },
-      accessToken,
-      refreshToken,
+      accessToken: JWTService.generateAccessToken(payload),
+      refreshToken: JWTService.generateRefreshToken(payload),
     };
   }
 }
