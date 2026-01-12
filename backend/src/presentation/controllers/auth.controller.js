@@ -28,12 +28,12 @@ class AuthController {
     try {
       const { name, email, password, role } = req.body;
 
-      const user = await this.registerUseCase.execute(
+      const user = await this.registerUseCase.execute({
         name,
         email,
         password,
-        role
-      );
+        role,
+      });
 
       res.status(201).json({
         user: {
