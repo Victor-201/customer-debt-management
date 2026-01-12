@@ -6,47 +6,40 @@ export default class CreateCustomerUseCase {
     this.customerRepository = customerRepository;
   }
 
-  async execute(customerData) {
-    this.#validateInput(customerData);
+  async execute(data) {
+    this.#validate(data);
 
-    // Gọi Customer.create đúng signature
     const customer = Customer.create({
-      name: customerData.name,
-      email: customerData.email,
-      phone: customerData.phone,
-      address: customerData.address,
-      paymentTerm: customerData.paymentTerm,
-      creditLimit: customerData.creditLimit,
+      name: data.name,
+      email: data.email,
+      phone: data.phone,
+      address: data.address,
+      paymentTerm: data.paymentTerm,
+      creditLimit: data.creditLimit,
     });
 
-    // Lưu vào repository
-    return this.customerRepository.save(customer);
+    return this.customerRepository.create(customer);
   }
 
-  #validateInput(customerData) {
-    if (!customerData.name?.trim()) {
+  #validate(data) {
+    if (!data.name?.trim()) {
       throw new BusinessRuleError('Customer name is required');
     }
 
-    if (customerData.email && !this.#isValidEmail(customerData.email)) {
+    if (data.email && !this.#isValidEmail(data.email)) {
       throw new BusinessRuleError('Invalid email format');
     }
 
-    if (!this.#isValidPaymentTerm(customerData.paymentTerm)) {
+    if (!['NET_7', 'NET_15', 'NET_30'].includes(data.paymentTerm)) {
       throw new BusinessRuleError('Invalid payment term');
     }
 
-    if (customerData.creditLimit < 0) {
+    if (data.creditLimit < 0) {
       throw new BusinessRuleError('Credit limit cannot be negative');
     }
   }
 
   #isValidEmail(email) {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  }
-
-  #isValidPaymentTerm(paymentTerm) {
-    return ['NET_7', 'NET_15', 'NET_30'].includes(paymentTerm);
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
   }
 }
