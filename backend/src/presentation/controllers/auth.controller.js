@@ -1,19 +1,19 @@
-import LoginUseCase from "../../application/use-cases/auth/login.usecase.js";
-import RegisterUseCase from "../../application/use-cases/auth/register.usecase.js";
-import RefreshTokenUseCase from "../../application/use-cases/auth/refreshToken.usecase.js";
-
 class AuthController {
-  constructor(userRepository) {
-    this.loginUseCase = new LoginUseCase(userRepository);
-    this.registerUseCase = new RegisterUseCase(userRepository);
-    this.refreshTokenUseCase = new RefreshTokenUseCase(userRepository);
+  constructor({ loginUseCase, registerUseCase, refreshTokenUseCase }) {
+    this.loginUseCase = loginUseCase;
+    this.registerUseCase = registerUseCase;
+    this.refreshTokenUseCase = refreshTokenUseCase;
   }
 
   login = async (req, res) => {
     try {
       const { email, password } = req.body;
 
-      const result = await this.loginUseCase.execute(email, password);
+      const result = await this.loginUseCase.execute({
+        email,
+        password,
+      });
+
       res.json(result);
     } catch (error) {
       if (error.name === "BusinessRuleError") {
@@ -58,7 +58,7 @@ class AuthController {
     try {
       const { refreshToken } = req.body;
 
-      const result = await this.refreshTokenUseCase.execute(refreshToken);
+      const result = await this.refreshTokenUseCase.execute({ refreshToken });
       res.json(result);
     } catch (error) {
       if (error.name === "BusinessRuleError") {
@@ -69,7 +69,7 @@ class AuthController {
     }
   };
 
-  logout = async (req, res) => {
+  logout = async (_req, res) => {
     res.json({ message: "Logged out successfully" });
   };
 }
