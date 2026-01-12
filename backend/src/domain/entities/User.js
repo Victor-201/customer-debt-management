@@ -1,66 +1,36 @@
 class User {
   constructor({
-    id,
+    id = null,
     name,
     email,
     passwordHash,
     role,
-    isActive,
-    createdAt,
-    updatedAt
+    isActive = true,
+    createdAt = null,
+    updatedAt = null,
+    deletedAt = null,
   }) {
-    this.id = id ?? null;
+    this.id = id;
     this.name = name;
     this.email = email;
     this.passwordHash = passwordHash;
-    this.role = role; // 'ADMIN' | 'ACCOUNTANT'
-    this.isActive = isActive ?? true;
-    this.createdAt = createdAt ?? null;
-    this.updatedAt = updatedAt ?? null;
+    this.role = role;
+    this.isActive = isActive;
+    this.createdAt = createdAt;
+    this.updatedAt = updatedAt;
+    this.deletedAt = deletedAt;
   }
 
   static create({ name, email, passwordHash, role }) {
-    if (!['ADMIN', 'ACCOUNTANT'].includes(role)) {
-      throw new Error('Invalid user role');
-    }
-
-    return new User({
-      name,
-      email,
-      passwordHash,
-      role,
-      isActive: true
-    });
-  }
-
-  update({ name, email, role, isActive }) {
-    if (name !== undefined) this.name = name;
-    if (email !== undefined) this.email = email;
-
-    if (role !== undefined) {
-      if (!['ADMIN', 'ACCOUNTANT'].includes(role)) {
-        throw new Error('Invalid user role');
-      }
-      this.role = role;
-    }
-
-    if (isActive !== undefined) this.isActive = isActive;
-  }
-
-  lock() {
-    this.isActive = false;
-  }
-
-  unlock() {
-    this.isActive = true;
+    return new User({ name, email, passwordHash, role });
   }
 
   isAdmin() {
-    return this.role === 'ADMIN';
+    return this.role === "ADMIN";
   }
 
-  isAccountant() {
-    return this.role === 'ACCOUNTANT';
+  isDeleted() {
+    return this.deletedAt !== null;
   }
 }
 
