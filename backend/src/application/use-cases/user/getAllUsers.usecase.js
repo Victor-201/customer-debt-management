@@ -3,9 +3,9 @@ export default class GetAllUsersUseCase {
     this.userRepository = userRepository;
   }
 
-  async execute() {
-    const users = await this.userRepository.findAll();
-    return users.map(user => this.#toResponse(user));
+  async execute({ isActive } = {}) {
+    const users = await this.userRepository.findAll({ isActive });
+    return users.map(this.#toResponse);
   }
 
   #toResponse(user) {
@@ -16,7 +16,6 @@ export default class GetAllUsersUseCase {
       role: user.role,
       isActive: user.isActive,
       createdAt: user.createdAt,
-      updatedAt: user.updatedAt
     };
   }
 }

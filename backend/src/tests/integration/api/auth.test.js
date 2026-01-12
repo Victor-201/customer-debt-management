@@ -9,7 +9,6 @@ export let adminUserId = '';
 describe('Authentication & Authorization', () => {
 
   afterAll(() => {
-    // Clean up axios agent if exists
     if (axios.defaults.httpAgent?.destroy) axios.defaults.httpAgent.destroy();
     if (axios.defaults.httpsAgent?.destroy) axios.defaults.httpsAgent.destroy();
   });

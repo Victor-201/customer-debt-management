@@ -11,12 +11,14 @@ export default class DeleteCustomerUseCase {
       throw new BusinessRuleError('Customer not found');
     }
 
-    if (await this.customerRepository.hasInvoices(customerId)) {
-      throw new BusinessRuleError('Cannot delete customer with existing invoices');
+    const hasInvoices = await this.customerRepository.hasInvoices(customerId);
+    if (hasInvoices) {
+      throw new BusinessRuleError(
+        'Cannot delete customer with existing invoices'
+      );
     }
 
     await this.customerRepository.delete(customerId);
-
     return { message: 'Customer deleted successfully' };
   }
 }
