@@ -1,7 +1,7 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 
 export default class UpdateUserUseCase {
-  constructor(userRepository) {
+  constructor({ userRepository }) {
     this.userRepository = userRepository;
   }
 

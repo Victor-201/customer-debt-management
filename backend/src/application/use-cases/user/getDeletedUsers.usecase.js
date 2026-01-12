@@ -1,5 +1,5 @@
 export default class GetDeletedUsersUseCase {
-  constructor(userRepository) {
+  constructor({userRepository}) {
     this.userRepository = userRepository;
   }
 
