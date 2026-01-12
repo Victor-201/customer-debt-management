@@ -20,4 +20,14 @@ const updateCustomerSchema = Joi.object({
   status: Joi.string().valid("ACTIVE", "INACTIVE").optional(),
 });
 
-export { createCustomerSchema, updateCustomerSchema };
+const updateCustomerStatusSchema = Joi.object({
+  status: Joi.string()
+    .valid("ACTIVE", "INACTIVE")
+    .required(),
+});
+
+export {
+  createCustomerSchema,
+  updateCustomerSchema,
+  updateCustomerStatusSchema,
+};

@@ -3,22 +3,29 @@ import UpdateCustomerUseCase from "../../application/use-cases/customer/updateCu
 import DeleteCustomerUseCase from "../../application/use-cases/customer/deleteCustomer.usecase.js";
 import GetAllCustomersUseCase from "../../application/use-cases/customer/getAllCustomers.usecase.js";
 import GetCustomerByIdUseCase from "../../application/use-cases/customer/getCustomerById.usecase.js";
+import ListCustomersUseCase from "../../application/use-cases/customer/listCustomers.usecase.js";
+import UpdateCustomerStatusUseCase from "../../application/use-cases/customer/updateCustomerStatus.usecase.js";
+import AssessCustomerRiskUseCase from "../../application/use-cases/customer/assessCustomerRisk.usecase.js";
 
 class CustomerController {
-  constructor(customerRepository) {
-    this.customerRepository = customerRepository;
-
+  constructor(customerRepository, database) {
     this.createCustomerUseCase = new CreateCustomerUseCase(customerRepository);
     this.updateCustomerUseCase = new UpdateCustomerUseCase(customerRepository);
     this.deleteCustomerUseCase = new DeleteCustomerUseCase(customerRepository);
     this.getAllCustomersUseCase = new GetAllCustomersUseCase(customerRepository);
     this.getCustomerByIdUseCase = new GetCustomerByIdUseCase(customerRepository);
+    this.listCustomersUseCase = new ListCustomersUseCase(customerRepository);
+    this.updateCustomerStatusUseCase =
+      new UpdateCustomerStatusUseCase(customerRepository);
+    this.assessCustomerRiskUseCase = new AssessCustomerRiskUseCase(
+      customerRepository,
+      database
+    );
   }
 
-  async createCustomer(req, res) {
+  createCustomer = async (req, res) => {
     try {
-      const customerData = req.body;
-      const customer = await this.createCustomerUseCase.execute(customerData);
+      const customer = await this.createCustomerUseCase.execute(req.body);
 
       res.status(201).json({
         id: customer.id,
@@ -33,43 +40,45 @@ class CustomerController {
         createdAt: customer.createdAt,
       });
     } catch (error) {
-      if (error.name === "BusinessRuleError") {
-        return res.status(400).json({ error: error.message });
-      }
-      console.error("Create customer error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      this.#handleError(res, error);
     }
-  }
+  };
 
-  async getAllCustomers(req, res) {
+  getAllCustomers = async (req, res) => {
     try {
       const customers = await this.getAllCustomersUseCase.execute();
       res.json(customers);
     } catch (error) {
-      console.error("Get all customers error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      this.#handleError(res, error);
     }
-  }
+  };
 
-  async getCustomerById(req, res) {
+  listActiveCustomers = async (req, res) => {
+    try {
+      const customers = await this.listCustomersUseCase.execute();
+      res.json(customers);
+    } catch (error) {
+      this.#handleError(res, error);
+    }
+  };
+
+  getCustomerById = async (req, res) => {
     try {
       const { customerId } = req.params;
       const customer = await this.getCustomerByIdUseCase.execute(customerId);
       res.json(customer);
     } catch (error) {
-      if (error.name === "BusinessRuleError") {
-        return res.status(404).json({ error: error.message });
-      }
-      console.error("Get customer by id error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      this.#handleError(res, error);
     }
-  }
+  };
 
-  async updateCustomer(req, res) {
+  updateCustomer = async (req, res) => {
     try {
       const { customerId } = req.params;
-      const customerData = req.body;
-      const customer = await this.updateCustomerUseCase.execute(customerId, customerData);
+      const customer = await this.updateCustomerUseCase.execute(
+        customerId,
+        req.body
+      );
 
       res.json({
         id: customer.id,
@@ -84,58 +93,56 @@ class CustomerController {
         updatedAt: customer.updatedAt,
       });
     } catch (error) {
-      if (error.name === "BusinessRuleError") {
-        return res.status(400).json({ error: error.message });
-      }
-      console.error("Update customer error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      this.#handleError(res, error);
     }
-  }
+  };
 
-  async deleteCustomer(req, res) {
+  updateCustomerStatus = async (req, res) => {
+    try {
+      const { customerId } = req.params;
+      const { status } = req.body;
+
+      const customer = await this.updateCustomerStatusUseCase.execute(
+        customerId,
+        status
+      );
+
+      res.json({
+        message: "Customer status updated successfully",
+        status: customer.status,
+      });
+    } catch (error) {
+      this.#handleError(res, error);
+    }
+  };
+
+  assessCustomerRisk = async (req, res) => {
+    try {
+      const { customerId } = req.params;
+      const result = await this.assessCustomerRiskUseCase.execute(customerId);
+      res.json(result);
+    } catch (error) {
+      this.#handleError(res, error);
+    }
+  };
+
+  deleteCustomer = async (req, res) => {
     try {
       const { customerId } = req.params;
       const result = await this.deleteCustomerUseCase.execute(customerId);
       res.json(result);
     } catch (error) {
-      if (error.name === "BusinessRuleError") {
-        return res.status(400).json({ error: error.message });
-      }
-      console.error("Delete customer error:", error);
-      res.status(500).json({ error: "Internal server error" });
+      this.#handleError(res, error);
     }
-  }
+  };
 
-  async activateCustomer(req, res) {
-    try {
-      const { customerId } = req.params;
-      const customer = await this.customerRepository.findById(customerId);
-      if (!customer) {
-        return res.status(404).json({ error: "Customer not found" });
-      }
-      customer.activate();
-      await this.customerRepository.update(customer);
-      res.json({ message: "Customer activated successfully" });
-    } catch (error) {
-      console.error("Activate customer error:", error);
-      res.status(500).json({ error: "Internal server error" });
+  #handleError(res, error) {
+    if (error.name === "BusinessRuleError") {
+      return res.status(400).json({ error: error.message });
     }
-  }
 
-  async deactivateCustomer(req, res) {
-    try {
-      const { customerId } = req.params;
-      const customer = await this.customerRepository.findById(customerId);
-      if (!customer) {
-        return res.status(404).json({ error: "Customer not found" });
-      }
-      customer.deactivate();
-      await this.customerRepository.update(customer);
-      res.json({ message: "Customer deactivated successfully" });
-    } catch (error) {
-      console.error("Deactivate customer error:", error);
-      res.status(500).json({ error: "Internal server error" });
-    }
+    console.error("Customer error:", error);
+    res.status(500).json({ error: "Internal server error" });
   }
 }
 
