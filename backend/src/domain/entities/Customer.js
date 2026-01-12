@@ -1,8 +1,8 @@
-import { PaymentTerm } from '../value-objects/PaymentTerm.js';
-import { Money } from '../value-objects/Money.js';
+import { PaymentTerm } from "../value-objects/PaymentTerm.js";
+import { Money } from "../value-objects/Money.js";
 
-const VALID_RISK_LEVELS = ["NORMAL", "WARNING", "HIGH_RISK"];
-const VALID_STATUS = ["ACTIVE", "INACTIVE"];
+const RISK_LEVELS = ["NORMAL", "WARNING", "HIGH_RISK"];
+const STATUS = ["ACTIVE", "INACTIVE"];
 
 class Customer {
   constructor({
@@ -18,6 +18,8 @@ class Customer {
     createdAt,
     updatedAt,
   }) {
+    if (!name) throw new Error("Customer name is required");
+
     this.id = id ?? null;
     this.name = name;
     this.email = email ?? null;
@@ -32,69 +34,73 @@ class Customer {
     this.creditLimit =
       creditLimit instanceof Money ? creditLimit : new Money(creditLimit ?? 0);
 
-    this.riskLevel = riskLevel ?? "NORMAL";
-    this.status = status ?? "ACTIVE";
+    this.riskLevel = RISK_LEVELS.includes(riskLevel) ? riskLevel : "NORMAL";
 
-    this.createdAt = createdAt ?? null;
-    this.updatedAt = updatedAt ?? null;
+    this.status = STATUS.includes(status) ? status : "ACTIVE";
+
+    this.createdAt = createdAt ?? new Date();
+    this.updatedAt = updatedAt ?? new Date();
   }
 
-  static create({ name, email, phone, address, paymentTerm, creditLimit }) {
-    const term = PaymentTerm.fromString(paymentTerm ?? "NET_30");
-    const money = new Money(creditLimit ?? 0);
-
-    return new Customer({
-      name,
-      email,
-      phone,
-      address,
-      paymentTerm: term,
-      creditLimit: money,
-    });
+  static create(data) {
+    return new Customer(data);
   }
 
-  update({ name, email, phone, address, paymentTerm, creditLimit, riskLevel, status }) {
+  update(data) {
+    const { name, email, phone, address, paymentTerm, creditLimit } = data;
+
     if (name !== undefined) this.name = name;
     if (email !== undefined) this.email = email;
     if (phone !== undefined) this.phone = phone;
     if (address !== undefined) this.address = address;
 
-    if (paymentTerm !== undefined)
-      this.paymentTerm = PaymentTerm.fromString(paymentTerm);
-
-    if (creditLimit !== undefined) this.creditLimit = new Money(creditLimit);
-
-    if (riskLevel !== undefined) {
-      if (!VALID_RISK_LEVELS.includes(riskLevel))
-        throw new Error("Invalid risk level");
-      this.riskLevel = riskLevel;
+    if (paymentTerm !== undefined) {
+      this.paymentTerm = paymentTerm;
     }
 
-    if (status !== undefined) {
-      if (!VALID_STATUS.includes(status))
-        throw new Error("Invalid customer status");
-      this.status = status;
+    if (creditLimit !== undefined) {
+      this.creditLimit = creditLimit;
     }
+
+    this.updatedAt = new Date();
   }
 
   activate() {
     this.status = "ACTIVE";
+    this.updatedAt = new Date();
   }
 
   deactivate() {
     this.status = "INACTIVE";
+    this.updatedAt = new Date();
   }
 
   isActive() {
     return this.status === "ACTIVE";
   }
 
-  canHaveCreditLimit(amount) {
-    return this.creditLimit.amount >= amount;
+  setRiskLevel(level) {
+    if (!RISK_LEVELS.includes(level)) {
+      throw new Error("Invalid risk level");
+    }
+    this.riskLevel = level;
+    this.updatedAt = new Date();
+  }
+
+  markWarning() {
+    this.setRiskLevel("WARNING");
   }
 
   markHighRisk() {
-    this.riskLevel = "HIGH_RISK";
+    this.setRiskLevel("HIGH_RISK");
+  }
+
+  markNormalRisk() {
+    this.setRiskLevel("NORMAL");
+  }
+
+  canUseCredit(amount) {
+    return this.creditLimit.amount >= amount;
   }
 }
 

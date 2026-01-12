@@ -1,6 +1,4 @@
 import Customer from "../../../domain/entities/Customer.js";
-import { PaymentTerm } from "../../../domain/value-objects/PaymentTerm.js";
-import { Money } from "../../../domain/value-objects/Money.js";
 
 export default class CustomerRepository {
   constructor(database) {
@@ -11,7 +9,7 @@ export default class CustomerRepository {
     const query = "SELECT * FROM customers WHERE id = $1";
     const rows = await this.database.execute(query, [id]);
 
-    if (!rows.length) return null;
+    if (!rows || rows.length === 0) return null;
 
     return this.#mapRowToCustomer(rows[0]);
   }
@@ -20,19 +18,19 @@ export default class CustomerRepository {
     const query = "SELECT * FROM customers ORDER BY created_at DESC";
     const rows = await this.database.execute(query);
 
-    return rows.map((row) => this.#mapRowToCustomer(row));
+    return rows.map(row => this.#mapRowToCustomer(row));
   }
 
   async findActive() {
     const query = `
-      SELECT * 
-      FROM customers 
-      WHERE status = $1 
+      SELECT *
+      FROM customers
+      WHERE status = $1
       ORDER BY name ASC
     `;
     const rows = await this.database.execute(query, ["ACTIVE"]);
 
-    return rows.map((row) => this.#mapRowToCustomer(row));
+    return rows.map(row => this.#mapRowToCustomer(row));
   }
 
   async create(customer) {
@@ -111,14 +109,6 @@ export default class CustomerRepository {
     await this.database.execute(query, [id]);
   }
 
-  async activate(id) {
-    await this.#updateStatus(id, "ACTIVE");
-  }
-
-  async deactivate(id) {
-    await this.#updateStatus(id, "INACTIVE");
-  }
-
   async updateRiskLevel(id, riskLevel) {
     const query = `
       UPDATE customers
@@ -140,27 +130,18 @@ export default class CustomerRepository {
   }
 
   #mapRowToCustomer(row) {
-    return new Customer(
-      row.id,
-      row.name,
-      row.email,
-      row.phone,
-      row.address,
-      PaymentTerm.fromString(row.payment_term),
-      Money.fromNumber(Number(row.credit_limit)),
-      row.risk_level,
-      row.status,
-      row.created_at,
-      row.updated_at
-    );
-  }
-
-  async #updateStatus(id, status) {
-    const query = `
-      UPDATE customers
-      SET status = $1, updated_at = $2
-      WHERE id = $3
-    `;
-    await this.database.execute(query, [status, new Date(), id]);
+    return new Customer({
+      id: row.id,
+      name: row.name,
+      email: row.email,
+      phone: row.phone,
+      address: row.address,
+      paymentTerm: row.payment_term,  
+      creditLimit: Number(row.credit_limit),
+      riskLevel: row.risk_level,
+      status: row.status,
+      createdAt: row.created_at,
+      updatedAt: row.updated_at,
+    });
   }
 }
