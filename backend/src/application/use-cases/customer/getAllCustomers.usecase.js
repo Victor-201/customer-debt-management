@@ -5,7 +5,7 @@ export default class GetAllCustomersUseCase {
 
   async execute() {
     const customers = await this.customerRepository.findAll();
-    return customers.map(customer => this.#toResponse(customer));
+    return customers.map(c => this.#toResponse(c));
   }
 
   #toResponse(customer) {
