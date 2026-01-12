@@ -1,12 +1,9 @@
 import express from "express";
-
 import UserController from "../../presentation/controllers/user.controller.js";
 import UserRepository from "../../application/interfaces/repositories/user.repository.interface.js";
-
 import authMiddleware from "../middlewares/auth.middleware.js";
 import permissionMiddleware from "../middlewares/permission.middleware.js";
 import validateMiddleware from "../middlewares/validate.middleware.js";
-
 import { USER_PERMISSIONS } from "../../shared/constants/permissions.js";
 import { execute } from "../../main/config/database.js";
 import {
@@ -15,7 +12,6 @@ import {
 } from "../../presentation/validators/user.schema.js";
 
 const router = express.Router();
-
 const userRepository = new UserRepository({ execute });
 const userController = new UserController(userRepository);
 
@@ -40,7 +36,13 @@ router.get(
   userController.getUser.bind(userController)
 );
 
-router.put(
+router.get(
+  "/deleted",
+  permissionMiddleware(USER_PERMISSIONS.READ),
+  userController.getDeletedUsers.bind(userController)
+);
+
+router.patch(
   "/:userId",
   permissionMiddleware(USER_PERMISSIONS.UPDATE),
   validateMiddleware(updateUserSchema),
@@ -60,9 +62,27 @@ router.post(
 );
 
 router.delete(
-  "/:userId",
+  "/:userId/soft",
   permissionMiddleware(USER_PERMISSIONS.DELETE),
-  userController.deleteUser
+  userController.softDeleteUser.bind(userController)
+);
+
+router.post(
+  "/:userId/restore",
+  permissionMiddleware(USER_PERMISSIONS.DELETE),
+  userController.restoreUser.bind(userController)
+);
+
+router.delete(
+  "/:userId/hard",
+  permissionMiddleware(USER_PERMISSIONS.DELETE),
+  userController.hardDeleteUser.bind(userController)
+);
+
+router.delete(
+  "/hard/all",
+  permissionMiddleware(USER_PERMISSIONS.DELETE),
+  userController.hardDeleteAllDeletedUsers.bind(userController)
 );
 
 export default router;
