@@ -1,4 +1,6 @@
-class User {
+export default class User {
+  #passwordHash;
+
   constructor({
     id = null,
     name,
@@ -13,7 +15,7 @@ class User {
     this.id = id;
     this.name = name;
     this.email = email;
-    this.passwordHash = passwordHash;
+    this.#passwordHash = passwordHash;
     this.role = role;
     this.isActive = isActive;
     this.createdAt = createdAt;
@@ -25,13 +27,35 @@ class User {
     return new User({ name, email, passwordHash, role });
   }
 
+  get passwordHash() {
+    return this.#passwordHash;
+  }
+
   isAdmin() {
     return this.role === "ADMIN";
+  }
+
+  isActiveUser() {
+    return this.isActive === true;
   }
 
   isDeleted() {
     return this.deletedAt !== null;
   }
-}
 
-export default User;
+  canLogin() {
+    return this.isActiveUser() && !this.isDeleted();
+  }
+
+  toResponse() {
+    return {
+      id: this.id,
+      name: this.name,
+      email: this.email,
+      role: this.role,
+      isActive: this.isActive,
+      createdAt: this.createdAt,
+      updatedAt: this.updatedAt,
+    };
+  }
+}

@@ -1,10 +1,10 @@
 export default class HardDeleteUserUseCase {
-  constructor(userRepository) {
+  constructor({ userRepository }) {
     this.userRepository = userRepository;
   }
 
   async execute(userId) {
     await this.userRepository.hardDelete(userId);
-    return { message: 'User permanently deleted' };
+    return { message: "User permanently deleted" };
   }
 }

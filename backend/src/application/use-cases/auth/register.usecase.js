@@ -1,10 +1,10 @@
-import bcrypt from "bcrypt";
 import User from "../../../domain/entities/User.js";
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 
-class RegisterUseCase {
-  constructor(userRepository) {
+export default class RegisterUseCase {
+  constructor({ userRepository, passwordHasher }) {
     this.userRepository = userRepository;
+    this.passwordHasher = passwordHasher;
   }
 
   async execute({ name, email, password, role }) {
@@ -17,17 +17,18 @@ class RegisterUseCase {
       throw new BusinessRuleError("Email already exists");
     }
 
-    const passwordHash = await bcrypt.hash(password, 10);
+    const passwordHash = await this.passwordHasher.hash(password);
 
-    const user = User.create({
-      name,
-      email,
-      passwordHash,
-      role,
-    });
+    const user = User.create({ name, email, passwordHash, role });
+    const savedUser = await this.userRepository.create(user);
 
-    return this.userRepository.create(user);
+    return {
+      id: savedUser.id,
+      name: savedUser.name,
+      email: savedUser.email,
+      role: savedUser.role,
+      isActive: savedUser.isActive,
+      createdAt: savedUser.createdAt,
+    };
   }
 }
-
-export default RegisterUseCase;

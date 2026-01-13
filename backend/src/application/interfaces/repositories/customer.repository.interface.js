@@ -118,6 +118,17 @@ export default class CustomerRepository {
     await this.database.execute(query, [riskLevel, new Date(), id]);
   }
 
+  async findHighRiskCustomers() {
+    const query = `
+      SELECT *
+      FROM customers
+      WHERE risk_level = 'HIGH_RISK'
+      ORDER BY name ASC
+    `;
+    const rows = await this.database.execute(query);
+    return rows.map(row => this.#mapRowToCustomer(row));
+  }
+
   async hasInvoices(customerId) {
     const query = `
       SELECT COUNT(*)::int AS count
@@ -136,7 +147,7 @@ export default class CustomerRepository {
       email: row.email,
       phone: row.phone,
       address: row.address,
-      paymentTerm: row.payment_term,  
+      paymentTerm: row.payment_term,
       creditLimit: Number(row.credit_limit),
       riskLevel: row.risk_level,
       status: row.status,

@@ -1,33 +1,33 @@
-import RegisterUseCase from "../../application/use-cases/auth/register.usecase.js";
-import UpdateUserUseCase from "../../application/use-cases/user/updateUser.usecase.js";
-import GetUserUseCase from "../../application/use-cases/user/getUser.usecase.js";
-import GetAllUsersUseCase from "../../application/use-cases/user/getAllUsers.usecase.js";
-import GetDeletedUsersUseCase from "../../application/use-cases/user/getDeletedUsers.usecase.js";
-import LockUserUseCase from "../../application/use-cases/user/lockUser.usecase.js";
-import UnlockUserUseCase from "../../application/use-cases/user/unlockUser.usecase.js";
-import SoftDeleteUserUseCase from "../../application/use-cases/user/softDeleteUser.usecase.js";
-import RestoreUserUseCase from "../../application/use-cases/user/restoreUser.usecase.js";
-import HardDeleteUserUseCase from "../../application/use-cases/user/hardDeleteUser.usecase.js";
-import HardDeleteAllUsersUseCase from "../../application/use-cases/user/hardDeleteAllUsers.usecase.js";
-
 class UserController {
-  constructor(userRepository) {
-    this.registerUseCase = new RegisterUseCase(userRepository);
-    this.updateUserUseCase = new UpdateUserUseCase(userRepository);
-    this.getUserUseCase = new GetUserUseCase(userRepository);
-    this.getAllUsersUseCase = new GetAllUsersUseCase(userRepository);
-    this.getDeletedUsersUseCase = new GetDeletedUsersUseCase(userRepository);
-    this.lockUserUseCase = new LockUserUseCase(userRepository);
-    this.unlockUserUseCase = new UnlockUserUseCase(userRepository);
-    this.softDeleteUserUseCase = new SoftDeleteUserUseCase(userRepository);
-    this.restoreUserUseCase = new RestoreUserUseCase(userRepository);
-    this.hardDeleteUserUseCase = new HardDeleteUserUseCase(userRepository);
-    this.hardDeleteAllUsersUseCase = new HardDeleteAllUsersUseCase(userRepository);
+  constructor({
+    createUserUseCase,
+    updateUserUseCase,
+    getUserUseCase,
+    getAllUsersUseCase,
+    getDeletedUsersUseCase,
+    lockUserUseCase,
+    unlockUserUseCase,
+    softDeleteUserUseCase,
+    restoreUserUseCase,
+    hardDeleteUserUseCase,
+    hardDeleteAllUsersUseCase,
+  }) {
+    this.createUserUseCase = createUserUseCase;
+    this.updateUserUseCase = updateUserUseCase;
+    this.getUserUseCase = getUserUseCase;
+    this.getAllUsersUseCase = getAllUsersUseCase;
+    this.getDeletedUsersUseCase = getDeletedUsersUseCase;
+    this.lockUserUseCase = lockUserUseCase;
+    this.unlockUserUseCase = unlockUserUseCase;
+    this.softDeleteUserUseCase = softDeleteUserUseCase;
+    this.restoreUserUseCase = restoreUserUseCase;
+    this.hardDeleteUserUseCase = hardDeleteUserUseCase;
+    this.hardDeleteAllUsersUseCase = hardDeleteAllUsersUseCase;
   }
 
   createUser = async (req, res) => {
     try {
-      const user = await this.registerUseCase.execute(req.body);
+      const user = await this.createUserUseCase.execute(req.body);
       res.status(201).json(user);
     } catch (error) {
       this.#handleError(res, error);
@@ -55,7 +55,7 @@ class UserController {
     }
   };
 
-  getDeletedUsers = async (req, res) => {
+  getDeletedUsers = async (_req, res) => {
     try {
       const users = await this.getDeletedUsersUseCase.execute();
       res.json(users);
@@ -66,12 +66,12 @@ class UserController {
 
   updateUser = async (req, res) => {
     try {
-      const user = await this.updateUserUseCase.execute(
+      const result = await this.updateUserUseCase.execute(
         req.params.userId,
         req.body,
         req.user?.userId
       );
-      res.json(user);
+      res.json(result);
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -125,7 +125,7 @@ class UserController {
     }
   };
 
-  hardDeleteAllDeletedUsers = async (req, res) => {
+  hardDeleteAllDeletedUsers = async (_req, res) => {
     try {
       const result = await this.hardDeleteAllUsersUseCase.execute();
       res.json(result);

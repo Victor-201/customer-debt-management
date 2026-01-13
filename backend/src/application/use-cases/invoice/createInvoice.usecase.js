@@ -1,39 +1,22 @@
-import Invoice from "../../domain/entities/Invoice.js";
+import Invoice from "../../../domain/entities/Invoice.js";
 
 class CreateInvoiceUseCase {
-  constructor({ invoiceRepository }) {
-    this.invoiceRepository = invoiceRepository;
-  }
-
-  async execute({
-    customer_id,
-    invoice_number,
-    issue_date,
-    due_date,
-    total_amount,
-    created_by,
-  }) {
-    // 1. Check duplicate invoice number
-    const existing =
-      await this.invoiceRepository.findByInvoiceNumber(invoice_number);
-
-    if (existing) {
-      throw new Error("Invoice number already exists");
+    constructor(invoiceRepository) {
+        this.invoiceRepository = invoiceRepository;
     }
 
-    // 2. Create entity
-    const invoice = Invoice.create({
-      customer_id,
-      invoice_number,
-      issue_date,
-      due_date,
-      total_amount,
-      created_by,
-    });
+    async execute(data) {
+        const invoice = Invoice.create({
+            customer_id: data.customerId,          // input API camelCase -> domain snake_case
+            invoice_number: data.invoiceNumber,
+            issue_date: data.issueDate,
+            due_date: data.dueDate,
+            total_amount: data.totalAmount,
+            created_by: data.createdBy ?? null,
+        });
 
-    // 3. Save
-    return await this.invoiceRepository.save(invoice);
-  }
+        return await this.invoiceRepository.save(invoice);
+    }
 }
 
 export default CreateInvoiceUseCase;

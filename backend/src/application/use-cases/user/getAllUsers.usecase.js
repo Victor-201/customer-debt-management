@@ -1,8 +1,7 @@
 export default class GetAllUsersUseCase {
-  constructor(userRepository) {
+  constructor({userRepository}) {
     this.userRepository = userRepository;
   }
-
   async execute({ isActive } = {}) {
     const users = await this.userRepository.findAll({ isActive });
     return users.map(this.#toResponse);

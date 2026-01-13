@@ -1,5 +1,7 @@
 class InvoiceStatus {
-  constructor(value) {
+    static ALLOWED = ["PENDING", "OVERDUE", "PAID"];
+
+    constructor(value) {
     if (!InvoiceStatus.ALLOWED.includes(value)) {
       throw new Error(`Invalid invoice status: ${value}`);
     }
@@ -10,7 +12,6 @@ class InvoiceStatus {
   static OVERDUE = new InvoiceStatus("OVERDUE");
   static PAID = new InvoiceStatus("PAID");
 
-  static ALLOWED = ["PENDING", "OVERDUE", "PAID"];
 
   static fromString(value) {
     switch (value) {
