@@ -10,6 +10,11 @@ import InvoiceDetailPage from '../pages/invoices/InvoiceDetailPage.jsx';
 // Payment pages
 import PaymentPage from '../pages/payments/PaymentPage.jsx';
 
+// Login page 
+import PrivateRoute from '../routes/PrivateRoute.jsx';
+import LoginPage from '../pages/auth/LoginPage.jsx';
+
+
 /**
  * Dashboard placeholder - can be expanded later
  */
@@ -81,6 +86,7 @@ const ReportsPage = () => (
 const AppRoutes = () => {
     return (
         <Routes>
+            <Route path="/login" element={<LoginPage />} />
             {/* Dashboard Layout */}
             <Route path="/" element={<DashboardLayout />}>
                 {/* Default redirect to invoices */}
