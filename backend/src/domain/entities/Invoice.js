@@ -30,7 +30,7 @@ class Invoice {
     this.status =
       status instanceof InvoiceStatus
         ? status
-        : InvoiceStatus.pending();
+        : InvoiceStatus.PENDING;
 
     this.created_by = created_by ?? null;
     this.created_at = created_at ?? null;
@@ -44,13 +44,13 @@ class Invoice {
       issue_date,
       due_date,
       total_amount,
-      status: InvoiceStatus.pending(),
+      status: InvoiceStatus.PENDING,
       created_by,
     });
   }
 
   applyPayment(amount) {
-    if (!this.status.canReceivePayment()) {
+    if (!this.status.canApplyPayment()) {
       throw new Error("Cannot apply payment to a PAID invoice");
     }
 
@@ -64,7 +64,7 @@ class Invoice {
     this.balance_amount = this.total_amount.subtract(this.paid_amount);
 
     if (this.balance_amount.amount === 0) {
-      this.status = InvoiceStatus.paid();
+      this.status = InvoiceStatus.PAID;
     }
   }
 
@@ -73,7 +73,7 @@ class Invoice {
       this.status.isPending() &&
       new Date(this.due_date) < currentDate
     ) {
-      this.status = InvoiceStatus.overdue();
+      this.status = InvoiceStatus.OVERDUE;
     }
   }
 

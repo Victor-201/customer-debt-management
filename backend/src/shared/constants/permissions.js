@@ -19,3 +19,16 @@ export const INVOICE_PERMISSIONS = Object.freeze({
   UPDATE: "invoices:update",
   DELETE: "invoices:delete",
 });
+
+export const DASHBOARD_PERMISSIONS = Object.freeze({
+    READ: "dashboard:read",
+    VIEW_AR: "dashboard:ar_view",
+    VIEW_RISK: "dashboard:risk_view",
+})
+
+export const RISK_PERMISSIONS = Object.freeze({
+    READ: "risk:read",
+    VIEW_HIGH_RISK: "risk:high:view",
+    ASSESS: "risk:assess",
+    UPDATE_LEVEL: "risk:update"
+})
