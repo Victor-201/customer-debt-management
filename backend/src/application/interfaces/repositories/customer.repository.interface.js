@@ -22,7 +22,6 @@ export default class CustomerRepositoryInterface {
   delete(id) {
     throw new Error("Method not implemented");
   }
-
   updateRiskLevel(id, riskLevel) {
     throw new Error("Method not implemented");
   }
@@ -32,6 +31,10 @@ export default class CustomerRepositoryInterface {
   }
 
   hasInvoices(customerId) {
+    throw new Error("Method not implemented");
+  }
+
+  getInvoiceAgingSummary(customerId) {
     throw new Error("Method not implemented");
   }
 }

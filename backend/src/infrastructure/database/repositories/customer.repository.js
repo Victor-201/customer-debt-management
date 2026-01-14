@@ -1,47 +1,52 @@
-import CustomerRepositoryInterface from "../../../application/interfaces/repositories/customer.repository.interface.js";
+import { Op } from "sequelize";
 import Customer from "../../../domain/entities/Customer.js";
+import CustomerRepositoryInterface from "../../../application/interfaces/repositories/customer.repository.interface.js";
 
 export default class CustomerRepository extends CustomerRepositoryInterface {
-  constructor(CustomerModel, InvoiceModel) {
+  constructor({ CustomerModel, InvoiceModel }) {
     super();
     this.CustomerModel = CustomerModel;
     this.InvoiceModel = InvoiceModel;
   }
 
   async findById(id) {
-    const record = await this.CustomerModel.findByPk(id);
-    return record ? this.toEntity(record) : null;
+    const row = await this.CustomerModel.findOne({
+      where: { id },
+    });
+
+    return row ? this.#toDomain(row) : null;
   }
 
   async findAll() {
-    const records = await this.CustomerModel.findAll({
+    const rows = await this.CustomerModel.findAll({
       order: [["created_at", "DESC"]],
     });
-    return records.map(r => this.toEntity(r));
+
+    return rows.map(row => this.#toDomain(row));
   }
 
   async findActive() {
-    const records = await this.CustomerModel.findAll({
+    const rows = await this.CustomerModel.findAll({
       where: { status: "ACTIVE" },
       order: [["name", "ASC"]],
     });
-    return records.map(r => this.toEntity(r));
+
+    return rows.map(row => this.#toDomain(row));
   }
 
   async create(customer) {
-    const record = await this.CustomerModel.create({
+    const row = await this.CustomerModel.create({
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
       address: customer.address,
-      paymentTerm: customer.paymentTerm.value,
-      creditLimit: customer.creditLimit.amount,
-      riskLevel: customer.riskLevel,
+      payment_term: customer.paymentTerm,
+      credit_limit: customer.creditLimit,
+      risk_level: customer.riskLevel,
       status: customer.status,
     });
 
-    customer.id = record.id;
-    return customer;
+    return this.#toDomain(row);
   }
 
   async update(customer) {
@@ -51,18 +56,18 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
         email: customer.email,
         phone: customer.phone,
         address: customer.address,
-        paymentTerm: customer.paymentTerm.value,
-        creditLimit: customer.creditLimit.amount,
-        riskLevel: customer.riskLevel,
+        payment_term: customer.paymentTerm,
+        credit_limit: customer.creditLimit,
+        risk_level: customer.riskLevel,
         status: customer.status,
-        updated_at: customer.updatedAt,
+        updated_at: new Date(),
       },
       {
         where: { id: customer.id },
       }
     );
 
-    return customer;
+    return this.findById(customer.id);
   }
 
   async delete(id) {
@@ -76,45 +81,47 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
   async updateRiskLevel(id, riskLevel) {
     await this.CustomerModel.update(
       {
-        riskLevel,
+        risk_level: riskLevel,
         updated_at: new Date(),
       },
       {
         where: { id },
       }
     );
+
+    return this.findById(id);
   }
 
   async findHighRiskCustomers() {
-    const records = await this.CustomerModel.findAll({
-      where: { riskLevel: "HIGH_RISK" },
+    const rows = await this.CustomerModel.findAll({
+      where: { risk_level: "HIGH_RISK" },
       order: [["name", "ASC"]],
     });
 
-    return records.map(r => this.toEntity(r));
+    return rows.map(row => this.#toDomain(row));
   }
 
   async hasInvoices(customerId) {
     const count = await this.InvoiceModel.count({
-      where: { customerId },
+      where: { customer_id: customerId },
     });
 
     return count > 0;
   }
 
-  toEntity(record) {
+  #toDomain(row) {
     return new Customer({
-      id: record.id,
-      name: record.name,
-      email: record.email,
-      phone: record.phone,
-      address: record.address,
-      paymentTerm: record.paymentTerm,
-      creditLimit: Number(record.creditLimit),
-      riskLevel: record.riskLevel,
-      status: record.status,
-      createdAt: record.created_at,
-      updatedAt: record.updated_at,
+      id: row.get("id"),
+      name: row.get("name"),
+      email: row.get("email"),
+      phone: row.get("phone"),
+      address: row.get("address"),
+      paymentTerm: row.get("payment_term"),
+      creditLimit: Number(row.get("credit_limit")),
+      riskLevel: row.get("risk_level"),
+      status: row.get("status"),
+      createdAt: row.get("created_at"),
+      updatedAt: row.get("updated_at"),
     });
   }
 }
