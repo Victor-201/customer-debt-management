@@ -1,44 +1,28 @@
-import CreateCustomerUseCase from "../../application/use-cases/customer/createCustomer.usecase.js";
-import UpdateCustomerUseCase from "../../application/use-cases/customer/updateCustomer.usecase.js";
-import DeleteCustomerUseCase from "../../application/use-cases/customer/deleteCustomer.usecase.js";
-import GetAllCustomersUseCase from "../../application/use-cases/customer/getAllCustomers.usecase.js";
-import GetCustomerByIdUseCase from "../../application/use-cases/customer/getCustomerById.usecase.js";
-import ListCustomersUseCase from "../../application/use-cases/customer/listCustomers.usecase.js";
-import UpdateCustomerStatusUseCase from "../../application/use-cases/customer/updateCustomerStatus.usecase.js";
-import AssessCustomerRiskUseCase from "../../application/use-cases/customer/assessCustomerRisk.usecase.js";
-
 class CustomerController {
-  constructor(customerRepository, database) {
-    this.createCustomerUseCase = new CreateCustomerUseCase(customerRepository);
-    this.updateCustomerUseCase = new UpdateCustomerUseCase(customerRepository);
-    this.deleteCustomerUseCase = new DeleteCustomerUseCase(customerRepository);
-    this.getAllCustomersUseCase = new GetAllCustomersUseCase(customerRepository);
-    this.getCustomerByIdUseCase = new GetCustomerByIdUseCase(customerRepository);
-    this.listCustomersUseCase = new ListCustomersUseCase(customerRepository);
-    this.updateCustomerStatusUseCase =
-      new UpdateCustomerStatusUseCase(customerRepository);
-    this.assessCustomerRiskUseCase = new AssessCustomerRiskUseCase(
-      customerRepository,
-      database
-    );
+  constructor({
+    createCustomerUseCase,
+    updateCustomerUseCase,
+    deleteCustomerUseCase,
+    getAllCustomersUseCase,
+    getCustomerByIdUseCase,
+    listCustomersUseCase,
+    updateCustomerStatusUseCase,
+    assessCustomerRiskUseCase,
+  }) {
+    this.createCustomerUseCase = createCustomerUseCase;
+    this.updateCustomerUseCase = updateCustomerUseCase;
+    this.deleteCustomerUseCase = deleteCustomerUseCase;
+    this.getAllCustomersUseCase = getAllCustomersUseCase;
+    this.getCustomerByIdUseCase = getCustomerByIdUseCase;
+    this.listCustomersUseCase = listCustomersUseCase;
+    this.updateCustomerStatusUseCase = updateCustomerStatusUseCase;
+    this.assessCustomerRiskUseCase = assessCustomerRiskUseCase;
   }
 
   createCustomer = async (req, res) => {
     try {
       const customer = await this.createCustomerUseCase.execute(req.body);
-
-      res.status(201).json({
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address,
-        paymentTerm: customer.paymentTerm.value,
-        creditLimit: customer.creditLimit.amount,
-        riskLevel: customer.riskLevel,
-        status: customer.status,
-        createdAt: customer.createdAt,
-      });
+      res.status(201).json(customer.toResponse());
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -64,8 +48,7 @@ class CustomerController {
 
   getCustomerById = async (req, res) => {
     try {
-      const { customerId } = req.params;
-      const customer = await this.getCustomerByIdUseCase.execute(customerId);
+      const customer = await this.getCustomerByIdUseCase.execute(req.params.customerId);
       res.json(customer);
     } catch (error) {
       this.#handleError(res, error);
@@ -74,24 +57,11 @@ class CustomerController {
 
   updateCustomer = async (req, res) => {
     try {
-      const { customerId } = req.params;
       const customer = await this.updateCustomerUseCase.execute(
-        customerId,
+        req.params.customerId,
         req.body
       );
-
-      res.json({
-        id: customer.id,
-        name: customer.name,
-        email: customer.email,
-        phone: customer.phone,
-        address: customer.address,
-        paymentTerm: customer.paymentTerm.value,
-        creditLimit: customer.creditLimit.amount,
-        riskLevel: customer.riskLevel,
-        status: customer.status,
-        updatedAt: customer.updatedAt,
-      });
+      res.json(customer.toResponse());
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -99,18 +69,11 @@ class CustomerController {
 
   updateCustomerStatus = async (req, res) => {
     try {
-      const { customerId } = req.params;
-      const { status } = req.body;
-
       const customer = await this.updateCustomerStatusUseCase.execute(
-        customerId,
-        status
+        req.params.customerId,
+        req.body.status
       );
-
-      res.json({
-        message: "Customer status updated successfully",
-        status: customer.status,
-      });
+      res.json({ status: customer.status });
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -118,8 +81,7 @@ class CustomerController {
 
   assessCustomerRisk = async (req, res) => {
     try {
-      const { customerId } = req.params;
-      const result = await this.assessCustomerRiskUseCase.execute(customerId);
+      const result = await this.assessCustomerRiskUseCase.execute(req.params.customerId);
       res.json(result);
     } catch (error) {
       this.#handleError(res, error);
@@ -128,9 +90,8 @@ class CustomerController {
 
   deleteCustomer = async (req, res) => {
     try {
-      const { customerId } = req.params;
-      const result = await this.deleteCustomerUseCase.execute(customerId);
-      res.json(result);
+      await this.deleteCustomerUseCase.execute(req.params.customerId);
+      res.json({ message: "Customer deleted successfully" });
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -140,8 +101,7 @@ class CustomerController {
     if (error.name === "BusinessRuleError") {
       return res.status(400).json({ error: error.message });
     }
-
-    console.error("Customer error:", error);
+    console.error(error);
     res.status(500).json({ error: "Internal server error" });
   }
 }
