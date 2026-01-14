@@ -1,143 +1,120 @@
-const Customer = require('../../domain/entities/Customer');
-const { PaymentTerm } = require('../../domain/value-objects/PaymentTerm');
-const { Money } = require('../../domain/value-objects/Money');
+import CustomerRepositoryInterface from "../../../application/interfaces/repositories/customer.repository.interface.js";
+import Customer from "../../../domain/entities/Customer.js";
 
-class CustomerRepository {
-  constructor(database) {
-    this.database = database;
+export default class CustomerRepository extends CustomerRepositoryInterface {
+  constructor(CustomerModel, InvoiceModel) {
+    super();
+    this.CustomerModel = CustomerModel;
+    this.InvoiceModel = InvoiceModel;
   }
 
   async findById(id) {
-    const query = 'SELECT * FROM customers WHERE id = $1';
-    const rows = await this.database.execute(query, [id]);
-    if (rows.length === 0) return null;
-
-    const row = rows[0];
-    return new Customer(
-      row.id,
-      row.name,
-      row.email,
-      row.phone,
-      row.address,
-      PaymentTerm.fromString(row.payment_term),
-      Money.fromNumber(parseFloat(row.credit_limit)),
-      row.risk_level,
-      row.status,
-      row.created_at,
-      row.updated_at
-    );
+    const record = await this.CustomerModel.findByPk(id);
+    return record ? this.toEntity(record) : null;
   }
 
   async findAll() {
-    const query = 'SELECT * FROM customers ORDER BY created_at DESC';
-    const rows = await this.database.execute(query);
-    return rows.map(row => new Customer(
-      row.id,
-      row.name,
-      row.email,
-      row.phone,
-      row.address,
-      PaymentTerm.fromString(row.payment_term),
-      Money.fromNumber(parseFloat(row.credit_limit)),
-      row.risk_level,
-      row.status,
-      row.created_at,
-      row.updated_at
-    ));
+    const records = await this.CustomerModel.findAll({
+      order: [["created_at", "DESC"]],
+    });
+    return records.map(r => this.toEntity(r));
   }
 
   async findActive() {
-    const query = 'SELECT * FROM customers WHERE status = $1 ORDER BY name ASC';
-    const rows = await this.database.execute(query, ['ACTIVE']);
-    return rows.map(row => new Customer(
-      row.id,
-      row.name,
-      row.email,
-      row.phone,
-      row.address,
-      PaymentTerm.fromString(row.payment_term),
-      Money.fromNumber(parseFloat(row.credit_limit)),
-      row.risk_level,
-      row.status,
-      row.created_at,
-      row.updated_at
-    ));
+    const records = await this.CustomerModel.findAll({
+      where: { status: "ACTIVE" },
+      order: [["name", "ASC"]],
+    });
+    return records.map(r => this.toEntity(r));
   }
 
   async create(customer) {
-    const query = `
-      INSERT INTO customers (name, email, phone, address, payment_term, credit_limit, risk_level, status, created_at, updated_at)
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
-      RETURNING id
-    `;
-    const rows = await this.database.execute(query, [
-      customer.name,
-      customer.email,
-      customer.phone,
-      customer.address,
-      customer.paymentTerm.value,
-      customer.creditLimit.amount,
-      customer.riskLevel,
-      customer.status,
-      customer.createdAt,
-      customer.updatedAt
-    ]);
-    customer.id = rows[0].id;
+    const record = await this.CustomerModel.create({
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      paymentTerm: customer.paymentTerm.value,
+      creditLimit: customer.creditLimit.amount,
+      riskLevel: customer.riskLevel,
+      status: customer.status,
+    });
+
+    customer.id = record.id;
     return customer;
   }
 
   async update(customer) {
-    const query = `
-      UPDATE customers
-      SET name = $1, email = $2, phone = $3, address = $4, payment_term = $5, credit_limit = $6, risk_level = $7, status = $8, updated_at = $9
-      WHERE id = $10
-    `;
-    await this.database.execute(query, [
-      customer.name,
-      customer.email,
-      customer.phone,
-      customer.address,
-      customer.paymentTerm.value,
-      customer.creditLimit.amount,
-      customer.riskLevel,
-      customer.status,
-      customer.updatedAt,
-      customer.id
-    ]);
+    await this.CustomerModel.update(
+      {
+        name: customer.name,
+        email: customer.email,
+        phone: customer.phone,
+        address: customer.address,
+        paymentTerm: customer.paymentTerm.value,
+        creditLimit: customer.creditLimit.amount,
+        riskLevel: customer.riskLevel,
+        status: customer.status,
+        updated_at: customer.updatedAt,
+      },
+      {
+        where: { id: customer.id },
+      }
+    );
+
     return customer;
   }
 
   async delete(id) {
-    // Check if customer has invoices
-    const hasInvoices = await this.hasInvoices(id);
-    if (hasInvoices) {
-      throw new Error('Cannot delete customer with existing invoices');
+    if (await this.hasInvoices(id)) {
+      throw new Error("Cannot delete customer with invoices");
     }
 
-    const query = 'DELETE FROM customers WHERE id = $1';
-    await this.database.execute(query, [id]);
-  }
-
-  async hasInvoices(customerId) {
-    const query = 'SELECT COUNT(*) as count FROM invoices WHERE customer_id = $1';
-    const rows = await this.database.execute(query, [customerId]);
-    return parseInt(rows[0].count) > 0;
-  }
-
-  async activate(id) {
-    const query = 'UPDATE customers SET status = $1, updated_at = $2 WHERE id = $3';
-    await this.database.execute(query, ['ACTIVE', new Date(), id]);
-  }
-
-  async deactivate(id) {
-    const query = 'UPDATE customers SET status = $1, updated_at = $2 WHERE id = $3';
-    await this.database.execute(query, ['INACTIVE', new Date(), id]);
+    await this.CustomerModel.destroy({ where: { id } });
   }
 
   async updateRiskLevel(id, riskLevel) {
-    const query = 'UPDATE customers SET risk_level = $1, updated_at = $2 WHERE id = $3';
-    await this.database.execute(query, [riskLevel, new Date(), id]);
+    await this.CustomerModel.update(
+      {
+        riskLevel,
+        updated_at: new Date(),
+      },
+      {
+        where: { id },
+      }
+    );
+  }
+
+  async findHighRiskCustomers() {
+    const records = await this.CustomerModel.findAll({
+      where: { riskLevel: "HIGH_RISK" },
+      order: [["name", "ASC"]],
+    });
+
+    return records.map(r => this.toEntity(r));
+  }
+
+  async hasInvoices(customerId) {
+    const count = await this.InvoiceModel.count({
+      where: { customerId },
+    });
+
+    return count > 0;
+  }
+
+  toEntity(record) {
+    return new Customer({
+      id: record.id,
+      name: record.name,
+      email: record.email,
+      phone: record.phone,
+      address: record.address,
+      paymentTerm: record.paymentTerm,
+      creditLimit: Number(record.creditLimit),
+      riskLevel: record.riskLevel,
+      status: record.status,
+      createdAt: record.created_at,
+      updatedAt: record.updated_at,
+    });
   }
 }
-
-module.exports = CustomerRepository;
