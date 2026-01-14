@@ -50,6 +50,40 @@ class PaymentRepository {
     return rows?.[0] ? this._mapRowToEntity(rows[0]) : null;
   }
 
+  async findAllByInvoiceId(invoice_id) {
+    let query = `
+      SELECT *
+      FROM payments
+      WHERE invoice_id = $1
+      ORDER BY payment_date ASC, created_at ASC
+    `;
+
+    const values = [invoice_id];
+
+    const rows = await this.execute(query, values);
+    return rows.map(row => this._mapRowToEntity(row));
+  }
+
+  async sumByInvoiceId(invoiceId) {
+    const query = `
+      SELECT COALESCE(
+        SUM(
+          CASE
+            WHEN type = 'REVERSAL' THEN -amount
+            ELSE amount
+          END
+        ), 0
+      ) AS total_paid
+      FROM payments
+      WHERE invoice_id = $1;
+    `;
+
+    const values = [invoiceId];
+    const result = await this.execute(query, values);
+
+    return Number(result.rows[0].total_paid);
+  }
+
   _mapRowToEntity(row) {
     return new Payment({
       id: row.id,
