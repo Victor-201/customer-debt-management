@@ -60,12 +60,13 @@ router.post(
 /**
  * POST /invoices/:invoiceId/recalc-balance
  * (nếu bạn có recalcInvoiceBalance.usecase)
+ * Không recalc invoice vì đây là nghiệp vụ khi thanh toán hoặc hoàn tiền.
  */
-router.post(
-    "/:invoiceId/recalc-balance",
-    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-    invoiceController.recalcInvoiceBalance
-);
+// router.post(
+//     "/:invoiceId/recalc-balance",
+//     permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+//     invoiceController.recalcInvoiceBalance
+// );
 
 /**
  * POST /invoices/update-overdue

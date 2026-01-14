@@ -5,7 +5,7 @@ class MarkInvoicePaidUseCase {
         this.invoiceRepository = invoiceRepository;
     }
 
-    async execute(id, userId) {
+    async execute(id) {
         const invoice = await this.invoiceRepository.findById(id);
 
         if (!invoice) {
@@ -13,16 +13,17 @@ class MarkInvoicePaidUseCase {
         }
 
         if (invoice.isPaid()) {
-            return invoice; // Already paid
+            return invoice;
         }
 
-        // Pay remaining balance
-        const remaining = invoice.balance_amount.amount;
-        invoice.applyPayment(remaining);
+        // Track balance
+        if (invoice.balance_amount.amount > 0) {
+            throw new BusinessRuleError(
+                "Cannot mark invoice as PAID while balance is greater than zero"
+            );
+        }
 
-        // Track who did it? Invoice entity has updated_at but no updated_by field in constructor (only created_by).
-        // The DB schema in seed/migration might have it?
-        // Invoice.js has created_by only.
+        invoice.status = InvoiceStatus.PAID;
 
         return await this.invoiceRepository.save(invoice);
     }

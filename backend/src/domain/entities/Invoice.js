@@ -80,6 +80,11 @@ class Invoice {
   isPaid() {
     return this.status.isPaid();
   }
+
+  recalcBalance(paidAmount) {
+    this.paid_amount = paidAmount;
+    this.balance = this.total_amount - paidAmount;
+  }
 }
 
 export default Invoice;

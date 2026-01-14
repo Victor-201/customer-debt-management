@@ -85,10 +85,7 @@ class InvoiceController {
         try {
             const { invoiceId } = req.params;
 
-            const result = await this.markInvoicePaidUseCase.execute(
-                invoiceId,
-                req.user?.userId
-            );
+            const result = await this.markInvoicePaidUseCase.execute(invoiceId);
 
             res.json(result);
         } catch (error) {
@@ -100,20 +97,17 @@ class InvoiceController {
      * POST /invoices/:invoiceId/recalc-balance
      * Dùng khi bạn muốn đồng bộ paid_amount/balance_amount theo rule DB
      */
-    recalcInvoiceBalance = async (req, res) => {
-        try {
-            const { invoiceId } = req.params;
+    // recalcInvoiceBalance = async (req, res) => {
+    //     try {
+    //         const { invoiceId } = req.params;
 
-            const result = await this.recalcInvoiceBalanceUseCase.execute(
-                invoiceId,
-                req.user?.userId
-            );
+    //         const result = await this.recalcInvoiceBalanceUseCase.execute(invoiceId);
 
-            res.json(result);
-        } catch (error) {
-            this.#handleError(res, error);
-        }
-    };
+    //         res.json(result);
+    //     } catch (error) {
+    //         this.#handleError(res, error);
+    //     }
+    // };
 
     /**
      * POST /invoices/update-overdue
