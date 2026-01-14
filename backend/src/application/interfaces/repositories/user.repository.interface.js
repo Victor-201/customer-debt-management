@@ -1,40 +1,16 @@
-/**
- * @interface UserRepositoryInterface
- */
 export default class UserRepositoryInterface {
-  /** @returns {Promise<User|null>} */
-  findById(id) {}
+  findById(id) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
+  findByEmail(email) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
 
-  /** @returns {Promise<User|null>} */
-  findByEmail(email) {}
+  findAll() { throw new Error("METHOD_NOT_IMPLEMENTED"); }
+  findAllDeleted() { throw new Error("METHOD_NOT_IMPLEMENTED"); }
 
-  /** @returns {Promise<User[]>} */
-  findAll(filters) {}
+  create(user) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
+  update(id, payload) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
 
-  /** @returns {Promise<User[]>} */
-  findAllDeleted() {}
+  softDelete(id) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
+  restore(id) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
 
-  /** @returns {Promise<User>} */
-  create(user) {}
-
-  /** @returns {Promise<User|null>} */
-  update(id, payload) {}
-
-  /** @returns {Promise<User|null>} */
-  lock(id) {}
-
-  /** @returns {Promise<User|null>} */
-  unlock(id) {}
-
-  /** @returns {Promise<User|null>} */
-  softDelete(id) {}
-
-  /** @returns {Promise<User|null>} */
-  restore(id) {}
-
-  /** @returns {Promise<void>} */
-  hardDelete(id) {}
-
-  /** @returns {Promise<string[]>} */
-  hardDeleteAllDeleted() {}
+  hardDelete(id) { throw new Error("METHOD_NOT_IMPLEMENTED"); }
+  hardDeleteAllDeleted() { throw new Error("METHOD_NOT_IMPLEMENTED"); }
 }
