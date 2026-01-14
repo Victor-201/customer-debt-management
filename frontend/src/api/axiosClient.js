@@ -5,74 +5,103 @@ const BASE =
   import.meta.env.VITE_GATEWAY_URL ||
   "http://localhost:3000";
 
-const api_prefix = "/api";
+const API_PREFIX = "/api";
 
 const apiClient = axios.create({
-  baseURL: BASE + api_prefix,
+  baseURL: BASE + API_PREFIX,
   withCredentials: true,
+  timeout: 15000,
   headers: {
     Accept: "application/json",
   },
 });
 
-// === REQUEST INTERCEPTOR ===
 apiClient.interceptors.request.use(
   (config) => {
-    config.headers = config.headers || {};
     const token = localStorage.getItem("access_token");
 
-    if (token) config.headers.Authorization = `Bearer ${token}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
     if (config.data instanceof FormData) {
       delete config.headers["Content-Type"];
-    } else if (
-      config.data &&
-      typeof config.data !== "string"
-    ) {
-      config.headers["Content-Type"] =
-        config.headers["Content-Type"] || "application/json";
+    } else if (config.data && typeof config.data === "object") {
+      config.headers["Content-Type"] ??= "application/json";
     }
 
     return config;
   },
-  (err) => Promise.reject(err)
+  (error) => Promise.reject(error)
 );
 
-// === RESPONSE INTERCEPTOR: REFRESH TOKEN ===
+let isRefreshing = false;
+let failedQueue = [];
+
+const processQueue = (error, token = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) prom.reject(error);
+    else prom.resolve(token);
+  });
+  failedQueue = [];
+};
+
 apiClient.interceptors.response.use(
-  (res) => res,
+  (response) => response,
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry
+    ) {
+      if (isRefreshing) {
+        return new Promise((resolve, reject) => {
+          failedQueue.push({
+            resolve: (token) => {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+              resolve(apiClient(originalRequest));
+            },
+            reject,
+          });
+        });
+      }
+
       originalRequest._retry = true;
+      isRefreshing = true;
 
       try {
         const refreshToken = localStorage.getItem("refresh_token");
-        if (!refreshToken) throw new Error("No refresh token");
+        if (!refreshToken) throw error;
 
-        const refreshRes = await axios.post(
-          `${BASE}${api_prefix}/auth/refresh`,
+        const res = await axios.post(
+          `${BASE}${API_PREFIX}/auth/refresh`,
           { refresh_token: refreshToken },
           { withCredentials: true }
         );
 
-        const newAccess = refreshRes.data?.access_token;
-        const newRefresh = refreshRes.data?.refresh_token;
+        const newAccess = res.data?.access_token;
+        const newRefresh = res.data?.refresh_token;
 
-        if (newAccess) {
-          localStorage.setItem("access_token", newAccess);
-          if (newRefresh)
-            localStorage.setItem("refresh_token", newRefresh);
+        if (!newAccess) throw error;
 
-          originalRequest.headers.Authorization = `Bearer ${newAccess}`;
-
-          return apiClient(originalRequest);
+        localStorage.setItem("access_token", newAccess);
+        if (newRefresh) {
+          localStorage.setItem("refresh_token", newRefresh);
         }
-      } catch (err2) {
+
+        apiClient.defaults.headers.Authorization = `Bearer ${newAccess}`;
+        processQueue(null, newAccess);
+
+        originalRequest.headers.Authorization = `Bearer ${newAccess}`;
+        return apiClient(originalRequest);
+      } catch (err) {
+        processQueue(err, null);
         localStorage.removeItem("access_token");
         localStorage.removeItem("refresh_token");
-        return Promise.reject(error);
+        return Promise.reject(err);
+      } finally {
+        isRefreshing = false;
       }
     }
 

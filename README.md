@@ -90,7 +90,7 @@ Hệ thống được thiết kế theo mô hình **Client – Server – Servic
 * Redux Toolkit
 * Axios
 * Chart Library (Dashboard)
-
+* Tailwind CSS
 ---
 
 ## 6. Thiết kế nghiệp vụ cốt lõi
@@ -184,27 +184,19 @@ Dashboard được thiết kế trực quan, phù hợp demo và thuyết trình
 
 * **Node.js** (v16 hoặc cao hơn)
 * **PostgreSQL** (v12 hoặc cao hơn)
-* **npm** hoặc **yarn**
+* **yarn**
 
 ### 11.2. Cài đặt Backend
 
 1. **Cài đặt dependencies:**
    ```bash
    cd backend
-   npm install
+   yarn install
    ```
 
 2. **Setup Database:**
-   
-   **Tự động (Khuyến nghị):**
-   ```bash
-   # Windows
-   setup-db.bat
-   
+
    # Linux/macOS
-   chmod +x setup-db.sh
-   ./setup-db.sh
-   ```
    
    **Thủ công:**
    ```sql
@@ -220,17 +212,17 @@ Dashboard được thiết kế trực quan, phù hợp demo và thuyết trình
 
 3. **Chạy migrations và seed data:**
    ```bash
-   npm run migrate
-   npm run seed
+   yarn run migrate
+   yarn run seed
    ```
 
 4. **Chạy server:**
    ```bash
    # Development
-   npm run dev
+   yarn dev
    
    # Production
-   npm start
+   yarn start
    ```
 
 ### 11.3. Cài đặt Frontend
@@ -238,12 +230,12 @@ Dashboard được thiết kế trực quan, phù hợp demo và thuyết trình
 1. **Cài đặt dependencies:**
    ```bash
    cd frontend
-   npm install
+   yarn install
    ```
 
 2. **Chạy development server:**
    ```bash
-   npm run dev
+   yarn dev
    ```
 
 ### 11.4. Truy cập hệ thống
@@ -260,12 +252,7 @@ Dashboard được thiết kế trực quan, phù hợp demo và thuyết trình
 ```bash
 # Backend API tests
 cd backend
-npm run test:api
-
-# Frontend (nếu có)
-cd frontend
-npm run test
-```
+yarn test:api
 
 ### 11.6. Troubleshooting
 
