@@ -1,11 +1,13 @@
 import JWTService from "../../infrastructure/auth/jwt.service.js";
 
+const tokenService = new JWTService();
+
 const authMiddleware = (req, res, next) => {
   if (req.method === "OPTIONS") return next();
 
   try {
     const authHeader = req.headers.authorization;
-    const token = JWTService.extractTokenFromHeader(authHeader);
+    const token = tokenService.extractTokenFromHeader(authHeader);
 
     if (!token) {
       return res.status(401).json({
@@ -13,7 +15,7 @@ const authMiddleware = (req, res, next) => {
       });
     }
 
-    const decoded = JWTService.verifyAccessToken(token);
+    const decoded = tokenService.verifyAccessToken(token);
     req.user = decoded;
 
     next();

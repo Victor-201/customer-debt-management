@@ -1,187 +1,100 @@
-import UserRepositoryInterface from "../../../application/interfaces/repositories/user.repository.interface.js";
+import { Op } from "sequelize";
 import User from "../../../domain/entities/User.js";
-
-const BASE_SELECT = `
-  SELECT id, name, email, password_hash, role,
-         is_active, created_at, updated_at, deleted_at
-  FROM users
-`;
+import UserRepositoryInterface from "../../../application/interfaces/repositories/user.repository.interface.js";
 
 export default class UserRepository extends UserRepositoryInterface {
-  constructor({ execute }) {
+  constructor({ UserModel }) {
     super();
-
-    if (!execute) {
-      throw new Error("UserRepository requires execute function");
-    }
-
-    this.execute = execute;
+    this.UserModel = UserModel;
   }
 
   async findById(id) {
-    const rows = await this.execute(
-      `${BASE_SELECT} WHERE id = $1 AND deleted_at IS NULL`,
-      [id]
-    );
-    return rows[0] ? this.#map(rows[0]) : null;
+    const row = await this.UserModel.findOne({
+      where: { id, deleted_at: null },
+    });
+    return row ? this.#toDomain(row) : null;
   }
 
   async findByEmail(email) {
-    const rows = await this.execute(
-      `${BASE_SELECT} WHERE email = $1 AND deleted_at IS NULL`,
-      [email]
-    );
-    return rows[0] ? this.#map(rows[0]) : null;
+    const row = await this.UserModel.findOne({
+      where: { email, deleted_at: null },
+    });
+    return row ? this.#toDomain(row) : null;
   }
 
-  async findAll({ isActive } = {}) {
-    const conditions = ["deleted_at IS NULL"];
-    const values = [];
-    let idx = 1;
-
-    if (isActive !== undefined) {
-      conditions.push(`is_active = $${idx++}`);
-      values.push(isActive);
-    }
-
-    const rows = await this.execute(
-      `${BASE_SELECT}
-       WHERE ${conditions.join(" AND ")}
-       ORDER BY created_at DESC`,
-      values
-    );
-
-    return rows.map((row) => this.#map(row));
+  async findAll() {
+    const rows = await this.UserModel.findAll({
+      where: { deleted_at: null },
+      order: [["created_at", "DESC"]],
+    });
+    return rows.map((row) => this.#toDomain(row));
   }
 
   async findAllDeleted() {
-    const rows = await this.execute(
-      `${BASE_SELECT} WHERE deleted_at IS NOT NULL`
-    );
-    return rows.map((row) => this.#map(row));
+    const rows = await this.UserModel.findAll({
+      where: { deleted_at: { [Op.ne]: null } },
+    });
+    return rows.map((row) => this.#toDomain(row));
   }
 
   async create(user) {
-    const rows = await this.execute(
-      `
-      INSERT INTO users (name, email, password_hash, role)
-      VALUES ($1, $2, $3, $4)
-      RETURNING *
-      `,
-      [user.name, user.email, user.passwordHash, user.role]
-    );
-
-    return this.#map(rows[0]);
+    const row = await this.UserModel.create({
+      name: user.name,
+      email: user.email,
+      password_hash: user.passwordHash,
+      role: user.role,
+      is_active: user.isActive,
+    });
+    return this.#toDomain(row);
   }
 
   async update(id, payload) {
-    const fields = [];
-    const values = [];
-    let idx = 1;
-
-    if (payload.name !== undefined) {
-      fields.push(`name = $${idx++}`);
-      values.push(payload.name);
-    }
-
-    if (payload.role !== undefined) {
-      fields.push(`role = $${idx++}`);
-      values.push(payload.role);
-    }
-
-    if (payload.isActive !== undefined) {
-      fields.push(`is_active = $${idx++}`);
-      values.push(payload.isActive);
-    }
-
-    if (!fields.length) {
-      return this.findById(id);
-    }
-
-    fields.push(`updated_at = NOW()`);
-
-    const rows = await this.execute(
-      `
-      UPDATE users
-      SET ${fields.join(", ")}
-      WHERE id = $${idx} AND deleted_at IS NULL
-      RETURNING *
-      `,
-      [...values, id]
+    await this.UserModel.update(
+      {
+        name: payload.name,
+        role: payload.role,
+        is_active: payload.isActive,
+      },
+      { where: { id } }
     );
-
-    return rows[0] ? this.#map(rows[0]) : null;
-  }
-
-  lock(id) {
-    return this.#setActive(id, false);
-  }
-
-  unlock(id) {
-    return this.#setActive(id, true);
+    return this.findById(id);
   }
 
   async softDelete(id) {
-    const rows = await this.execute(
-      `
-      UPDATE users
-      SET deleted_at = NOW()
-      WHERE id = $1
-      RETURNING *
-      `,
-      [id]
+    await this.UserModel.update(
+      { deleted_at: new Date() },
+      { where: { id } }
     );
-    return rows[0] ? this.#map(rows[0]) : null;
   }
 
   async restore(id) {
-    const rows = await this.execute(
-      `
-      UPDATE users
-      SET deleted_at = NULL
-      WHERE id = $1
-      RETURNING *
-      `,
-      [id]
+    await this.UserModel.update(
+      { deleted_at: null },
+      { where: { id } }
     );
-    return rows[0] ? this.#map(rows[0]) : null;
   }
 
   async hardDelete(id) {
-    await this.execute(`DELETE FROM users WHERE id = $1`, [id]);
+    await this.UserModel.destroy({ where: { id } });
   }
 
   async hardDeleteAllDeleted() {
-    const rows = await this.execute(
-      `DELETE FROM users WHERE deleted_at IS NOT NULL RETURNING id`
-    );
-    return rows.map((r) => r.id);
+    return this.UserModel.destroy({
+      where: { deleted_at: { [Op.ne]: null } },
+    });
   }
 
-  async #setActive(id, isActive) {
-    const rows = await this.execute(
-      `
-      UPDATE users
-      SET is_active = $1, updated_at = NOW()
-      WHERE id = $2 AND deleted_at IS NULL
-      RETURNING *
-      `,
-      [isActive, id]
-    );
-    return rows[0] ? this.#map(rows[0]) : null;
-  }
-
-  #map(row) {
+  #toDomain(row) {
     return new User({
-      id: row.id,
-      name: row.name,
-      email: row.email,
-      passwordHash: row.password_hash,
-      role: row.role,
-      isActive: row.is_active,
-      createdAt: row.created_at,
-      updatedAt: row.updated_at,
-      deletedAt: row.deleted_at,
+      id: row.get("id"),
+      name: row.get("name"),
+      email: row.get("email"),
+      passwordHash: row.get("password_hash"),
+      role: row.get("role"),
+      isActive: row.get("is_active"),
+      deletedAt: row.get("deleted_at"),
+      createdAt: row.get("createdAt"),
+      updatedAt: row.get("updatedAt"),
     });
   }
 }

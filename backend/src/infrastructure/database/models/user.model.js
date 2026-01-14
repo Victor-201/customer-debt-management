@@ -1,13 +1,13 @@
 import { DataTypes } from "sequelize";
 
-export default (sequelize) => {
-  const UserModel = sequelize.define(
+export default (sequelize) =>
+  sequelize.define(
     "User",
     {
       id: {
         type: DataTypes.UUID,
-        defaultValue: DataTypes.UUIDV4,
         primaryKey: true,
+        defaultValue: DataTypes.UUIDV4,
       },
 
       name: {
@@ -33,6 +33,7 @@ export default (sequelize) => {
 
       is_active: {
         type: DataTypes.BOOLEAN,
+        allowNull: false,
         defaultValue: true,
       },
 
@@ -40,33 +41,10 @@ export default (sequelize) => {
         type: DataTypes.DATE,
         allowNull: true,
       },
-
-      created_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
-
-      updated_at: {
-        type: DataTypes.DATE,
-        defaultValue: DataTypes.NOW,
-      },
     },
     {
       tableName: "users",
-      timestamps: false,
-      indexes: [
-        {
-          name: "idx_users_email",
-          unique: true,
-          fields: ["email"],
-        },
-        {
-          name: "idx_users_deleted_at",
-          fields: ["deleted_at"],
-        },
-      ],
+      timestamps: true,
+      underscored: true,
     }
   );
-
-  return UserModel;
-};
