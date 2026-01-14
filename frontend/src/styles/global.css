@@ -1,272 +1,51 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
-:root {
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
+@import "tailwindcss";
 
-  --success: #16a34a;
-  --warning: #f59e0b;
-  --danger: #dc2626;
+/* ================= THEME ================= */
+@theme {
+  --color-primary: #002682;
+  --color-on-primary: #ffffff;
+  --color-secondary: #1e45b5;
+  --color-accent: #4a6cff;
 
-  --bg: #f8fafc;
-  --surface: #ffffff;
-  --border: #e5e7eb;
+  --color-background: #ffffff;
+  --color-surface: #ffffff;
+  --color-on-background: #000000;
 
-  --text: #111827;
-  --text-secondary: #6b7280;
-  --text-muted: #9ca3af;
+  --color-error: #de1c1c;
+  --color-success: #00b342;
+  --color-warning: #ff7c00;
 
-  --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 10px;
-  --radius-xl: 14px;
-
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.08);
-
-  --sidebar-width: 260px;
   --header-height: 64px;
-
-  --font: "Inter", system-ui, sans-serif;
-}
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
 }
 
-html,
+/* ================= DARK MODE ================= */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ================= BASE ================= */
 body {
-  height: 100%;
-}
-
-body {
+  @apply bg-[var(--color-background)] text-[var(--color-on-background)];
+  font-family: Inter, system-ui, sans-serif;
   margin: 0;
-  font-family: var(--font);
-  font-size: 14px;
-  color: var(--text);
-  background: var(--bg);
-}
-.app {
-  display: flex;
-  height: 100vh;
-  overflow: hidden;
 }
 
-/* ===== SIDEBAR ===== */
-.sidebar {
-  width: var(--sidebar-width);
-  background: var(--surface);
-  border-right: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-}
-
-.sidebar-header {
-  height: var(--header-height);
-  padding: 0 20px;
-  display: flex;
-  align-items: center;
-  font-size: 18px;
-  font-weight: 700;
-  border-bottom: 1px solid var(--border);
-}
-
-.sidebar-menu {
-  flex: 1;
-  padding: 12px;
-  overflow-y: auto;
-}
-
-.sidebar-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 14px;
-  border-radius: var(--radius-md);
-  color: var(--text-secondary);
-  cursor: pointer;
-}
-
-.sidebar-item:hover {
-  background: #f1f5f9;
-  color: var(--text);
-}
-
-.sidebar-item.active {
-  background: #eff6ff;
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* ===== MAIN ===== */
-.main {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  overflow: hidden;
-}
-
-/* ===== HEADER (KHÔNG FIXED) ===== */
-.header {
-  height: var(--header-height);
-  background: var(--surface);
-  border-bottom: 1px solid var(--border);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 24px;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.header-title {
-  font-size: 18px;
-  font-weight: 600;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-/* ===== CONTENT ===== */
-.content {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
-}
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--shadow-sm);
-  padding: 20px;
-}
-
-.card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 16px;
-}
-
-.card-title {
-  font-size: 16px;
-  font-weight: 600;
-}
+/* ================= COMPONENTS ================= */
 .btn {
-  padding: 8px 14px;
-  border-radius: var(--radius-md);
-  border: 1px solid transparent;
-  font-weight: 500;
-  cursor: pointer;
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
+  @apply px-4 py-2 rounded-lg
+         bg-[var(--color-primary)]
+         text-[var(--color-on-primary)]
+         hover:bg-[var(--color-secondary)]
+         transition;
 }
 
-.btn-primary {
-  background: var(--primary);
-  color: #fff;
+.card {
+  @apply bg-[var(--color-surface)] p-4 rounded-lg shadow;
 }
 
-.btn-primary:hover {
-  background: var(--primary-hover);
+.badge {
+  @apply inline-flex px-3 py-1 rounded-full
+         text-sm font-semibold text-white;
 }
 
-.btn-secondary {
-  background: #f1f5f9;
-  border-color: var(--border);
-}
-
-.btn-danger {
-  background: var(--danger);
-  color: #fff;
-}
-.table-wrapper {
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-}
-
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th {
-  background: #f1f5f9;
-  text-align: left;
-  padding: 12px 14px;
-  font-size: 13px;
-  color: var(--text-secondary);
-}
-
-td {
-  padding: 12px 14px;
-  border-top: 1px solid var(--border);
-}
-
-tr:hover {
-  background: #f8fafc;
-}
-.status {
-  padding: 4px 10px;
-  font-size: 12px;
-  font-weight: 600;
-  border-radius: 999px;
-  color: #fff;
-}
-
-.status-paid {
-  background: var(--success);
-}
-
-.status-pending {
-  background: var(--warning);
-}
-
-.status-overdue {
-  background: var(--danger);
-}
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 14px;
-}
-
-label {
-  font-size: 13px;
-  font-weight: 500;
-}
-
-input,
-select {
-  padding: 8px 10px;
-  border-radius: var(--radius-md);
-  border: 1px solid var(--border);
-}
-
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--primary);
-}
-@media (max-width: 1024px) {
-  .sidebar {
-    width: 220px;
-  }
-}
-
-@media (max-width: 768px) {
-  .sidebar {
-    display: none;
-  }
-
-  .content {
-    padding: 16px;
-  }
-}
+.badge-success { @apply bg-[var(--color-success)]; }
+.badge-warning { @apply bg-[var(--color-warning)]; }
+.badge-danger  { @apply bg-[var(--color-error)]; }
