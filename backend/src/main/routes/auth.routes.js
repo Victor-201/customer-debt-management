@@ -1,7 +1,5 @@
 import express from "express";
-
 import AuthController from "../../presentation/controllers/auth.controller.js";
-
 import UserRepository from "../../infrastructure/database/repositories/user.repository.js";
 
 import LoginUseCase from "../../application/use-cases/auth/login.usecase.js";
@@ -10,12 +8,11 @@ import RefreshTokenUseCase from "../../application/use-cases/auth/refreshToken.u
 
 import PasswordHasher from "../../infrastructure/auth/passwordHasher.js";
 import JWTService from "../../infrastructure/auth/jwt.service.js";
-
 import validateMiddleware from "../middlewares/validate.middleware.js";
+
 import {
   loginSchema,
   registerSchema,
-  refreshTokenSchema,
 } from "../../presentation/validators/auth.schema.js";
 
 import { execute } from "../config/database.js";
@@ -46,11 +43,7 @@ const authController = new AuthController({
   refreshTokenUseCase,
 });
 
-router.post(
-  "/login",
-  validateMiddleware(loginSchema),
-  authController.login
-);
+router.post("/login", validateMiddleware(loginSchema), authController.login);
 
 router.post(
   "/register",
@@ -58,11 +51,7 @@ router.post(
   authController.register
 );
 
-router.post(
-  "/refresh-token",
-  validateMiddleware(refreshTokenSchema),
-  authController.refreshToken
-);
+router.post("/refresh-token", authController.refreshToken);
 
 router.post("/logout", authController.logout);
 

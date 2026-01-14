@@ -1,37 +1,46 @@
-import express from 'express';
-import cors from 'cors';
-import helmet from 'helmet';
-import morgan from 'morgan';
-import routes from './routes/index.js';
-import errorMiddleware from './middlewares/error.middleware.js';
+import express from "express";
+import cors from "cors";
+import helmet from "helmet";
+import morgan from "morgan";
+import cookieParser from "cookie-parser";
+import routes from "./routes/index.js";
+import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 
-// Security middleware
+const allowedOrigins = ["http://localhost:5173"];
+
+const corsOptions = {
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("CORS not allowed"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"],
+};
+
+app.use(cors(corsOptions));
 app.use(helmet());
-app.use(cors());
+app.use(morgan("dev"));
 
-// Logging middleware
-app.use(morgan('combined'));
+app.use(express.json({ limit: "10mb" }));
+app.use(express.urlencoded({ extended: true, limit: "10mb" }));
+app.use(cookieParser());
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true }));
+app.use("/api", routes);
 
-// API routes
-app.use('/api', routes);
-
-// Health check
-app.get('/health', (req, res) => {
-  res.json({ status: 'OK', timestamp: new Date().toISOString() });
+app.get("/health", (_req, res) => {
+  res.status(200).json({
+    status: "OK",
+    uptime: process.uptime(),
+    timestamp: Date.now(),
+  });
 });
 
-// Error handling middleware
 app.use(errorMiddleware);
-
-// 404 handler
-app.use('*', (req, res) => {
-  res.status(404).json({ error: 'Route not found' });
-});
 
 export default app;
