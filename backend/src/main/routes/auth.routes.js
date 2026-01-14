@@ -1,4 +1,5 @@
 import express from "express";
+
 import AuthController from "../../presentation/controllers/auth.controller.js";
 import UserRepository from "../../infrastructure/database/repositories/user.repository.js";
 
@@ -15,34 +16,44 @@ import {
   registerSchema,
 } from "../../presentation/validators/auth.schema.js";
 
-import { execute } from "../config/database.js";
+import { sequelize } from "../config/database.js";
+import initUserModel from "../../infrastructure/database/models/user.model.js";
 
 const router = express.Router();
 
-const userRepository = new UserRepository({ execute });
+/* ================== INIT ORM ================== */
+const UserModel = initUserModel(sequelize);
 
+/* ================== DEPENDENCIES ================== */
+const userRepository = new UserRepository({ UserModel });
+const passwordHasher = new PasswordHasher();
+const tokenService = new JWTService();
+
+/* ================== USE CASES ================== */
 const loginUseCase = new LoginUseCase({
   userRepository,
-  passwordHasher: PasswordHasher,
-  tokenService: JWTService,
+  passwordHasher,
+  tokenService,
 });
 
 const registerUseCase = new RegisterUseCase({
   userRepository,
-  passwordHasher: PasswordHasher,
+  passwordHasher,
 });
 
 const refreshTokenUseCase = new RefreshTokenUseCase({
   userRepository,
-  tokenService: JWTService,
+  tokenService,
 });
 
+/* ================== CONTROLLER ================== */
 const authController = new AuthController({
   loginUseCase,
   registerUseCase,
   refreshTokenUseCase,
 });
 
+/* ================== ROUTES ================== */
 router.post("/login", validateMiddleware(loginSchema), authController.login);
 
 router.post(
@@ -52,7 +63,6 @@ router.post(
 );
 
 router.post("/refresh-token", authController.refreshToken);
-
 router.post("/logout", authController.logout);
 
 export default router;
