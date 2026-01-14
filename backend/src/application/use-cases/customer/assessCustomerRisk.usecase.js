@@ -1,41 +1,37 @@
 export default class AssessCustomerRiskUseCase {
-  constructor(customerRepository, database) {
+  constructor(customerRepository) {
     this.customerRepository = customerRepository;
-    this.database = database;
   }
 
   async execute(customerId) {
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) {
-      throw new Error('Customer not found');
+      throw new Error("Customer not found");
     }
 
-    const query = `
-      SELECT
-        MAX(days_overdue) AS max_overdue,
-        SUM(balance_amount) AS total_due
-      FROM vw_invoice_aging_days
-      WHERE customer_id = $1
-    `;
+    const aging = await this.customerRepository.getInvoiceAgingSummary(
+      customerId
+    );
 
-    const [result] = await this.database.execute(query, [customerId]);
+    const maxOverdueDays = aging.maxOverdueDays ?? 0;
+    const totalOutstanding = aging.totalOutstanding ?? 0;
 
-    let risk = 'NORMAL';
+    let riskLevel = "NORMAL";
 
-    if (result?.max_overdue > 30) {
-      risk = 'HIGH_RISK';
-    } else if (result?.max_overdue > 0) {
-      risk = 'WARNING';
+    if (maxOverdueDays > 30) {
+      riskLevel = "HIGH_RISK";
+    } else if (maxOverdueDays > 0) {
+      riskLevel = "WARNING";
     }
 
-    customer.setRiskLevel(risk);
+    customer.riskLevel = riskLevel;
     await this.customerRepository.update(customer);
 
     return {
       customerId,
-      riskLevel: risk,
-      maxOverdueDays: result?.max_overdue ?? 0,
-      totalOutstanding: Number(result?.total_due ?? 0)
+      riskLevel,
+      maxOverdueDays,
+      totalOutstanding,
     };
   }
 }
