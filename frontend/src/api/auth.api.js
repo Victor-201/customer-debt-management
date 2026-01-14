@@ -1,4 +1,17 @@
-import axiosClient from './axiosClient';
+import apiClient from "./axiosClient";
 
-export const loginApi = (data) =>
-  axiosClient.post('/auth/login', data);
+export const authApi = {
+  login(data) {
+    return apiClient.post("/auth/login", data);
+  },
+
+  refresh(refreshToken) {
+    return apiClient.post("/auth/refresh", {
+      refresh_token: refreshToken,
+    });
+  },
+
+  logout() {
+    return apiClient.post("/auth/logout");
+  },
+};
