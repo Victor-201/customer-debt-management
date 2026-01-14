@@ -11,13 +11,14 @@ class LoginUseCase {
     const user = await this.userRepository.findByEmail(email);
 
     if (!user) {
-      throw new BusinessRuleError("Invalid email or password");
+      throw new BusinessRuleError("Email does not exist");
+    }
+
+    if (user.isDeleted()) {
+      throw new BusinessRuleError("Account has been deleted");
     }
 
     if (!user.canLogin()) {
-      if (user.isDeleted()) {
-        throw new BusinessRuleError("Account has been deleted");
-      }
       throw new BusinessRuleError("Account is locked");
     }
 
@@ -27,7 +28,7 @@ class LoginUseCase {
     );
 
     if (!isPasswordValid) {
-      throw new BusinessRuleError("Invalid email or password");
+      throw new BusinessRuleError("Incorrect password");
     }
 
     const payload = {

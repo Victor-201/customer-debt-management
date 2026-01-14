@@ -14,7 +14,17 @@ class AuthController {
         password,
       });
 
-      res.json(result);
+      res.cookie("refreshToken", result.refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+        path: "/api/auth/refresh-token",
+      });
+
+      res.json({
+        user: result.user,
+        accessToken: result.accessToken,
+      });
     } catch (error) {
       if (error.name === "BusinessRuleError") {
         return res.status(400).json({ error: error.message });
@@ -56,10 +66,19 @@ class AuthController {
 
   refreshToken = async (req, res) => {
     try {
-      const { refreshToken } = req.body;
+      const refreshToken = req.cookies?.refreshToken;
 
-      const result = await this.refreshTokenUseCase.execute({ refreshToken });
-      res.json(result);
+      if (!refreshToken) {
+        return res.status(401).json({ error: "Refresh token missing" });
+      }
+
+      const result = await this.refreshTokenUseCase.execute({
+        refreshToken,
+      });
+
+      res.json({
+        accessToken: result.accessToken,
+      });
     } catch (error) {
       if (error.name === "BusinessRuleError") {
         return res.status(400).json({ error: error.message });
@@ -70,6 +89,10 @@ class AuthController {
   };
 
   logout = async (_req, res) => {
+    res.clearCookie("refreshToken", {
+      path: "/api/auth/refresh-token",
+    });
+
     res.json({ message: "Logged out successfully" });
   };
 }
