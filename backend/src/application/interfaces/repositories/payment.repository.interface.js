@@ -1,9 +1,8 @@
-import Payment from "../../domain/entities/Payment.js";
+import Payment from "../../../domain/entities/Payment.js";
 
 class PaymentRepository {
-  constructor(pool) {
-    super();
-    this.pool = pool;
+  constructor({ execute }) {
+    this.execute = execute;
   }
 
   async save(payment) {
@@ -21,7 +20,7 @@ class PaymentRepository {
     `;
 
     const values = [
-      payment.id,
+      payment.id ?? null,
       payment.invoice_id,
       payment.payment_date,
       payment.amount.amount,
@@ -30,24 +29,32 @@ class PaymentRepository {
       payment.recorded_by,
     ];
 
-    const { rows } = await this.pool.excute(query, values);
-    return this._mapRowToEntity(rows[0]);
+    const rows = await this.execute(query, values);
+    return rows?.[0] ? this._mapRowToEntity(rows[0]) : null;
   }
 
   async findByInvoiceId(invoiceId) {
-    const { rows } = await this.pool.excute(
+    const rows = await this.execute(
       `SELECT * FROM payments WHERE invoice_id = $1 ORDER BY payment_date ASC`,
       [invoiceId]
     );
 
-    return rows.map(row => this._mapRowToEntity(row));
+    return (rows ?? []).map(row => this._mapRowToEntity(row));
+  }
+
+  async findById(id) {
+    const rows = await this.execute(
+      `SELECT * FROM payments WHERE id = $1`,
+      [id]
+    );
+    return rows?.[0] ? this._mapRowToEntity(rows[0]) : null;
   }
 
   _mapRowToEntity(row) {
     return new Payment({
       id: row.id,
       invoice_id: row.invoice_id,
-      payment_date: row.payment_date,
+      payment_date: new Date(row.payment_date),
       amount: row.amount,
       method: row.method,
       reference: row.reference,
