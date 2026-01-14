@@ -42,9 +42,5 @@ export default (sequelize) =>
         allowNull: true,
       },
     },
-    {
-      tableName: "users",
-      timestamps: true,
-      underscored: true,
-    }
+    { tableName: "users", timestamps: true, underscored: true }
   );

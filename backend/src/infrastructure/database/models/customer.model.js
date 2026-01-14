@@ -35,5 +35,5 @@ export default (sequelize) =>
       created_at: DataTypes.DATE,
       updated_at: DataTypes.DATE,
     },
-    { tableName: "customers", timestamps: false }
+    { tableName: "customers", timestamps: true, underscored: true }
   );
