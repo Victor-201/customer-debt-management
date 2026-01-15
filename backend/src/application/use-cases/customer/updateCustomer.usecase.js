@@ -1,6 +1,4 @@
-import { PaymentTerm } from '../../../domain/value-objects/PaymentTerm.js';
-import { Money } from '../../../domain/value-objects/Money.js';
-import { BusinessRuleError } from '../../../shared/errors/BusinessRuleError.js';
+import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 
 export default class UpdateCustomerUseCase {
   constructor(customerRepository) {
@@ -10,43 +8,39 @@ export default class UpdateCustomerUseCase {
   async execute(customerId, data) {
     const customer = await this.customerRepository.findById(customerId);
     if (!customer) {
-      throw new BusinessRuleError('Customer not found');
+      throw new BusinessRuleError("Customer not found");
     }
 
     this.#validate(data);
 
-    const updates = {};
+    if (data.name !== undefined) customer.name = data.name;
+    if (data.email !== undefined) customer.email = data.email;
+    if (data.phone !== undefined) customer.phone = data.phone;
+    if (data.address !== undefined) customer.address = data.address;
+    if (data.paymentTerm !== undefined) customer.paymentTerm = data.paymentTerm;
+    if (data.creditLimit !== undefined) customer.creditLimit = data.creditLimit;
+    if (data.riskLevel !== undefined) customer.riskLevel = data.riskLevel;
+    if (data.status !== undefined) customer.status = data.status;
 
-    if (data.name !== undefined) updates.name = data.name;
-    if (data.email !== undefined) updates.email = data.email;
-    if (data.phone !== undefined) updates.phone = data.phone;
-    if (data.address !== undefined) updates.address = data.address;
+    customer.updatedAt = new Date();
 
-    if (data.paymentTerm !== undefined) {
-      updates.paymentTerm = PaymentTerm.fromString(data.paymentTerm);
-    }
-
-    if (data.creditLimit !== undefined) {
-      updates.creditLimit = Money.fromNumber(data.creditLimit);
-    }
-
-    customer.update(updates);
     return this.customerRepository.update(customer);
   }
 
   #validate(data) {
     if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
-      throw new BusinessRuleError('Invalid email format');
+      throw new BusinessRuleError("Invalid email format");
     }
 
-    if (data.paymentTerm &&
-      !['NET_7', 'NET_15', 'NET_30'].includes(data.paymentTerm)
+    if (
+      data.paymentTerm &&
+      !["NET_7", "NET_15", "NET_30"].includes(data.paymentTerm)
     ) {
-      throw new BusinessRuleError('Invalid payment term');
+      throw new BusinessRuleError("Invalid payment term");
     }
 
     if (data.creditLimit !== undefined && data.creditLimit < 0) {
-      throw new BusinessRuleError('Credit limit cannot be negative');
+      throw new BusinessRuleError("Credit limit cannot be negative");
     }
   }
 }
