@@ -1,11 +1,11 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import { authApi } from "../api/auth.api";
 
-export const login = createAsyncThunk(
+export const loginAsync = createAsyncThunk(
   "auth/login",
-  async (payload, { rejectWithValue }) => {
+  async ({ email, password }, { rejectWithValue }) => {
     try {
-      const res = await authApi.login(payload);
+      const res = await authApi.login({ email, password });
       return res.data;
     } catch (err) {
       return rejectWithValue(
@@ -15,16 +15,13 @@ export const login = createAsyncThunk(
   }
 );
 
-export const refreshToken = createAsyncThunk(
+export const refreshTokenAsync = createAsyncThunk(
   "auth/refresh",
   async (_, { rejectWithValue }) => {
     try {
-      const refresh_token = localStorage.getItem("refresh_token");
-      if (!refresh_token) throw new Error("No refresh token");
-
-      const res = await authApi.refresh(refresh_token);
+      const res = await authApi.refresh();
       return res.data;
-    } catch (err) {
+    } catch {
       return rejectWithValue("Phiên đăng nhập đã hết hạn");
     }
   }
@@ -32,105 +29,75 @@ export const refreshToken = createAsyncThunk(
 
 export const logoutAsync = createAsyncThunk(
   "auth/logout",
-  async (_, { rejectWithValue }) => {
-    try {
-      await authApi.logout();
-    } catch (err) {
-      return rejectWithValue(null);
-    }
+  async () => {
+    await authApi.logout();
   }
 );
 
 const initialState = {
   user: null,
-  accessToken: localStorage.getItem("access_token"),
-  refreshToken: localStorage.getItem("refresh_token"),
-    loading: false,
+  accessToken: localStorage.getItem("accessToken"),
+  loading: false,
   error: null,
 };
 
 const authSlice = createSlice({
   name: "auth",
-    initialState,
-    reducers: {
-    logout(state) {
+  initialState,
+  reducers: {
+    forceLogout(state) {
       state.user = null;
       state.accessToken = null;
-      state.refreshToken = null;
       state.error = null;
-
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
+      localStorage.removeItem("accessToken");
     },
   },
   extraReducers: (builder) => {
     builder
-      /* ================= LOGIN ================= */
-      .addCase(login.pending, (state) => {
-            state.loading = true;
-            state.error = null;
+      /* LOGIN */
+      .addCase(loginAsync.pending, (state) => {
+        state.loading = true;
+        state.error = null;
       })
-      .addCase(login.fulfilled, (state, action) => {
-        const { access_token, refresh_token, user } = action.payload;
-
-            state.loading = false;
-        state.user = user;
-        state.accessToken = access_token;
-        state.refreshToken = refresh_token;
-
-        localStorage.setItem("access_token", access_token);
-        localStorage.setItem("refresh_token", refresh_token);
+      .addCase(loginAsync.fulfilled, (state, action) => {
+        state.loading = false;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.accessToken;
+        localStorage.setItem("accessToken", action.payload.accessToken);
       })
-      .addCase(login.rejected, (state, action) => {
-            state.loading = false;
-            state.error = action.payload;
+      .addCase(loginAsync.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       })
 
-      /* ================= REFRESH ================= */
-      .addCase(refreshToken.fulfilled, (state, action) => {
-        const { access_token, refresh_token } = action.payload;
-
-        state.accessToken = access_token;
-        localStorage.setItem("access_token", access_token);
-
-        if (refresh_token) {
-          state.refreshToken = refresh_token;
-          localStorage.setItem("refresh_token", refresh_token);
-        }
+      /* REFRESH */
+      .addCase(refreshTokenAsync.fulfilled, (state, action) => {
+        state.accessToken = action.payload.accessToken;
+        localStorage.setItem("accessToken", action.payload.accessToken);
       })
-      .addCase(refreshToken.rejected, (state) => {
+      .addCase(refreshTokenAsync.rejected, (state) => {
         state.user = null;
         state.accessToken = null;
-        state.refreshToken = null;
-
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("accessToken");
       })
 
-      /* ================= LOGOUT ================= */
+      /* LOGOUT */
       .addCase(logoutAsync.fulfilled, (state) => {
         state.user = null;
         state.accessToken = null;
-        state.refreshToken = null;
-
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("refresh_token");
+        localStorage.removeItem("accessToken");
       });
   },
 });
 
-/* ================= SELECTORS ================= */
+export const { forceLogout } = authSlice.actions;
+
 export const selectAuth = (state) => state.auth;
 export const selectUser = (state) => state.auth.user;
-export const selectAccessToken = (state) =>
-  state.auth.accessToken;
+export const selectAccessToken = (state) => state.auth.accessToken;
 export const selectIsAuthenticated = (state) =>
   Boolean(state.auth.accessToken);
-export const selectAuthLoading = (state) =>
-  state.auth.loading;
-export const selectAuthError = (state) =>
-  state.auth.error;
+export const selectAuthLoading = (state) => state.auth.loading;
+export const selectAuthError = (state) => state.auth.error;
 
-/* ================= EXPORT ================= */
-export const { logout } = authSlice.actions;
 export default authSlice.reducer;
