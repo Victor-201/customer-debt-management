@@ -4,6 +4,23 @@ export default class ListCustomersUseCase {
   }
 
   async execute() {
-    return this.customerRepository.findActive();
+    const customers = await this.customerRepository.findActive();
+    return customers.map(c => this.#toResponse(c));
+  }
+
+  #toResponse(customer) {
+    return {
+      id: customer.id,
+      name: customer.name,
+      email: customer.email,
+      phone: customer.phone,
+      address: customer.address,
+      paymentTerm: customer.paymentTerm,
+      creditLimit: customer.creditLimit,
+      riskLevel: customer.riskLevel,
+      status: customer.status,
+      createdAt: customer.createdAt,
+      updatedAt: customer.updatedAt
+    };
   }
 }

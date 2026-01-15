@@ -3,15 +3,15 @@ import { useSelector } from "react-redux";
 import { selectIsAuthenticated } from "../store/auth.slice";
 
 const PrivateRoute = ({ children }) => {
-  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const isAuth = useSelector(selectIsAuthenticated);
   const location = useLocation();
 
-  if (!isAuthenticated) {
+  if (!isAuth) {
     return (
       <Navigate
         to="/login"
-        state={{ from: location }}
         replace
+        state={{ from: location }}
       />
     );
   }

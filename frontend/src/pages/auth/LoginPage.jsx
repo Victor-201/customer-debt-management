@@ -1,6 +1,11 @@
 import { useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { login } from "../../store/auth.slice";
+import {
+  loginAsync,
+  selectAccessToken,
+  selectAuthLoading,
+  selectAuthError,
+} from "../../store/auth.slice";
 import { useNavigate, useLocation } from "react-router-dom";
 
 const LoginPage = () => {
@@ -8,9 +13,9 @@ const LoginPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { accessToken, loading, error } = useSelector(
-    (state) => state.auth
-  );
+  const accessToken = useSelector(selectAccessToken);
+  const loading = useSelector(selectAuthLoading);
+  const error = useSelector(selectAuthError);
 
   const from = location.state?.from?.pathname || "/dashboard";
 
@@ -25,7 +30,7 @@ const LoginPage = () => {
     const form = new FormData(e.target);
 
     dispatch(
-      login({
+      loginAsync({
         email: form.get("email"),
         password: form.get("password"),
       })
@@ -34,7 +39,6 @@ const LoginPage = () => {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-5">
-      {/* TITLE */}
       <div>
         <h2 className="text-lg font-semibold text-slate-800">
           Đăng nhập hệ thống
@@ -44,7 +48,6 @@ const LoginPage = () => {
         </p>
       </div>
 
-      {/* EMAIL */}
       <div className="space-y-1">
         <label className="text-sm font-medium text-slate-700">
           Email người dùng
@@ -54,36 +57,29 @@ const LoginPage = () => {
           type="email"
           required
           autoComplete="username"
-          placeholder="accounting@company.com"
           className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
-      {/* PASSWORD */}
       <div className="space-y-1">
-        <label className="text-sm font-medium text-slate-700">
-          Mật khẩu
-        </label>
+        <label className="text-sm font-medium text-slate-700">Mật khẩu</label>
         <input
           name="password"
           type="password"
           required
           autoComplete="current-password"
-          placeholder="Nhập mật khẩu"
           className="w-full px-3 py-2 border border-slate-300 rounded-md text-sm
                      focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
         />
       </div>
 
-      {/* ERROR */}
       {error && (
         <div className="rounded-md border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
           {error}
         </div>
       )}
 
-      {/* ACTION */}
       <button
         type="submit"
         disabled={loading}

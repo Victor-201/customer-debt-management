@@ -7,18 +7,23 @@ export default class GetCustomerByIdUseCase {
 
   async execute(customerId) {
     const customer = await this.customerRepository.findById(customerId);
+
     if (!customer) {
       throw new BusinessRuleError('Customer not found');
     }
 
+    return this.#toResponse(customer);
+  }
+
+  #toResponse(customer) {
     return {
       id: customer.id,
       name: customer.name,
       email: customer.email,
       phone: customer.phone,
       address: customer.address,
-      paymentTerm: customer.paymentTerm.value,
-      creditLimit: customer.creditLimit.amount,
+      paymentTerm: customer.paymentTerm,
+      creditLimit: customer.creditLimit,
       riskLevel: customer.riskLevel,
       status: customer.status,
       createdAt: customer.createdAt,
