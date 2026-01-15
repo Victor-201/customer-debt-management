@@ -2,14 +2,14 @@ export default class User {
   #passwordHash;
 
   constructor({
-    id,
+    id = null,
     name,
     email,
     passwordHash,
     role,
     isActive = true,
     deletedAt = null,
-    createdAt = null,
+    createdAt,
     updatedAt = null,
   }) {
     if (!name) throw new Error("User.name is required");
@@ -28,7 +28,24 @@ export default class User {
     this.updatedAt = updatedAt;
   }
 
-  /* ========= DOMAIN RULES ========= */
+  /* ========= FACTORY ========= */
+
+  static create({ name, email, passwordHash, role }) {
+    return new User({
+      name,
+      email,
+      passwordHash,
+      role,
+      isActive: true,
+      createdAt: new Date(),
+    });
+  }
+
+  static restore(persistedData) {
+    return new User(persistedData);
+  }
+
+  /* ========= DOMAIN ========= */
 
   isDeleted() {
     return this.deletedAt !== null;
@@ -43,15 +60,25 @@ export default class User {
   }
 
   lock() {
+    if (this.isDeleted()) {
+      throw new Error("Cannot lock a deleted user");
+    }
     this.isActive = false;
+    this.updatedAt = new Date();
   }
 
   unlock() {
+    if (this.isDeleted()) {
+      throw new Error("Cannot unlock a deleted user");
+    }
     this.isActive = true;
+    this.updatedAt = new Date();
   }
 
   markDeleted(date = new Date()) {
     this.deletedAt = date;
+    this.isActive = false;
+    this.updatedAt = date;
   }
 
   /* ========= GETTERS ========= */
