@@ -1,91 +1,87 @@
 import express from "express";
+
 import InvoiceController from "../../presentation/controllers/invoice.controller.js";
-import InvoiceRepository from "../../application/interfaces/repositories/invoice.repository.interface.js";
-import CustomerRepository from "../../application/interfaces/repositories/customer.repository.interface.js"; // nếu validateCreditLimit cần
+
+import InvoiceRepository from "../../infrastructure/database/repositories/invoice.repository.js";
+import CustomerRepository from "../../infrastructure/database/repositories/customer.repository.js";
+import PaymentRepository from "../../infrastructure/database/repositories/payment.repository.js";
+
 import authMiddleware from "../middlewares/auth.middleware.js";
 import permissionMiddleware from "../middlewares/permission.middleware.js";
 import validateMiddleware from "../middlewares/validate.middleware.js";
-import {
-    INVOICE_PERMISSIONS,
-    DASHBOARD_PERMISSIONS,
-    RISK_PERMISSIONS,
-} from "../../shared/constants/permissions.js";
-import { execute } from "../../main/config/database.js";
-import {
-    createInvoiceSchema,
-    updateInvoiceSchema,
-    updateInvoiceStatusSchema,
-} from "../../presentation/validators/invoice.schema.js";
+
+import { INVOICE_PERMISSIONS } from "../../shared/constants/permissions.js";
+
+import { createInvoiceSchema, updateInvoiceSchema } from "../../presentation/validators/invoice.schema.js";
+
+import { sequelize } from "../config/database.js";
+
+import initInvoiceModel from "../../infrastructure/database/models/invoice.model.js";
+import initCustomerModel from "../../infrastructure/database/models/customer.model.js";
+import initPaymentModel from "../../infrastructure/database/models/payment.model.js";
 
 const router = express.Router();
 
-// DI repositories
-const invoiceRepository = new InvoiceRepository({ execute });
-const customerRepository = new CustomerRepository({ execute }); // nếu bạn chưa có thì bỏ dòng này và sửa controller constructor
+const InvoiceModel = initInvoiceModel(sequelize);
+const CustomerModel = initCustomerModel(sequelize);
+const PaymentModel = initPaymentModel(sequelize);
 
-// DI controller
-const invoiceController = new InvoiceController(invoiceRepository, customerRepository);
+const invoiceRepository = new InvoiceRepository(InvoiceModel);
+const customerRepository = new CustomerRepository({CustomerModel, InvoiceModel});
+const paymentRepository = new PaymentRepository(PaymentModel);
 
-router.use(authMiddleware);
+const invoiceController = new InvoiceController(
+  invoiceRepository,
+  paymentRepository,
+  customerRepository
+);
+
 
 /**
  * POST /invoices
  */
 router.post(
-    "/",
-    permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
-    validateMiddleware(createInvoiceSchema),
-    invoiceController.createInvoice
+  "/",
+  permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
+  validateMiddleware(createInvoiceSchema),
+  invoiceController.createInvoice
 );
 
 /**
  * PATCH /invoices/:invoiceId
  */
 router.patch(
-    "/:invoiceId",
-    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-    validateMiddleware(updateInvoiceSchema),
-    invoiceController.updateInvoice
-);
-/**
- * POST /invoices/:invoiceId/mark-paid
- * (nếu bạn có markInvoicePaid.usecase)
- */
-router.post(
-    "/:invoiceId/mark-paid",
-    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-    invoiceController.markInvoicePaid
+  "/:invoiceId",
+//   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+// validateMiddleware(updateInvoiceSchema),
+  invoiceController.updateInvoice
 );
 
 /**
- * POST /invoices/:invoiceId/recalc-balance
- * (nếu bạn có recalcInvoiceBalance.usecase)
- * Không recalc invoice vì đây là nghiệp vụ khi thanh toán hoặc hoàn tiền.
+ * POST /invoices/:invoiceId/mark-paid
  */
-// router.post(
-//     "/:invoiceId/recalc-balance",
-//     permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-//     invoiceController.recalcInvoiceBalance
-// );
+router.post(
+  "/:invoiceId/mark-paid",
+//   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+  invoiceController.markInvoicePaid
+);
 
 /**
  * POST /invoices/update-overdue
- * (job/manual trigger)
  */
 router.post(
-    "/update-overdue",
-    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-    invoiceController.updateOverdueInvoices
+  "/update-overdue",
+  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+  invoiceController.updateOverdueInvoices
 );
 
 /**
  * POST /invoices/validate-credit-limit
- * UI check trước khi tạo/update invoice
  */
 router.post(
-    "/validate-credit-limit",
-    permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
-    invoiceController.validateCreditLimit
+  "/validate-credit-limit",
+  permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
+  invoiceController.validateCreditLimit
 );
 
 export default router;
