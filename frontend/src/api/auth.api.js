@@ -5,10 +5,8 @@ export const authApi = {
     return apiClient.post("/auth/login", data);
   },
 
-  refresh(refreshToken) {
-    return apiClient.post("/auth/refresh", {
-      refresh_token: refreshToken,
-    });
+  refresh() {
+    return apiClient.post("/auth/refresh-token");
   },
 
   logout() {
