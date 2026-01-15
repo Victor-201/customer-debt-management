@@ -3,14 +3,6 @@ import { formatCurrency, getAmountColorClass } from '../utils/money.util.js';
 /**
  * BalanceCard Component
  * Displays a financial amount with label and optional icon
- * 
- * @param {Object} props
- * @param {string} props.label - Card label
- * @param {number} props.amount - Amount to display
- * @param {string} props.variant - Color variant: 'default', 'positive', 'negative', 'neutral'
- * @param {React.ReactNode} props.icon - Optional icon
- * @param {string} props.subtitle - Optional subtitle text
- * @param {string} props.className - Additional CSS classes
  */
 export const BalanceCard = ({
     label,
@@ -25,30 +17,28 @@ export const BalanceCard = ({
         ? getAmountColorClass(amount)
         : variant;
 
+    const colorStyles = {
+        positive: 'text-[var(--color-success)]',
+        negative: 'text-[var(--color-error)]',
+        neutral: 'text-gray-900'
+    };
+
     return (
-        <div className={`balance-card ${className}`}>
-            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between' }}>
+        <div className={`card ${className}`}>
+            <div className="flex items-start justify-between">
                 <div>
-                    <p className="balance-card-label">{label}</p>
-                    <p className={`balance-card-value balance-card-value--${colorClass}`}>
+                    <p className="text-sm text-gray-500 mb-1">{label}</p>
+                    <p className={`text-2xl font-bold font-mono ${colorStyles[colorClass] || colorStyles.neutral}`}>
                         {formatCurrency(amount)}
                     </p>
                     {subtitle && (
-                        <p style={{
-                            fontSize: 'var(--font-size-xs)',
-                            color: 'var(--color-text-muted)',
-                            marginTop: 'var(--spacing-1)'
-                        }}>
+                        <p className="text-xs text-gray-400 mt-1">
                             {subtitle}
                         </p>
                     )}
                 </div>
                 {icon && (
-                    <div style={{
-                        fontSize: '24px',
-                        color: 'var(--color-text-muted)',
-                        opacity: 0.5
-                    }}>
+                    <div className="text-2xl text-gray-300">
                         {icon}
                     </div>
                 )}
@@ -62,13 +52,14 @@ export const BalanceCard = ({
  * Displays multiple balance cards in a row
  */
 export const BalanceCardGroup = ({ children, columns = 3 }) => {
+    const gridCols = {
+        2: 'grid-cols-2',
+        3: 'grid-cols-3',
+        4: 'grid-cols-4'
+    };
+
     return (
-        <div style={{
-            display: 'grid',
-            gridTemplateColumns: `repeat(${columns}, 1fr)`,
-            gap: 'var(--spacing-4)',
-            marginBottom: 'var(--spacing-6)'
-        }}>
+        <div className={`grid ${gridCols[columns] || 'grid-cols-3'} gap-4 mb-6`}>
             {children}
         </div>
     );
@@ -80,11 +71,7 @@ export const BalanceCardGroup = ({ children, columns = 3 }) => {
  */
 export const InvoiceBalanceSummary = ({ total, paidAmount, balance }) => {
     return (
-        <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(3, 1fr)',
-            gap: 'var(--spacing-4)'
-        }}>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <BalanceCard
                 label="Tổng tiền"
                 amount={total}

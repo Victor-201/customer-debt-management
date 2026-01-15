@@ -3,25 +3,20 @@ import { INVOICE_STATUS_LABELS, INVOICE_STATUS_COLORS } from '../constants/invoi
 /**
  * StatusTag Component
  * Displays a colored badge for invoice status
- * 
- * @param {Object} props
- * @param {string} props.status - Status key (e.g., 'PENDING', 'PAID')
- * @param {string} props.size - Size variant: 'small', 'medium', 'large'
- * @param {string} props.className - Additional CSS classes
  */
 export const StatusTag = ({ status, size = 'medium', className = '' }) => {
     const label = INVOICE_STATUS_LABELS[status] || status;
     const color = INVOICE_STATUS_COLORS[status] || '#6b7280';
 
-    const sizeClass = {
-        small: 'status-tag--small',
-        medium: '',
-        large: 'status-tag--large'
-    }[size] || '';
+    const sizeClasses = {
+        small: 'px-2 py-0.5 text-xs',
+        medium: 'px-3 py-1 text-sm',
+        large: 'px-4 py-1.5 text-base'
+    };
 
     return (
         <span
-            className={`status-tag ${sizeClass} ${className}`}
+            className={`inline-flex items-center rounded-full font-semibold text-white ${sizeClasses[size] || sizeClasses.medium} ${className}`}
             style={{ backgroundColor: color }}
         >
             {label}
@@ -40,21 +35,19 @@ export const GenericStatusTag = ({
     size = 'medium',
     className = ''
 }) => {
-    const sizeClass = {
-        small: 'status-tag--small',
-        medium: '',
-        large: 'status-tag--large'
-    }[size] || '';
-
-    const style = {
-        backgroundColor: bgColor || color,
-        color: bgColor ? color : '#ffffff'
+    const sizeClasses = {
+        small: 'px-2 py-0.5 text-xs',
+        medium: 'px-3 py-1 text-sm',
+        large: 'px-4 py-1.5 text-base'
     };
 
     return (
         <span
-            className={`status-tag ${sizeClass} ${className}`}
-            style={style}
+            className={`inline-flex items-center rounded-full font-semibold ${sizeClasses[size] || sizeClasses.medium} ${className}`}
+            style={{
+                backgroundColor: bgColor || color,
+                color: bgColor ? color : '#ffffff'
+            }}
         >
             {label}
         </span>

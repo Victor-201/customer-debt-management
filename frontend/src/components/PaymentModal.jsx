@@ -9,12 +9,6 @@ import { updateInvoiceInList } from '../store/invoice.slice.js';
 /**
  * PaymentModal Component
  * Modal for recording a payment against an invoice
- * 
- * @param {Object} props
- * @param {boolean} props.isOpen - Whether modal is open
- * @param {Function} props.onClose - Close handler
- * @param {Object} props.invoice - Invoice to record payment for
- * @param {Function} props.onSuccess - Success callback
  */
 export const PaymentModal = ({
     isOpen,
@@ -75,7 +69,6 @@ export const PaymentModal = ({
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
 
-        // Clear error for this field
         if (formErrors[name]) {
             setFormErrors(prev => ({ ...prev, [name]: null }));
         }
@@ -120,7 +113,6 @@ export const PaymentModal = ({
                 note: formData.note
             })).unwrap();
 
-            // Update invoice in list
             if (result.invoice) {
                 dispatch(updateInvoiceInList(result.invoice));
             }
@@ -128,7 +120,6 @@ export const PaymentModal = ({
             onSuccess && onSuccess(result);
             onClose();
         } catch (err) {
-            // Error is handled by Redux
             console.error('Payment failed:', err);
         }
     };
@@ -142,12 +133,19 @@ export const PaymentModal = ({
     if (!isOpen || !invoice) return null;
 
     return (
-        <div className="modal-overlay" onClick={saving ? undefined : onClose}>
-            <div className="modal" style={{ maxWidth: '500px' }} onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h3 className="modal-title">Ghi nhận thanh toán</h3>
+        <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={saving ? undefined : onClose}
+        >
+            <div
+                className="bg-white rounded-xl shadow-xl w-full max-w-[500px]"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold">Ghi nhận thanh toán</h3>
                     <button
-                        className="modal-close"
+                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                         onClick={onClose}
                         disabled={saving}
                     >
@@ -156,48 +154,38 @@ export const PaymentModal = ({
                 </div>
 
                 <form onSubmit={handleSubmit}>
-                    <div className="modal-body">
+                    <div className="p-6 space-y-4">
                         {/* Invoice Info */}
-                        <div style={{
-                            backgroundColor: 'var(--color-neutral-50)',
-                            padding: 'var(--spacing-4)',
-                            borderRadius: 'var(--radius-lg)',
-                            marginBottom: 'var(--spacing-4)'
-                        }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-2)' }}>
-                                <span className="text-secondary">Hóa đơn:</span>
+                        <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Hóa đơn:</span>
                                 <span className="font-semibold">{invoice.id}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-2)' }}>
-                                <span className="text-secondary">Khách hàng:</span>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Khách hàng:</span>
                                 <span>{invoice.customerName}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                                <span className="text-secondary">Số dư còn lại:</span>
-                                <span className="font-bold text-danger">{formatCurrency(invoice.balance)}</span>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Số dư còn lại:</span>
+                                <span className="font-bold text-[var(--color-error)]">{formatCurrency(invoice.balance)}</span>
                             </div>
                         </div>
 
                         {/* Error message */}
                         {error && (
-                            <div style={{
-                                backgroundColor: '#fee2e2',
-                                color: '#dc2626',
-                                padding: 'var(--spacing-3)',
-                                borderRadius: 'var(--radius-md)',
-                                marginBottom: 'var(--spacing-4)'
-                            }}>
+                            <div className="bg-red-50 text-red-600 px-4 py-3 rounded-lg">
                                 {error}
                             </div>
                         )}
 
                         {/* Amount */}
-                        <div className="form-group">
-                            <label className="form-label">Số tiền thanh toán *</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Số tiền thanh toán *</label>
                             <input
                                 type="number"
                                 name="amount"
-                                className={`form-input ${formErrors.amount ? 'error' : ''}`}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${formErrors.amount ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 value={formData.amount}
                                 onChange={handleChange}
                                 placeholder="Nhập số tiền"
@@ -205,23 +193,48 @@ export const PaymentModal = ({
                                 max={invoice.balance}
                                 step="1000"
                             />
-                            {formErrors.amount && <p className="form-error">{formErrors.amount}</p>}
+                            {formErrors.amount && <p className="text-red-500 text-sm mt-1">{formErrors.amount}</p>}
 
                             {/* Quick fill buttons */}
-                            <div style={{ display: 'flex', gap: 'var(--spacing-2)', marginTop: 'var(--spacing-2)' }}>
-                                <button type="button" className="btn btn-sm btn-secondary" onClick={() => handleQuickFill(25)}>25%</button>
-                                <button type="button" className="btn btn-sm btn-secondary" onClick={() => handleQuickFill(50)}>50%</button>
-                                <button type="button" className="btn btn-sm btn-secondary" onClick={() => handleQuickFill(75)}>75%</button>
-                                <button type="button" className="btn btn-sm btn-primary" onClick={() => handleQuickFill(100)}>100%</button>
+                            <div className="flex gap-2 mt-2">
+                                <button
+                                    type="button"
+                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition"
+                                    onClick={() => handleQuickFill(25)}
+                                >
+                                    25%
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition"
+                                    onClick={() => handleQuickFill(50)}
+                                >
+                                    50%
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-3 py-1 text-sm border border-gray-300 rounded hover:bg-gray-50 transition"
+                                    onClick={() => handleQuickFill(75)}
+                                >
+                                    75%
+                                </button>
+                                <button
+                                    type="button"
+                                    className="px-3 py-1 text-sm bg-[var(--color-primary)] text-white rounded hover:opacity-90 transition"
+                                    onClick={() => handleQuickFill(100)}
+                                >
+                                    100%
+                                </button>
                             </div>
                         </div>
 
                         {/* Payment Method */}
-                        <div className="form-group">
-                            <label className="form-label">Phương thức thanh toán *</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Phương thức thanh toán *</label>
                             <select
                                 name="paymentMethod"
-                                className={`form-select ${formErrors.paymentMethod ? 'error' : ''}`}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${formErrors.paymentMethod ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 value={formData.paymentMethod}
                                 onChange={handleChange}
                             >
@@ -231,29 +244,30 @@ export const PaymentModal = ({
                                     </option>
                                 ))}
                             </select>
-                            {formErrors.paymentMethod && <p className="form-error">{formErrors.paymentMethod}</p>}
+                            {formErrors.paymentMethod && <p className="text-red-500 text-sm mt-1">{formErrors.paymentMethod}</p>}
                         </div>
 
                         {/* Payment Date */}
-                        <div className="form-group">
-                            <label className="form-label">Ngày thanh toán *</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Ngày thanh toán *</label>
                             <input
                                 type="date"
                                 name="paymentDate"
-                                className={`form-input ${formErrors.paymentDate ? 'error' : ''}`}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${formErrors.paymentDate ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 value={formData.paymentDate}
                                 onChange={handleChange}
                             />
-                            {formErrors.paymentDate && <p className="form-error">{formErrors.paymentDate}</p>}
+                            {formErrors.paymentDate && <p className="text-red-500 text-sm mt-1">{formErrors.paymentDate}</p>}
                         </div>
 
                         {/* Reference */}
-                        <div className="form-group">
-                            <label className="form-label">Số tham chiếu</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Số tham chiếu</label>
                             <input
                                 type="text"
                                 name="reference"
-                                className="form-input"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={formData.reference}
                                 onChange={handleChange}
                                 placeholder="Mã giao dịch, số phiếu thu..."
@@ -261,11 +275,11 @@ export const PaymentModal = ({
                         </div>
 
                         {/* Note */}
-                        <div className="form-group">
-                            <label className="form-label">Ghi chú</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
                             <textarea
                                 name="note"
-                                className="form-textarea"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={formData.note}
                                 onChange={handleChange}
                                 placeholder="Ghi chú thêm..."
@@ -274,10 +288,11 @@ export const PaymentModal = ({
                         </div>
                     </div>
 
-                    <div className="modal-footer">
+                    {/* Footer */}
+                    <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
                         <button
                             type="button"
-                            className="btn btn-secondary"
+                            className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                             onClick={onClose}
                             disabled={saving}
                         >
@@ -285,12 +300,12 @@ export const PaymentModal = ({
                         </button>
                         <button
                             type="submit"
-                            className="btn btn-success"
+                            className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:opacity-90 transition-colors flex items-center gap-2"
                             disabled={saving}
                         >
                             {saving ? (
                                 <>
-                                    <span className="loading-spinner" style={{ width: '16px', height: '16px' }}></span>
+                                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                     Đang xử lý...
                                 </>
                             ) : (

@@ -97,7 +97,7 @@ const InvoiceListPage = () => {
             render: (value, row) => (
                 <Link
                     to={`/invoices/${row.id}`}
-                    style={{ fontWeight: 600, color: 'var(--color-primary)' }}
+                    className="font-semibold text-[var(--color-primary)] hover:underline"
                 >
                     {value}
                 </Link>
@@ -108,7 +108,7 @@ const InvoiceListPage = () => {
             header: 'Khách hàng',
             sortable: true,
             render: (value) => (
-                <span style={{ fontWeight: 500 }}>{value}</span>
+                <span className="font-medium">{value}</span>
             )
         },
         {
@@ -129,7 +129,10 @@ const InvoiceListPage = () => {
                     <div>
                         <span>{formatDate(value)}</span>
                         {row.status !== INVOICE_STATUS.PAID && row.status !== INVOICE_STATUS.CANCELLED && aging.isOverdue && (
-                            <div style={{ fontSize: 'var(--font-size-xs)', color: aging.bucket.color }}>
+                            <div
+                                className="text-xs"
+                                style={{ color: aging.bucket.color }}
+                            >
                                 {aging.label}
                             </div>
                         )}
@@ -143,7 +146,7 @@ const InvoiceListPage = () => {
             sortable: true,
             width: '130px',
             render: (value) => (
-                <span style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                <span className="font-mono font-medium">
                     {formatCurrency(value)}
                 </span>
             )
@@ -153,14 +156,8 @@ const InvoiceListPage = () => {
             header: 'Còn lại',
             sortable: true,
             width: '130px',
-            render: (value, row) => (
-                <span
-                    style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontWeight: 600,
-                        color: value > 0 ? 'var(--color-danger)' : 'var(--color-success)'
-                    }}
-                >
+            render: (value) => (
+                <span className={`font-mono font-semibold ${value > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
                     {formatCurrency(value)}
                 </span>
             )
@@ -177,44 +174,42 @@ const InvoiceListPage = () => {
             header: 'Thao tác',
             width: '150px',
             render: (_, row) => (
-                <div style={{ display: 'flex', gap: 'var(--spacing-1)' }}>
+                <div className="flex gap-1">
                     <button
-                        className="btn btn-ghost btn-icon btn-sm"
+                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                         onClick={(e) => { e.stopPropagation(); navigate(`/invoices/${row.id}`); }}
                         title="Xem chi tiết"
                     >
-                        <FiEye />
+                        <FiEye className="w-4 h-4" />
                     </button>
 
                     {row.status !== INVOICE_STATUS.PAID && row.status !== INVOICE_STATUS.CANCELLED && (
                         <>
                             <button
-                                className="btn btn-ghost btn-icon btn-sm"
+                                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
                                 onClick={(e) => { e.stopPropagation(); navigate(`/invoices/${row.id}/edit`); }}
                                 title="Chỉnh sửa"
                             >
-                                <FiEdit2 />
+                                <FiEdit2 className="w-4 h-4" />
                             </button>
 
                             <button
-                                className="btn btn-ghost btn-icon btn-sm"
+                                className="p-2 rounded-lg hover:bg-green-50 transition-colors text-[var(--color-success)]"
                                 onClick={(e) => { e.stopPropagation(); setPaymentModal({ open: true, invoice: row }); }}
                                 title="Ghi nhận thanh toán"
-                                style={{ color: 'var(--color-success)' }}
                             >
-                                <FiDollarSign />
+                                <FiDollarSign className="w-4 h-4" />
                             </button>
                         </>
                     )}
 
                     {row.paidAmount === 0 && row.status !== INVOICE_STATUS.CANCELLED && (
                         <button
-                            className="btn btn-ghost btn-icon btn-sm"
+                            className="p-2 rounded-lg hover:bg-red-50 transition-colors text-[var(--color-error)]"
                             onClick={(e) => { e.stopPropagation(); setDeleteModal({ open: true, invoice: row }); }}
                             title="Xóa"
-                            style={{ color: 'var(--color-danger)' }}
                         >
-                            <FiTrash2 />
+                            <FiTrash2 className="w-4 h-4" />
                         </button>
                     )}
                 </div>
@@ -223,25 +218,25 @@ const InvoiceListPage = () => {
     ];
 
     return (
-        <div>
+        <div className="space-y-6">
             <PageHeader
                 title="Danh sách Hóa đơn"
                 subtitle={`Tổng cộng ${pagination.total} hóa đơn`}
                 actions={
-                    <Link to="/invoices/new" className="btn btn-primary">
+                    <Link to="/invoices/new" className="btn flex items-center gap-2">
                         <FiPlus /> Tạo hóa đơn
                     </Link>
                 }
             />
 
             {/* Filter Bar */}
-            <div className="card mb-6">
-                <div className="filter-bar">
+            <div className="card">
+                <div className="flex flex-wrap items-center gap-4">
                     {/* Search */}
-                    <div className="filter-group" style={{ flex: 1 }}>
+                    <div className="flex-1 min-w-[200px]">
                         <input
                             type="text"
-                            className="form-input search-input"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
                             placeholder="Tìm kiếm theo mã HĐ, khách hàng..."
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -249,25 +244,25 @@ const InvoiceListPage = () => {
                     </div>
 
                     {/* Status Filter */}
-                    <div className="filter-group">
-                        <select
-                            className="form-select"
-                            value={filters.status}
-                            onChange={(e) => handleFilterChange('status', e.target.value)}
-                            style={{ minWidth: '160px' }}
-                        >
-                            <option value="ALL">Tất cả trạng thái</option>
-                            {INVOICE_STATUS_OPTIONS.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <select
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] min-w-[160px]"
+                        value={filters.status}
+                        onChange={(e) => handleFilterChange('status', e.target.value)}
+                    >
+                        <option value="ALL">Tất cả trạng thái</option>
+                        {INVOICE_STATUS_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
 
                     {/* Toggle Advanced Filters */}
                     <button
-                        className={`btn btn-secondary ${showFilters ? 'active' : ''}`}
+                        className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters
+                                ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                                : 'border-gray-300 hover:bg-gray-50'
+                            }`}
                         onClick={() => setShowFilters(!showFilters)}
                     >
                         <FiFilter /> Bộ lọc
@@ -276,27 +271,21 @@ const InvoiceListPage = () => {
 
                 {/* Advanced Filters */}
                 {showFilters && (
-                    <div style={{
-                        display: 'flex',
-                        gap: 'var(--spacing-4)',
-                        marginTop: 'var(--spacing-4)',
-                        paddingTop: 'var(--spacing-4)',
-                        borderTop: '1px solid var(--color-border-light)'
-                    }}>
-                        <div className="filter-group">
-                            <label className="form-label" style={{ marginBottom: 0 }}>Từ ngày:</label>
+                    <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-600">Từ ngày:</label>
                             <input
                                 type="date"
-                                className="form-input"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={filters.startDate || ''}
                                 onChange={(e) => handleFilterChange('startDate', e.target.value || null)}
                             />
                         </div>
-                        <div className="filter-group">
-                            <label className="form-label" style={{ marginBottom: 0 }}>Đến ngày:</label>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-600">Đến ngày:</label>
                             <input
                                 type="date"
-                                className="form-input"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={filters.endDate || ''}
                                 onChange={(e) => handleFilterChange('endDate', e.target.value || null)}
                             />
@@ -306,7 +295,7 @@ const InvoiceListPage = () => {
             </div>
 
             {/* Data Table */}
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card !p-0 overflow-hidden">
                 <DataTable
                     columns={columns}
                     data={invoices}
@@ -333,7 +322,7 @@ const InvoiceListPage = () => {
                         <p>
                             Bạn có chắc chắn muốn xóa hóa đơn <strong>{deleteModal.invoice.id}</strong>?
                             <br />
-                            <span className="text-secondary">Hành động này không thể hoàn tác.</span>
+                            <span className="text-gray-500">Hành động này không thể hoàn tác.</span>
                         </p>
                     )
                 }

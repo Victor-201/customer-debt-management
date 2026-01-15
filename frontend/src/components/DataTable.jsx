@@ -4,14 +4,6 @@ import { FiChevronUp, FiChevronDown } from 'react-icons/fi';
 /**
  * DataTable Component
  * Reusable table with sorting and pagination
- * 
- * @param {Object} props
- * @param {Array} props.columns - Column definitions [{key, header, render, sortable, width}]
- * @param {Array} props.data - Data array
- * @param {boolean} props.loading - Loading state
- * @param {Function} props.onRowClick - Row click handler
- * @param {string} props.emptyMessage - Message when no data
- * @param {Object} props.pagination - Pagination config {page, limit, total, onPageChange}
  */
 export const DataTable = ({
     columns = [],
@@ -59,7 +51,7 @@ export const DataTable = ({
     // Render sort icon
     const renderSortIcon = (columnKey) => {
         if (currentSort.key !== columnKey) {
-            return <FiChevronUp style={{ opacity: 0.3 }} />;
+            return <FiChevronUp className="opacity-30" />;
         }
         return currentSort.direction === 'asc'
             ? <FiChevronUp />
@@ -72,20 +64,19 @@ export const DataTable = ({
     const endItem = pagination ? Math.min(pagination.page * pagination.limit, pagination.total) : data.length;
 
     return (
-        <div className="table-container">
-            <table className="table">
+        <div className="overflow-x-auto">
+            <table className="w-full border-collapse">
                 <thead>
-                    <tr>
+                    <tr className="bg-gray-50 border-b border-gray-200">
                         {columns.map((column) => (
                             <th
                                 key={column.key}
-                                style={{
-                                    width: column.width,
-                                    cursor: column.sortable ? 'pointer' : 'default'
-                                }}
+                                className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 ${column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                                    }`}
+                                style={{ width: column.width }}
                                 onClick={() => column.sortable && handleSort(column.key)}
                             >
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                <div className="flex items-center gap-1">
                                     {column.header}
                                     {column.sortable && renderSortIcon(column.key)}
                                 </div>
@@ -97,14 +88,14 @@ export const DataTable = ({
                 <tbody>
                     {loading ? (
                         <tr>
-                            <td colSpan={columns.length} className="table-empty">
-                                <div className="loading-spinner"></div>
-                                <p style={{ marginTop: 'var(--spacing-2)' }}>Đang tải...</p>
+                            <td colSpan={columns.length} className="px-4 py-12 text-center">
+                                <div className="w-8 h-8 border-4 border-gray-200 border-t-[var(--color-primary)] rounded-full animate-spin mx-auto"></div>
+                                <p className="text-gray-500 mt-2">Đang tải...</p>
                             </td>
                         </tr>
                     ) : sortedData.length === 0 ? (
                         <tr>
-                            <td colSpan={columns.length} className="table-empty">
+                            <td colSpan={columns.length} className="px-4 py-12 text-center text-gray-500">
                                 {emptyMessage}
                             </td>
                         </tr>
@@ -113,10 +104,11 @@ export const DataTable = ({
                             <tr
                                 key={row.id || rowIndex}
                                 onClick={() => onRowClick && onRowClick(row)}
-                                style={{ cursor: onRowClick ? 'pointer' : 'default' }}
+                                className={`border-b border-gray-100 ${onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
+                                    } transition-colors`}
                             >
                                 {columns.map((column) => (
-                                    <td key={column.key}>
+                                    <td key={column.key} className="px-4 py-3">
                                         {column.render
                                             ? column.render(row[column.key], row, rowIndex)
                                             : row[column.key]}
@@ -129,14 +121,14 @@ export const DataTable = ({
             </table>
 
             {pagination && pagination.total > 0 && (
-                <div className="pagination">
-                    <span className="pagination-info">
+                <div className="flex flex-wrap items-center justify-between px-4 py-3 bg-gray-50 border-t border-gray-200 gap-4">
+                    <span className="text-sm text-gray-600">
                         Hiển thị {startItem} - {endItem} trong tổng số {pagination.total} mục
                     </span>
 
-                    <div className="pagination-controls">
+                    <div className="flex items-center gap-1">
                         <button
-                            className="pagination-btn"
+                            className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
                             onClick={() => pagination.onPageChange(pagination.page - 1)}
                             disabled={pagination.page <= 1}
                         >
@@ -158,7 +150,10 @@ export const DataTable = ({
                             return (
                                 <button
                                     key={pageNum}
-                                    className={`pagination-btn ${pagination.page === pageNum ? 'active' : ''}`}
+                                    className={`w-8 h-8 text-sm rounded transition ${pagination.page === pageNum
+                                            ? 'bg-[var(--color-primary)] text-white'
+                                            : 'border border-gray-300 hover:bg-gray-100'
+                                        }`}
                                     onClick={() => pagination.onPageChange(pageNum)}
                                 >
                                     {pageNum}
@@ -167,7 +162,7 @@ export const DataTable = ({
                         })}
 
                         <button
-                            className="pagination-btn"
+                            className="px-3 py-1.5 text-sm border border-gray-300 rounded hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed transition"
                             onClick={() => pagination.onPageChange(pagination.page + 1)}
                             disabled={pagination.page >= totalPages}
                         >

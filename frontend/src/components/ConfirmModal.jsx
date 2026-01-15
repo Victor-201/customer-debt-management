@@ -3,17 +3,6 @@ import { useEffect, useCallback } from 'react';
 /**
  * ConfirmModal Component
  * Displays a confirmation dialog
- * 
- * @param {Object} props
- * @param {boolean} props.isOpen - Whether the modal is open
- * @param {Function} props.onClose - Close handler
- * @param {Function} props.onConfirm - Confirm handler
- * @param {string} props.title - Modal title
- * @param {string|React.ReactNode} props.message - Confirmation message
- * @param {string} props.confirmText - Confirm button text
- * @param {string} props.cancelText - Cancel button text
- * @param {string} props.variant - Button variant: 'danger', 'warning', 'primary'
- * @param {boolean} props.loading - Whether confirm action is loading
  */
 export const ConfirmModal = ({
     isOpen,
@@ -47,20 +36,27 @@ export const ConfirmModal = ({
 
     if (!isOpen) return null;
 
-    const buttonClass = {
-        danger: 'btn-danger',
-        warning: 'btn-warning',
-        primary: 'btn-primary',
-        success: 'btn-success'
-    }[variant] || 'btn-primary';
+    const buttonStyles = {
+        danger: 'bg-[var(--color-error)] hover:opacity-90',
+        warning: 'bg-[var(--color-warning)] hover:opacity-90',
+        primary: 'bg-[var(--color-primary)] hover:bg-[var(--color-secondary)]',
+        success: 'bg-[var(--color-success)] hover:opacity-90'
+    };
 
     return (
-        <div className="modal-overlay" onClick={loading ? undefined : onClose}>
-            <div className="modal" onClick={(e) => e.stopPropagation()}>
-                <div className="modal-header">
-                    <h3 className="modal-title">{title}</h3>
+        <div
+            className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+            onClick={loading ? undefined : onClose}
+        >
+            <div
+                className="bg-white rounded-xl shadow-xl w-full max-w-md"
+                onClick={(e) => e.stopPropagation()}
+            >
+                {/* Header */}
+                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+                    <h3 className="text-lg font-semibold">{title}</h3>
                     <button
-                        className="modal-close"
+                        className="w-8 h-8 flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-full transition-colors"
                         onClick={onClose}
                         disabled={loading}
                         aria-label="Đóng"
@@ -69,26 +65,28 @@ export const ConfirmModal = ({
                     </button>
                 </div>
 
-                <div className="modal-body">
+                {/* Body */}
+                <div className="px-6 py-4">
                     {typeof message === 'string' ? <p>{message}</p> : message}
                 </div>
 
-                <div className="modal-footer">
+                {/* Footer */}
+                <div className="flex justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50 rounded-b-xl">
                     <button
-                        className="btn btn-secondary"
+                        className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-100 transition-colors"
                         onClick={onClose}
                         disabled={loading}
                     >
                         {cancelText}
                     </button>
                     <button
-                        className={`btn ${buttonClass}`}
+                        className={`px-4 py-2 text-white rounded-lg transition-colors flex items-center gap-2 ${buttonStyles[variant] || buttonStyles.primary}`}
                         onClick={onConfirm}
                         disabled={loading}
                     >
                         {loading ? (
                             <>
-                                <span className="loading-spinner" style={{ width: '16px', height: '16px' }}></span>
+                                <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                 Đang xử lý...
                             </>
                         ) : confirmText}

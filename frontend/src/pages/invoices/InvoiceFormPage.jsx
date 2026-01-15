@@ -21,7 +21,6 @@ import { formatCurrency, calculateTotal, calculateTax } from '../../utils/money.
 import { formatDateForInput, addDays, today } from '../../utils/date.util.js';
 import { PAYMENT_TERMS_OPTIONS, getPaymentTermDays } from '../../constants/paymentTerms.js';
 import { INVOICE_STATUS } from '../../constants/invoiceStatus.js';
-import { mockCustomers } from '../../mocks/mockData.js';
 
 /**
  * InvoiceFormPage
@@ -95,8 +94,8 @@ const InvoiceFormPage = () => {
 
     // Handle customer change
     const handleCustomerChange = (e) => {
-        const customerId = parseInt(e.target.value);
-        const customer = mockCustomers.find(c => c.id === customerId);
+        const customerId = e.target.value;
+        const customer = customerOptions.find(c => c.id === customerId);
 
         if (customer) {
             const paymentTerm = customer.paymentTerm || 'NET_30';
@@ -188,7 +187,7 @@ const InvoiceFormPage = () => {
         }
 
         // Check items
-        const itemErrors = formData.items.map((item, index) => {
+        const itemErrors = formData.items.map((item) => {
             const err = {};
             if (!item.description.trim()) {
                 err.description = 'Vui lòng nhập mô tả';
@@ -235,7 +234,6 @@ const InvoiceFormPage = () => {
             } else {
                 const result = await dispatch(createInvoice(invoiceData)).unwrap();
                 if (!asDraft) {
-                    // Send immediately after creation
                     await dispatch(sendInvoice(result.id)).unwrap();
                 }
             }
@@ -250,7 +248,6 @@ const InvoiceFormPage = () => {
         if (!validate()) return;
 
         if (isEdit && currentInvoice?.status === INVOICE_STATUS.DRAFT) {
-            // Update then send
             const invoiceData = {
                 customerId: formData.customerId,
                 customerName: formData.customerName,
@@ -273,7 +270,6 @@ const InvoiceFormPage = () => {
                 alert('Lỗi: ' + error);
             }
         } else {
-            // Create and send
             await handleSave(false);
         }
     };
@@ -283,7 +279,7 @@ const InvoiceFormPage = () => {
     }
 
     return (
-        <div>
+        <div className="space-y-6">
             <PageHeader
                 title={isEdit ? `Chỉnh sửa: ${id}` : 'Tạo hóa đơn mới'}
                 breadcrumbs={[
@@ -292,42 +288,44 @@ const InvoiceFormPage = () => {
                 ]}
             />
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 350px', gap: 'var(--spacing-6)' }}>
+            <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
                 {/* Main Form */}
                 <div className="card">
                     {/* Customer & Dates */}
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--spacing-4)', marginBottom: 'var(--spacing-6)' }}>
-                        <div className="form-group" style={{ gridColumn: '1 / -1' }}>
-                            <label className="form-label">Khách hàng *</label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div className="md:col-span-2">
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Khách hàng *</label>
                             <select
-                                className={`form-select ${errors.customerId ? 'error' : ''}`}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${errors.customerId ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 value={formData.customerId}
                                 onChange={handleCustomerChange}
                                 disabled={isEdit && currentInvoice?.paidAmount > 0}
                             >
                                 <option value="">-- Chọn khách hàng --</option>
-                                {mockCustomers.filter(c => c.status === 'ACTIVE').map(c => (
+                                {customerOptions.filter(c => c.status === 'ACTIVE').map(c => (
                                     <option key={c.id} value={c.id}>{c.name}</option>
                                 ))}
                             </select>
-                            {errors.customerId && <p className="form-error">{errors.customerId}</p>}
+                            {errors.customerId && <p className="text-red-500 text-sm mt-1">{errors.customerId}</p>}
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Ngày tạo *</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Ngày tạo *</label>
                             <input
                                 type="date"
-                                className={`form-input ${errors.issueDate ? 'error' : ''}`}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${errors.issueDate ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 value={formData.issueDate}
                                 onChange={handleIssueDateChange}
                             />
-                            {errors.issueDate && <p className="form-error">{errors.issueDate}</p>}
+                            {errors.issueDate && <p className="text-red-500 text-sm mt-1">{errors.issueDate}</p>}
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Điều khoản thanh toán</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Điều khoản thanh toán</label>
                             <select
-                                className="form-select"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={formData.paymentTerm}
                                 onChange={handlePaymentTermChange}
                             >
@@ -337,22 +335,23 @@ const InvoiceFormPage = () => {
                             </select>
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Hạn thanh toán *</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Hạn thanh toán *</label>
                             <input
                                 type="date"
-                                className={`form-input ${errors.dueDate ? 'error' : ''}`}
+                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${errors.dueDate ? 'border-red-500' : 'border-gray-300'
+                                    }`}
                                 value={formData.dueDate}
                                 onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
                             />
-                            {errors.dueDate && <p className="form-error">{errors.dueDate}</p>}
+                            {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>}
                         </div>
 
-                        <div className="form-group">
-                            <label className="form-label">Thuế suất (%)</label>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">Thuế suất (%)</label>
                             <input
                                 type="number"
-                                className="form-input"
+                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={formData.taxRate}
                                 onChange={(e) => setFormData(prev => ({ ...prev, taxRate: parseFloat(e.target.value) || 0 }))}
                                 min="0"
@@ -362,23 +361,27 @@ const InvoiceFormPage = () => {
                     </div>
 
                     {/* Items */}
-                    <div style={{ marginBottom: 'var(--spacing-6)' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--spacing-3)' }}>
-                            <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600 }}>Chi tiết hóa đơn</h3>
-                            <button type="button" className="btn btn-secondary btn-sm" onClick={addItem}>
-                                <FiPlus /> Thêm dòng
+                    <div className="mb-6">
+                        <div className="flex justify-between items-center mb-3">
+                            <h3 className="text-lg font-semibold">Chi tiết hóa đơn</h3>
+                            <button
+                                type="button"
+                                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1"
+                                onClick={addItem}
+                            >
+                                <FiPlus className="w-4 h-4" /> Thêm dòng
                             </button>
                         </div>
 
-                        <div className="table-container">
-                            <table className="table">
+                        <div className="overflow-x-auto">
+                            <table className="w-full border-collapse">
                                 <thead>
-                                    <tr>
-                                        <th style={{ width: '40%' }}>Mô tả</th>
-                                        <th style={{ width: '15%' }}>Số lượng</th>
-                                        <th style={{ width: '20%' }}>Đơn giá</th>
-                                        <th style={{ width: '20%' }}>Thành tiền</th>
-                                        <th style={{ width: '5%' }}></th>
+                                    <tr className="bg-gray-50 border-b border-gray-200">
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[40%]">Mô tả</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[15%]">Số lượng</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[20%]">Đơn giá</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[20%]">Thành tiền</th>
+                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[5%]"></th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -387,48 +390,50 @@ const InvoiceFormPage = () => {
                                         const amount = (item.quantity || 0) * (item.unitPrice || 0);
 
                                         return (
-                                            <tr key={item.id || index}>
-                                                <td>
+                                            <tr key={item.id || index} className="border-b border-gray-100">
+                                                <td className="px-4 py-2">
                                                     <input
                                                         type="text"
-                                                        className={`form-input ${itemErrors?.description ? 'error' : ''}`}
+                                                        className={`w-full px-3 py-2 border rounded-lg text-sm ${itemErrors?.description ? 'border-red-500' : 'border-gray-300'
+                                                            }`}
                                                         value={item.description}
                                                         onChange={(e) => handleItemChange(index, 'description', e.target.value)}
                                                         placeholder="Nhập mô tả sản phẩm/dịch vụ"
                                                     />
                                                 </td>
-                                                <td>
+                                                <td className="px-4 py-2">
                                                     <input
                                                         type="number"
-                                                        className={`form-input ${itemErrors?.quantity ? 'error' : ''}`}
+                                                        className={`w-full px-3 py-2 border rounded-lg text-sm ${itemErrors?.quantity ? 'border-red-500' : 'border-gray-300'
+                                                            }`}
                                                         value={item.quantity}
                                                         onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
                                                         min="0"
                                                         step="1"
                                                     />
                                                 </td>
-                                                <td>
+                                                <td className="px-4 py-2">
                                                     <input
                                                         type="number"
-                                                        className={`form-input ${itemErrors?.unitPrice ? 'error' : ''}`}
+                                                        className={`w-full px-3 py-2 border rounded-lg text-sm ${itemErrors?.unitPrice ? 'border-red-500' : 'border-gray-300'
+                                                            }`}
                                                         value={item.unitPrice}
                                                         onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
                                                         min="0"
                                                         step="1000"
                                                     />
                                                 </td>
-                                                <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 500 }}>
+                                                <td className="px-4 py-2 font-mono font-medium">
                                                     {formatCurrency(amount)}
                                                 </td>
-                                                <td>
+                                                <td className="px-4 py-2">
                                                     {formData.items.length > 1 && (
                                                         <button
                                                             type="button"
-                                                            className="btn btn-ghost btn-icon btn-sm"
+                                                            className="p-2 rounded-lg hover:bg-red-50 text-[var(--color-error)] transition-colors"
                                                             onClick={() => removeItem(index)}
-                                                            style={{ color: 'var(--color-danger)' }}
                                                         >
-                                                            <FiTrash2 />
+                                                            <FiTrash2 className="w-4 h-4" />
                                                         </button>
                                                     )}
                                                 </td>
@@ -441,10 +446,10 @@ const InvoiceFormPage = () => {
                     </div>
 
                     {/* Notes */}
-                    <div className="form-group">
-                        <label className="form-label">Ghi chú</label>
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
                         <textarea
-                            className="form-textarea"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             value={formData.notes}
                             onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
                             placeholder="Ghi chú thêm cho hóa đơn..."
@@ -455,47 +460,36 @@ const InvoiceFormPage = () => {
 
                 {/* Summary & Actions */}
                 <div>
-                    <div className="card" style={{ position: 'sticky', top: 'var(--spacing-4)' }}>
-                        <h3 style={{ fontSize: 'var(--font-size-lg)', fontWeight: 600, marginBottom: 'var(--spacing-4)' }}>
-                            Tổng kết
-                        </h3>
+                    <div className="card sticky top-4">
+                        <h3 className="text-lg font-semibold mb-4">Tổng kết</h3>
 
-                        <div style={{ marginBottom: 'var(--spacing-4)' }}>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-2)' }}>
-                                <span className="text-secondary">Tạm tính:</span>
-                                <span style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(calculations.subtotal)}</span>
+                        <div className="mb-4 space-y-2">
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Tạm tính:</span>
+                                <span className="font-mono">{formatCurrency(calculations.subtotal)}</span>
                             </div>
-                            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 'var(--spacing-2)' }}>
-                                <span className="text-secondary">Thuế ({formData.taxRate}%):</span>
-                                <span style={{ fontFamily: 'var(--font-mono)' }}>{formatCurrency(calculations.taxAmount)}</span>
+                            <div className="flex justify-between">
+                                <span className="text-gray-500">Thuế ({formData.taxRate}%):</span>
+                                <span className="font-mono">{formatCurrency(calculations.taxAmount)}</span>
                             </div>
-                            <div
-                                style={{
-                                    display: 'flex',
-                                    justifyContent: 'space-between',
-                                    paddingTop: 'var(--spacing-3)',
-                                    borderTop: '2px solid var(--color-border)',
-                                    fontSize: 'var(--font-size-lg)',
-                                    fontWeight: 600
-                                }}
-                            >
+                            <div className="flex justify-between pt-3 border-t-2 border-gray-200 text-lg font-semibold">
                                 <span>Tổng cộng:</span>
-                                <span style={{ fontFamily: 'var(--font-mono)', color: 'var(--color-primary)' }}>
+                                <span className="font-mono text-[var(--color-primary)]">
                                     {formatCurrency(calculations.total)}
                                 </span>
                             </div>
                         </div>
 
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--spacing-3)' }}>
+                        <div className="flex flex-col gap-3">
                             <button
                                 type="button"
-                                className="btn btn-primary btn-lg w-full"
+                                className="btn w-full flex items-center justify-center gap-2 py-3"
                                 onClick={handleSend}
                                 disabled={saving}
                             >
                                 {saving ? (
                                     <>
-                                        <span className="loading-spinner" style={{ width: '16px', height: '16px' }}></span>
+                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
                                         Đang xử lý...
                                     </>
                                 ) : (
@@ -507,7 +501,7 @@ const InvoiceFormPage = () => {
 
                             <button
                                 type="button"
-                                className="btn btn-secondary w-full"
+                                className="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
                                 onClick={() => handleSave(true)}
                                 disabled={saving}
                             >
@@ -516,7 +510,7 @@ const InvoiceFormPage = () => {
 
                             <button
                                 type="button"
-                                className="btn btn-ghost w-full"
+                                className="w-full px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg flex items-center justify-center gap-2 transition-colors"
                                 onClick={() => navigate('/invoices')}
                                 disabled={saving}
                             >

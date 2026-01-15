@@ -67,7 +67,6 @@ const PaymentPage = () => {
         try {
             await dispatch(deletePayment(deleteModal.payment.id)).unwrap();
             setDeleteModal({ open: false, payment: null });
-            // Refresh list
             dispatch(fetchPayments({
                 ...filters,
                 page: pagination.page,
@@ -89,7 +88,7 @@ const PaymentPage = () => {
             sortable: true,
             width: '130px',
             render: (value) => (
-                <span style={{ fontWeight: 600 }}>{value}</span>
+                <span className="font-semibold">{value}</span>
             )
         },
         {
@@ -100,9 +99,9 @@ const PaymentPage = () => {
             render: (value) => (
                 <Link
                     to={`/invoices/${value}`}
-                    style={{ color: 'var(--color-primary)', display: 'flex', alignItems: 'center', gap: '4px' }}
+                    className="text-[var(--color-primary)] hover:underline flex items-center gap-1"
                 >
-                    {value} <FiExternalLink size={12} />
+                    {value} <FiExternalLink className="w-3 h-3" />
                 </Link>
             )
         },
@@ -111,7 +110,7 @@ const PaymentPage = () => {
             header: 'Khách hàng',
             sortable: true,
             render: (value) => (
-                <span style={{ fontWeight: 500 }}>{value}</span>
+                <span className="font-medium">{value}</span>
             )
         },
         {
@@ -126,14 +125,7 @@ const PaymentPage = () => {
             header: 'Phương thức',
             width: '130px',
             render: (value) => (
-                <span
-                    style={{
-                        padding: 'var(--spacing-1) var(--spacing-2)',
-                        backgroundColor: 'var(--color-neutral-100)',
-                        borderRadius: 'var(--radius-md)',
-                        fontSize: 'var(--font-size-sm)'
-                    }}
-                >
+                <span className="px-2 py-1 bg-gray-100 rounded text-sm">
                     {getPaymentMethodLabel(value)}
                 </span>
             )
@@ -144,13 +136,7 @@ const PaymentPage = () => {
             sortable: true,
             width: '150px',
             render: (value) => (
-                <span
-                    style={{
-                        fontFamily: 'var(--font-mono)',
-                        fontWeight: 600,
-                        color: 'var(--color-success)'
-                    }}
-                >
+                <span className="font-mono font-semibold text-[var(--color-success)]">
                     +{formatCurrency(value)}
                 </span>
             )
@@ -160,7 +146,7 @@ const PaymentPage = () => {
             header: 'Tham chiếu',
             width: '130px',
             render: (value) => (
-                <span className="text-secondary" style={{ fontSize: 'var(--font-size-sm)' }}>
+                <span className="text-gray-500 text-sm">
                     {value || '-'}
                 </span>
             )
@@ -168,59 +154,44 @@ const PaymentPage = () => {
     ];
 
     return (
-        <div>
+        <div className="space-y-6">
             <PageHeader
                 title="Lịch sử thanh toán"
                 subtitle={`Tổng cộng ${pagination.total} phiếu thu`}
                 actions={
-                    <div
-                        style={{
-                            padding: 'var(--spacing-2) var(--spacing-4)',
-                            backgroundColor: 'var(--color-success)',
-                            color: 'white',
-                            borderRadius: 'var(--radius-lg)',
-                            fontWeight: 600
-                        }}
-                    >
-                        <FiDollarSign style={{ marginRight: 'var(--spacing-1)' }} />
+                    <div className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg font-semibold flex items-center gap-2">
+                        <FiDollarSign />
                         Tổng thu: {formatCurrency(totalAmount)}
                     </div>
                 }
             />
 
             {/* Summary Cards */}
-            <div
-                style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(4, 1fr)',
-                    gap: 'var(--spacing-4)',
-                    marginBottom: 'var(--spacing-6)'
-                }}
-            >
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {PAYMENT_METHOD_OPTIONS.map(method => {
                     const methodPayments = payments.filter(p => p.paymentMethod === method.value);
                     const methodTotal = methodPayments.reduce((sum, p) => sum + p.amount, 0);
 
                     return (
-                        <div key={method.value} className="card" style={{ padding: 'var(--spacing-4)' }}>
-                            <p className="text-sm text-secondary mb-1">{method.label}</p>
-                            <p style={{ fontSize: 'var(--font-size-xl)', fontWeight: 700, fontFamily: 'var(--font-mono)' }}>
+                        <div key={method.value} className="card">
+                            <p className="text-sm text-gray-500 mb-1">{method.label}</p>
+                            <p className="text-xl font-bold font-mono">
                                 {formatCurrency(methodTotal)}
                             </p>
-                            <p className="text-sm text-muted">{methodPayments.length} phiếu thu</p>
+                            <p className="text-sm text-gray-400">{methodPayments.length} phiếu thu</p>
                         </div>
                     );
                 })}
             </div>
 
             {/* Filter Bar */}
-            <div className="card mb-6">
-                <div className="filter-bar">
+            <div className="card">
+                <div className="flex flex-wrap items-center gap-4">
                     {/* Search */}
-                    <div className="filter-group" style={{ flex: 1 }}>
+                    <div className="flex-1 min-w-[200px]">
                         <input
                             type="text"
-                            className="form-input search-input"
+                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                             placeholder="Tìm kiếm theo mã phiếu, mã HĐ, khách hàng..."
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -228,25 +199,25 @@ const PaymentPage = () => {
                     </div>
 
                     {/* Payment Method Filter */}
-                    <div className="filter-group">
-                        <select
-                            className="form-select"
-                            value={filters.paymentMethod || ''}
-                            onChange={(e) => handleFilterChange('paymentMethod', e.target.value || null)}
-                            style={{ minWidth: '160px' }}
-                        >
-                            <option value="">Tất cả phương thức</option>
-                            {PAYMENT_METHOD_OPTIONS.map(option => (
-                                <option key={option.value} value={option.value}>
-                                    {option.label}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
+                    <select
+                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] min-w-[160px]"
+                        value={filters.paymentMethod || ''}
+                        onChange={(e) => handleFilterChange('paymentMethod', e.target.value || null)}
+                    >
+                        <option value="">Tất cả phương thức</option>
+                        {PAYMENT_METHOD_OPTIONS.map(option => (
+                            <option key={option.value} value={option.value}>
+                                {option.label}
+                            </option>
+                        ))}
+                    </select>
 
                     {/* Toggle Advanced Filters */}
                     <button
-                        className={`btn btn-secondary ${showFilters ? 'active' : ''}`}
+                        className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters
+                                ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                                : 'border-gray-300 hover:bg-gray-50'
+                            }`}
                         onClick={() => setShowFilters(!showFilters)}
                     >
                         <FiFilter /> Bộ lọc
@@ -255,27 +226,21 @@ const PaymentPage = () => {
 
                 {/* Advanced Filters */}
                 {showFilters && (
-                    <div style={{
-                        display: 'flex',
-                        gap: 'var(--spacing-4)',
-                        marginTop: 'var(--spacing-4)',
-                        paddingTop: 'var(--spacing-4)',
-                        borderTop: '1px solid var(--color-border-light)'
-                    }}>
-                        <div className="filter-group">
-                            <label className="form-label" style={{ marginBottom: 0 }}>Từ ngày:</label>
+                    <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200">
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-600">Từ ngày:</label>
                             <input
                                 type="date"
-                                className="form-input"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={filters.startDate || ''}
                                 onChange={(e) => handleFilterChange('startDate', e.target.value || null)}
                             />
                         </div>
-                        <div className="filter-group">
-                            <label className="form-label" style={{ marginBottom: 0 }}>Đến ngày:</label>
+                        <div className="flex items-center gap-2">
+                            <label className="text-sm font-medium text-gray-600">Đến ngày:</label>
                             <input
                                 type="date"
-                                className="form-input"
+                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
                                 value={filters.endDate || ''}
                                 onChange={(e) => handleFilterChange('endDate', e.target.value || null)}
                             />
@@ -285,7 +250,7 @@ const PaymentPage = () => {
             </div>
 
             {/* Data Table */}
-            <div className="card" style={{ padding: 0 }}>
+            <div className="card !p-0 overflow-hidden">
                 <DataTable
                     columns={columns}
                     data={payments}
@@ -311,7 +276,7 @@ const PaymentPage = () => {
                         <p>
                             Bạn có chắc chắn muốn hủy phiếu thu <strong>{deleteModal.payment.id}</strong>?
                             <br />
-                            <span className="text-secondary">
+                            <span className="text-gray-500">
                                 Số tiền {formatCurrency(deleteModal.payment.amount)} sẽ được hoàn lại vào số dư hóa đơn.
                             </span>
                         </p>
