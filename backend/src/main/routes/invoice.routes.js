@@ -36,6 +36,7 @@ const invoiceController = new InvoiceController(
   customerRepository
 );
 
+router.use(authMiddleware);
 
 /**
  * POST /invoices
@@ -52,8 +53,8 @@ router.post(
  */
 router.patch(
   "/:invoiceId",
-//   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-// validateMiddleware(updateInvoiceSchema),
+  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+validateMiddleware(updateInvoiceSchema),
   invoiceController.updateInvoice
 );
 
@@ -62,7 +63,7 @@ router.patch(
  */
 router.post(
   "/:invoiceId/mark-paid",
-//   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
   invoiceController.markInvoicePaid
 );
 

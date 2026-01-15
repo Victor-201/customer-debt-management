@@ -11,7 +11,6 @@ const router = express.Router();
 router.use('/auth', authRoutes);
 router.use('/users', userRoutes);
 router.use('/report', reportRoutes);
-
 router.use('/customers', customerRoutes);
 router.use('/invoices', invoiceRoutes);
 export default router;
