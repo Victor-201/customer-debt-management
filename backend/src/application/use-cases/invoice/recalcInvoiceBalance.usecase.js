@@ -1,4 +1,5 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
+import { Money } from "../../../domain/value-objects/Money.js";
 
 class RecalcInvoiceBalanceUseCase {
     constructor(invoiceRepository, paymentRepository) {
@@ -13,9 +14,11 @@ class RecalcInvoiceBalanceUseCase {
             throw new BusinessRuleError("Invoice not found");
         }
 
-        const totalPaid = await this.paymentRepository.sumByInvoiceId(id);
+        const totalPaidNumber = await this.paymentRepository.sumByInvoiceId(id);
 
-        invoice.recalcBalance(totalPaid);
+        invoice.paid_amount = new Money(totalPaidNumber);
+
+        invoice.recalcBalance();
 
         return await this.invoiceRepository.save(invoice);
     }
