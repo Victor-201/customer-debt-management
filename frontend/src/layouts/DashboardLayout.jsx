@@ -30,6 +30,7 @@ const DashboardLayout = () => {
 
   const navItems = [
     { to: "/dashboard", icon: <FiHome />, label: "Dashboard" },
+    { to: "/users", icon: <FiUsers />, label: "Nhân viên" }, 
     { to: "/invoices", icon: <FiFileText />, label: "Hóa đơn" },
     { to: "/payments", icon: <FiDollarSign />, label: "Thanh toán" },
     { to: "/customers", icon: <FiUsers />, label: "Khách hàng" },
