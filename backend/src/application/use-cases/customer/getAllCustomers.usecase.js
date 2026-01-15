@@ -5,7 +5,7 @@ export default class GetAllCustomersUseCase {
 
   async execute() {
     const customers = await this.customerRepository.findAll();
-    return customers.map(c => this.#toResponse(c));
+    return customers.map((c) => this.#toResponse(c));
   }
 
   #toResponse(customer) {
@@ -15,12 +15,12 @@ export default class GetAllCustomersUseCase {
       email: customer.email,
       phone: customer.phone,
       address: customer.address,
-      paymentTerm: customer.paymentTerm.value,
-      creditLimit: customer.creditLimit.amount,
+      paymentTerm: customer.paymentTerm,
+      creditLimit: customer.creditLimit,
       riskLevel: customer.riskLevel,
       status: customer.status,
       createdAt: customer.createdAt,
-      updatedAt: customer.updatedAt
+      updatedAt: customer.updatedAt,
     };
   }
 }
