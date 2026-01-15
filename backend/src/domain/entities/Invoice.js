@@ -81,9 +81,8 @@ class Invoice {
     return this.status.isPaid();
   }
 
-  recalcBalance(paidAmount) {
-    this.paid_amount = paidAmount;
-    this.balance = this.total_amount - paidAmount;
+  recalcBalance() {
+    this.balance_amount = this.total_amount.subtract(this.paid_amount);
   }
 }
 
