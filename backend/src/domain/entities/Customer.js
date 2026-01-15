@@ -9,10 +9,9 @@ export default class Customer {
     creditLimit,
     riskLevel = "NORMAL",
     status = "ACTIVE",
-    createdAt = null,
+    createdAt,
     updatedAt = null,
   }) {
-    /* ========= VALIDATION ========= */
     if (!name) throw new Error("Customer.name is required");
     if (!paymentTerm) throw new Error("Customer.paymentTerm is required");
     if (creditLimit === undefined || creditLimit === null) {
@@ -32,7 +31,23 @@ export default class Customer {
     this.updatedAt = updatedAt;
   }
 
-  /* ========= DOMAIN RULES ========= */
+  static create({ name, email, phone, address, paymentTerm, creditLimit }) {
+    return new Customer({
+      name,
+      email,
+      phone,
+      address,
+      paymentTerm,
+      creditLimit,
+      riskLevel: "NORMAL",
+      status: "ACTIVE",
+      createdAt: new Date(),
+    });
+  }
+
+  static restore(persistedData) {
+    return new Customer(persistedData);
+  }
 
   isActive() {
     return this.status === "ACTIVE";
@@ -48,21 +63,23 @@ export default class Customer {
 
   markHighRisk() {
     this.riskLevel = "HIGH_RISK";
+    this.updatedAt = new Date();
   }
 
   markNormalRisk() {
     this.riskLevel = "NORMAL";
+    this.updatedAt = new Date();
   }
 
   deactivate() {
     this.status = "INACTIVE";
+    this.updatedAt = new Date();
   }
 
   activate() {
     this.status = "ACTIVE";
+    this.updatedAt = new Date();
   }
-
-  /* ========= OUTPUT ========= */
 
   toResponse() {
     return {
