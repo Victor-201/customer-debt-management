@@ -1,5 +1,5 @@
 import { useDispatch, useSelector } from "react-redux";
-import { logout } from "../store/auth.slice";
+import { logoutAsync } from "../store/auth.slice";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
@@ -11,7 +11,7 @@ export const useAuth = () => {
     user,
     loading,
     role: user?.role,
-    isAuthenticated: !!accessToken,
-    logout: () => dispatch(logout()),
+    isAuthenticated: Boolean(accessToken),
+    logout: () => dispatch(logoutAsync()),
   };
 };
