@@ -1,33 +1,31 @@
+/**
+ * @interface InvoiceRepositoryInterface
+ */
 export default class InvoiceRepositoryInterface {
-  save(invoice) {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Invoice|null>} */
+    findById(id) { }
 
-  findById(id) {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Invoice|null>} */
+    findByInvoiceNumber(invoiceNumber) { }
 
-  findByInvoiceNumber(invoiceNumber) {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Invoice[]>} */
+    findOutstandingByCustomer(customerId) { }
 
-  findOutstandingByCustomer(customerId) {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Invoice>} */
+    create(invoice) { }
 
-  markOverdueInvoices(currentDate) {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Invoice|null>} */
+    update(id, payload) { }
 
-  getAgingReport() {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<void>} */
+    markOverdueInvoices(currentDate) { }
 
-  getOverdueReport() {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Object>} */
+    getAgingReport() { }
 
-  getTotalArReport() {
-    throw new Error("METHOD_NOT_IMPLEMENTED");
-  }
+    /** @returns {Promise<Array>} */
+    getOverdueReport() { }
+
+    /** @returns {Promise<Array>} */
+    getTotalArReport() { }
 }

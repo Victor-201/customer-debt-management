@@ -1,11 +1,17 @@
 import Invoice from "../../../domain/entities/Invoice.js";
 
 class CreateInvoiceUseCase {
-    constructor(invoiceRepository) {
+    constructor({ invoiceRepository }) {
         this.invoiceRepository = invoiceRepository;
     }
 
     async execute(data) {
+        // 1. Check for existing invoice number
+        const existing = await this.invoiceRepository.findByInvoiceNumber(data.invoiceNumber);
+        if (existing) {
+            throw new Error(`Invoice number ${data.invoiceNumber} already exists.`);
+        }
+
         const invoice = Invoice.create({
             customer_id: data.customerId,
             invoice_number: data.invoiceNumber,
@@ -15,7 +21,7 @@ class CreateInvoiceUseCase {
             created_by: data.createdBy ?? null,
         });
 
-        return await this.invoiceRepository.save(invoice);
+        return await this.invoiceRepository.create(invoice);
     }
 }
 

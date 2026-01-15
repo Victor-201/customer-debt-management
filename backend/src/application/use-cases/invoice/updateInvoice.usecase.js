@@ -2,7 +2,7 @@ import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 import { Money } from "../../../domain/value-objects/Money.js";
 
 class UpdateInvoiceUseCase {
-    constructor(invoiceRepository, recalcInvoiceBalanceUseCase) {
+    constructor(invoiceRepository) {
         this.invoiceRepository = invoiceRepository;
     }
 
@@ -27,7 +27,7 @@ class UpdateInvoiceUseCase {
             }
 
             invoice.total_amount = newTotal;
-            invoice.recalcBalance(invoice.paid_amount);
+            invoice.recalcBalance();
         }
 
         invoice.updated_by = updatedBy;

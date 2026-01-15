@@ -1,5 +1,5 @@
 class GenerateAgingReportUseCase {
-    constructor(invoiceRepository) {
+    constructor({ invoiceRepository }) {
         this.invoiceRepository = invoiceRepository;
     }
 

@@ -84,6 +84,12 @@ class Invoice {
   recalcBalance() {
     this.balance_amount = this.total_amount.subtract(this.paid_amount);
   }
+
+  daysOverdue(today = new Date()) {
+    const due = new Date(this.due_date);
+    const diffTime = today - due;
+    return Math.floor(diffTime / (1000 * 60 * 60 * 24));
+  }
 }
 
 export default Invoice;
