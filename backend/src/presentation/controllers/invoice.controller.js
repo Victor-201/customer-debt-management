@@ -16,14 +16,14 @@ class InvoiceController {
 
         this.updateOverdueInvoicesUseCase = new UpdateOverdueInvoicesUseCase(invoiceRepository);
 
-        this.validateCreditLimitUseCase = new ValidateCreditLimitUseCase(customerRepository, invoiceRepository );
+        this.validateCreditLimitUseCase = new ValidateCreditLimitUseCase(customerRepository, invoiceRepository);
     }
 
     /**
      * POST /invoices
      */
     createInvoice = async (req, res) => {
-        try { 
+        try {
             const payload = {
                 ...req.body,
                 createdBy: req.user?.userId ?? null,
@@ -59,10 +59,11 @@ class InvoiceController {
 
             if (req.body.customerId || req.body.totalAmount !== undefined) {
                 await this.validateCreditLimitUseCase.execute({
-                    customerId: req.body.customerId ?? null,
-                    invoiceTotalAmount: req.body.totalAmount,
+                    customerId: req.body.customerId,
                     invoiceId,
+                    newTotalAmount: req.body.totalAmount
                 });
+
             }
 
             const invoice = await this.updateInvoiceUseCase.execute(

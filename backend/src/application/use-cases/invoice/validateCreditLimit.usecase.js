@@ -1,4 +1,5 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
+import { Money } from "../../../domain/value-objects/Money.js";
 
 class ValidateCreditLimitUseCase {
   constructor(customerRepository, invoiceRepository) {
@@ -6,21 +7,21 @@ class ValidateCreditLimitUseCase {
     this.invoiceRepository = invoiceRepository;
   }
 
-  async execute({ customerId, invoiceTotalAmount, invoiceId }) {
+  async execute({ customerId, invoiceId, newTotalAmount }) {
+    let existingInvoice = null;
     let finalCustomerId = customerId;
 
-    let existingInvoice = null;
-    if (!finalCustomerId && invoiceId) {
+    // 1. Resolve invoice + customer
+    if (invoiceId) {
       existingInvoice = await this.invoiceRepository.findById(invoiceId);
-      if (existingInvoice) {
-        finalCustomerId = existingInvoice.customer_id;
+      if (!existingInvoice) {
+        throw new BusinessRuleError("Invoice not found");
       }
+      finalCustomerId ??= existingInvoice.customer_id;
     }
 
     if (!finalCustomerId) {
-      throw new BusinessRuleError(
-        "Customer not found (ID required for credit check)"
-      );
+      throw new BusinessRuleError("Customer not found");
     }
 
     const customer = await this.customerRepository.findById(finalCustomerId);
@@ -28,56 +29,53 @@ class ValidateCreditLimitUseCase {
       throw new BusinessRuleError("Customer not found");
     }
 
+    const creditLimit = new Money(customer.creditLimit, "VND");
+    const currency = creditLimit.currency;
+
+    // 2. Tính current outstanding (trừ invoice đang update)
     const outstandingInvoices =
       await this.invoiceRepository.findOutstandingByCustomer(finalCustomerId);
 
-    let currentDebt = 0;
+    let currentDebt = new Money(0, currency);
+
     for (const inv of outstandingInvoices) {
       if (invoiceId && inv.id === invoiceId) continue;
-      currentDebt += inv.balance_amount.amount;
+
+      currentDebt = currentDebt.add(
+        new Money(inv.balance_amount.amount, currency)
+      );
     }
 
-    const newTotal = Number(invoiceTotalAmount);
-    if (Number.isNaN(newTotal) || newTotal < 0) {
-      throw new BusinessRuleError("Invalid invoice total amount");
-    }
+    // 3. Tính balance mới của invoice
+    let newInvoiceBalance = new Money(0, currency);
 
-    let newInvoiceBalance = newTotal;
+    if (existingInvoice && newTotalAmount !== undefined) {
+      const paid = new Money(existingInvoice.paid_amount.amount, currency);
+      const newTotal = new Money(newTotalAmount, currency);
 
-    if (invoiceId) {
-      if (!existingInvoice) {
-        existingInvoice = await this.invoiceRepository.findById(invoiceId);
-      }
-
-      if (!existingInvoice) {
-        throw new BusinessRuleError("Invoice not found");
-      }
-
-      const paidAmount = existingInvoice.paid_amount.amount;
-      newInvoiceBalance = newTotal - paidAmount;
-
-      if (newInvoiceBalance < 0) {
+      if (paid.isGreaterThan(newTotal)) {
         throw new BusinessRuleError(
-          "Invoice total cannot be less than paid amount"
+          "Total amount cannot be less than paid amount"
         );
       }
+
+      newInvoiceBalance = newTotal.subtract(paid);
     }
 
-    const totalExposure = currentDebt + newInvoiceBalance;
+    // 4. Tổng exposure
+    const totalExposure = currentDebt.add(newInvoiceBalance);
 
-    if (totalExposure > customer.creditLimit.amount) {
+    if (totalExposure.isGreaterThan(creditLimit)) {
       throw new BusinessRuleError(
-        `Credit limit exceeded. Limit=${customer.creditLimit.amount}, Exposure=${totalExposure}`
+        `Credit limit exceeded. Limit: ${creditLimit.amount}, Exposure: ${totalExposure.amount}`
       );
     }
 
     return {
       success: true,
-      limit: customer.creditLimit.amount,
-      outstanding: currentDebt,
-      newInvoiceBalance,
-      newExposure: totalExposure,
-      remainingCredit: customer.creditLimit.amount - totalExposure,
+      limit: creditLimit.amount,
+      exposure: totalExposure.amount,
+      remaining: creditLimit.subtract(totalExposure).amount,
     };
   }
 }
