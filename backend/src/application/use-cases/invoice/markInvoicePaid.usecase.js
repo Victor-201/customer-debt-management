@@ -1,7 +1,7 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 
 class MarkInvoicePaidUseCase {
-    constructor(invoiceRepository) {
+    constructor({ invoiceRepository }) {
         this.invoiceRepository = invoiceRepository;
     }
 
@@ -25,7 +25,11 @@ class MarkInvoicePaidUseCase {
 
         invoice.status = InvoiceStatus.PAID;
 
-        return await this.invoiceRepository.save(invoice);
+        return await this.invoiceRepository.update(id, {
+            paidAmount: invoice.paid_amount.amount,
+            balanceAmount: invoice.balance_amount.amount,
+            status: invoice.status.value
+        });
     }
 }
 

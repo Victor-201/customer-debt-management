@@ -1,7 +1,7 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 
 class ValidateCreditLimitUseCase {
-    constructor(customerRepository, invoiceRepository) {
+    constructor({ customerRepository, invoiceRepository }) {
         this.customerRepository = customerRepository;
         this.invoiceRepository = invoiceRepository;
     }
@@ -31,6 +31,12 @@ class ValidateCreditLimitUseCase {
 
         const outstandingInvoices = await this.invoiceRepository.findOutstandingByCustomer(finalCustomerId);
 
+        // Ensure outstandingInvoices is an array
+        if (!Array.isArray(outstandingInvoices)) {
+            console.error('findOutstandingByCustomer did not return an array:', outstandingInvoices);
+            throw new Error('Invalid response from findOutstandingByCustomer');
+        }
+
         let currentDebt = 0;
         for (const inv of outstandingInvoices) {
             // If we are updating an existing invoice, ignore its old balance in this calculation
@@ -38,7 +44,7 @@ class ValidateCreditLimitUseCase {
             if (invoiceId && inv.id === invoiceId) {
                 continue;
             }
-            currentDebt += inv.balance_amount.amount;
+            currentDebt += Number(inv.balance_amount || 0);
         }
 
         // invoiceTotalAmount might be a number or string, ensure number logic matches Money usage elsewhere

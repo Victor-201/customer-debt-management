@@ -2,7 +2,7 @@ import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 import { Money } from "../../../domain/value-objects/Money.js";
 
 class UpdateInvoiceUseCase {
-    constructor(invoiceRepository) {
+    constructor({ invoiceRepository }) {
         this.invoiceRepository = invoiceRepository;
     }
 
@@ -54,8 +54,18 @@ class UpdateInvoiceUseCase {
             // checks?
             // invoice.status = ...
         }
+        const payload = {
+            invoiceNumber: invoice.invoice_number,
+            issueDate: invoice.issue_date,
+            dueDate: invoice.due_date,
+            totalAmount: invoice.total_amount.amount,
+            paidAmount: invoice.paid_amount.amount,
+            balanceAmount: invoice.balance_amount.amount,
+            status: invoice.status.value ?? invoice.status,
+        };
 
-        return await this.invoiceRepository.save(invoice);
+        // Pass the ID string and the PAYLOAD object separately
+        return await this.invoiceRepository.update(id, payload);
     }
 }
 

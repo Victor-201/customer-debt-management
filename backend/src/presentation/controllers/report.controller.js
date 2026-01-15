@@ -1,14 +1,15 @@
-import GenerateAgingReportUseCase from "../../application/use-cases/report/generateAgingReport.usecase.js";
-import GetHighRiskCustomersUseCase from "../../application/use-cases/report/getHighRiskCustomers.usecase.js";
-import GetOverdueArUseCase from "../../application/use-cases/report/getOverdueAr.usecase.js";
-import GetTotalARUseCase from "../../application/use-cases/report/getTotalAR.usecase.js";
 
 class ReportController {
-    constructor(invoiceRepository, customerRepository) {
-        this.generateAgingReportUseCase = new GenerateAgingReportUseCase(invoiceRepository);
-        this.getHighRiskCustomersUseCase = new GetHighRiskCustomersUseCase(customerRepository);
-        this.getOverdueArUseCase = new GetOverdueArUseCase(invoiceRepository);
-        this.getTotalARUseCase = new GetTotalARUseCase(invoiceRepository);
+    constructor({
+        generateAgingReportUseCase,
+        getHighRiskCustomersUseCase,
+        getOverdueArUseCase,
+        getTotalARUseCase,
+    }) {
+        this.generateAgingReportUseCase = generateAgingReportUseCase;
+        this.getHighRiskCustomersUseCase = getHighRiskCustomersUseCase;
+        this.getOverdueArUseCase = getOverdueArUseCase;
+        this.getTotalARUseCase = getTotalARUseCase;
     }
 
     getAgingReport = async (req, res) => {

@@ -1,5 +1,5 @@
 class GetHighRiskCustomersUseCase {
-    constructor(customerRepository) {
+    constructor({ customerRepository }) {
         this.customerRepository = customerRepository;
     }
 

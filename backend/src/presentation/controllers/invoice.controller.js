@@ -1,24 +1,20 @@
-import CreateInvoiceUseCase from "../../application/use-cases/invoice/createInvoice.usecase.js";
-import UpdateInvoiceUseCase from "../../application/use-cases/invoice/updateInvoice.usecase.js";
-import MarkInvoicePaidUseCase from "../../application/use-cases/invoice/markInvoicePaid.usecase.js";
-import RecalcInvoiceBalanceUseCase from "../../application/use-cases/invoice/recalcInvoiceBalance.usecase.js";
-import UpdateOverdueInvoicesUseCase from "../../application/use-cases/invoice/updateOverdueInvoices.usecase.js";
-import ValidateCreditLimitUseCase from "../../application/use-cases/invoice/validateCreditLimit.usecase.js";
+
 
 class InvoiceController {
-    constructor(invoiceRepository, customerRepository) {
-        this.createInvoiceUseCase = new CreateInvoiceUseCase(invoiceRepository);
-        this.updateInvoiceUseCase = new UpdateInvoiceUseCase(invoiceRepository);
-
-        this.markInvoicePaidUseCase = new MarkInvoicePaidUseCase(invoiceRepository);
-        this.recalcInvoiceBalanceUseCase = new RecalcInvoiceBalanceUseCase(invoiceRepository);
-        this.updateOverdueInvoicesUseCase = new UpdateOverdueInvoicesUseCase(invoiceRepository);
-
-        // validate credit limit thường cần đọc customer + tổng AR
-        this.validateCreditLimitUseCase = new ValidateCreditLimitUseCase(
-            customerRepository,
-            invoiceRepository
-        );
+    constructor({
+        createInvoiceUseCase,
+        updateInvoiceUseCase,
+        markInvoicePaidUseCase,
+        recalcInvoiceBalanceUseCase,
+        updateOverdueInvoicesUseCase,
+        validateCreditLimitUseCase,
+    }) {
+        this.createInvoiceUseCase = createInvoiceUseCase;
+        this.updateInvoiceUseCase = updateInvoiceUseCase;
+        this.markInvoicePaidUseCase = markInvoicePaidUseCase;
+        this.recalcInvoiceBalanceUseCase = recalcInvoiceBalanceUseCase;
+        this.updateOverdueInvoicesUseCase = updateOverdueInvoicesUseCase;
+        this.validateCreditLimitUseCase = validateCreditLimitUseCase;
     }
 
     /**
