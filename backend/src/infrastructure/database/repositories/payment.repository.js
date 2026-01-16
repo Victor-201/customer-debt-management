@@ -3,7 +3,7 @@ import PaymentRepositoryInterface from "../../../application/interfaces/reposito
 import { Op } from "sequelize";
 
 export default class PaymentRepository extends PaymentRepositoryInterface {
-    constructor(PaymentModel) {
+    constructor({ PaymentModel }) {
         super();
         this.PaymentModel = PaymentModel;
     }

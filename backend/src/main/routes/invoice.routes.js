@@ -26,9 +26,9 @@ const InvoiceModel = initInvoiceModel(sequelize);
 const CustomerModel = initCustomerModel(sequelize);
 const PaymentModel = initPaymentModel(sequelize);
 
-const invoiceRepository = new InvoiceRepository(InvoiceModel);
-const customerRepository = new CustomerRepository({CustomerModel, InvoiceModel});
-const paymentRepository = new PaymentRepository(PaymentModel);
+const invoiceRepository = new InvoiceRepository({ InvoiceModel });
+const customerRepository = new CustomerRepository({ CustomerModel, InvoiceModel });
+const paymentRepository = new PaymentRepository({ PaymentModel });
 
 const invoiceController = new InvoiceController(
   invoiceRepository,
@@ -53,8 +53,8 @@ router.post(
  */
 router.patch(
   "/:invoiceId",
-//   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-//   validateMiddleware(updateInvoiceSchema),
+  //   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+  //   validateMiddleware(updateInvoiceSchema),
   invoiceController.updateInvoice
 );
 
