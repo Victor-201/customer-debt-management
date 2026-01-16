@@ -1,3 +1,4 @@
+import { AgingPresenter } from "../presenters/aging.presenter.js";
 
 class ReportController {
     constructor({
@@ -14,8 +15,9 @@ class ReportController {
 
     getAgingReport = async (req, res) => {
         try {
-            const report = await this.generateAgingReportUseCase.execute();
-            res.json(report);
+            const data = await this.generateAgingReportUseCase.execute();
+            const viewModel = AgingPresenter.toViewModel(data);
+            res.json({ data: viewModel });
         } catch (error) {
             console.error(error);
             res.status(500).json({ error: "Internal server error" });

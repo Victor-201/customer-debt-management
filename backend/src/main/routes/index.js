@@ -5,6 +5,7 @@ import userRoutes from './user.routes.js';
 import reportRoutes from './report.routes.js';
 import customerRoutes from './customer.routes.js';
 import invoiceRoutes from './invoice.routes.js';
+import arRoutes from './ar.routes.js';
 
 const router = express.Router();
 
@@ -13,4 +14,6 @@ router.use('/users', userRoutes);
 router.use('/report', reportRoutes);
 router.use('/customers', customerRoutes);
 router.use('/invoices', invoiceRoutes);
+router.use('/ar', arRoutes);
+
 export default router;
