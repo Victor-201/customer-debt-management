@@ -25,6 +25,9 @@ class Invoice {
 
     this.total_amount = new Money(total_amount);
     this.paid_amount = new Money(paid_amount);
+    if (this.paid_amount.isGreaterThan(this.total_amount)) {
+      throw new Error("Paid amount cannot exceed total amount");
+    }
     this.balance_amount = this.total_amount.subtract(this.paid_amount);
 
     this.status =
@@ -49,12 +52,14 @@ class Invoice {
     });
   }
 
-  applyPayment(amount) {
+  applyPayment(paymentMoney) {
+    if (!(paymentMoney instanceof Money)) {
+      throw new Error("applyPayment expects Money");
+    }
+
     if (!this.status.canApplyPayment()) {
       throw new Error("Cannot apply payment to a PAID invoice");
     }
-
-    const paymentMoney = new Money(amount);
 
     if (paymentMoney.isGreaterThan(this.balance_amount)) {
       throw new Error("Payment exceeds invoice balance");
@@ -65,6 +70,8 @@ class Invoice {
 
     if (this.balance_amount.amount === 0) {
       this.status = InvoiceStatus.PAID;
+    } else {
+      this.status = InvoiceStatus.PENDING;
     }
   }
 

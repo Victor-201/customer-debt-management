@@ -4,6 +4,8 @@ import RecalcInvoiceBalanceUseCase from "../../application/use-cases/invoice/rec
 import MarkInvoicePaidUseCase from "../../application/use-cases/invoice/markInvoicePaid.usecase.js";
 import UpdateOverdueInvoicesUseCase from "../../application/use-cases/invoice/updateOverdueInvoices.usecase.js";
 import ValidateCreditLimitUseCase from "../../application/use-cases/invoice/validateCreditLimit.usecase.js";
+import GetInvoiceUseCase from "../../application/use-cases/invoice/getInvoice.usecase.js";
+import GetInvoicesByCustomerUseCase from "../../application/use-cases/invoice/GetInvoicesByCustomer.usecase.js";
 
 class InvoiceController {
     constructor(invoiceRepository, paymentRepository, customerRepository) {
@@ -17,6 +19,9 @@ class InvoiceController {
         this.updateOverdueInvoicesUseCase = new UpdateOverdueInvoicesUseCase(invoiceRepository);
 
         this.validateCreditLimitUseCase = new ValidateCreditLimitUseCase(customerRepository, invoiceRepository);
+
+        this.getInvoiceUseCase = new GetInvoiceUseCase(invoiceRepository);
+        this.getInvoicesByCustomerUseCase = new GetInvoicesByCustomerUseCase(invoiceRepository);
     }
 
     /**
@@ -120,6 +125,31 @@ class InvoiceController {
             this.#handleError(res, error);
         }
     };
+
+    getInvoicesByCustomer = async (req, res) => {
+        try {
+            const { customerId } = req.params;
+
+            const invoices = await this.getInvoicesByCustomerUseCase.execute(customerId);
+
+            res.json(invoices);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
+
+    getInvoice = async (req, res) => {
+        try {
+            const { invoiceId } = req.params;
+
+            const invoice = await this.getInvoiceUseCase.execute(invoiceId);
+
+            res.json(invoice);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    }
+
 
     #handleError(res, error) {
         if (error?.name === "BusinessRuleError") {

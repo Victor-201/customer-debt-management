@@ -9,7 +9,7 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
         this.InvoiceModel = InvoiceModel;
     }
 
-    async save(invoice) {
+    async save(invoice, tx = null) {
         const values = {
             id: invoice.id ?? undefined,
             customer_id: invoice.customer_id,
@@ -26,14 +26,14 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
         let row;
 
         if (!invoice.id) {
-            row = await this.InvoiceModel.create(values);
+            row = await this.InvoiceModel.create(values, { transaction: tx });
         } else {
             await this.InvoiceModel.update(
                 {
                     ...values,
                     updated_at: new Date(),
                 },
-                { where: { id: invoice.id } }
+                { where: { id: invoice.id }, transaction: tx }
             );
 
             row = await this.InvoiceModel.findByPk(invoice.id);
@@ -67,6 +67,16 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
 
         return rows.map(row => this._mapRowToEntity(row));
     }
+
+    async findByCustomer(customerId) {
+        const rows = await this.InvoiceModel.findAll({
+            where: { customer_id: customerId },
+            order: [["issue_date", "DESC"]],
+        });
+
+        return rows.map(row => this._mapRowToEntity(row));
+    }
+
 
     async markOverdueInvoices(currentDate = new Date()) {
         await this.InvoiceModel.update(
@@ -176,6 +186,26 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
             totalAr: Number(r.total_ar),
         }));
     }
+
+    async Transaction(fn) {
+        const tx = await sequelize.transaction();
+        try {
+            const result = await fn(tx);
+            await tx.commit();
+        } catch (error) {
+            await tx.rollback();
+            throw error;
+        }
+    }
+
+    async findByIdForUpdate(id, tx) {
+        const row = await this.InvoiceModel.findByPk(id, {
+            transaction: tx,
+            lock: tx.LOCK.UPDATE,
+        });
+        return row ? this._mapRowToEntity(row) : null;
+    }
+
 
     _mapRowToEntity(row) {
         return new Invoice({

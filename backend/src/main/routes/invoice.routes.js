@@ -36,7 +36,7 @@ const invoiceController = new InvoiceController(
   customerRepository
 );
 
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 /**
  * POST /invoices
@@ -53,8 +53,8 @@ router.post(
  */
 router.patch(
   "/:invoiceId",
-//   permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-//   validateMiddleware(updateInvoiceSchema),
+  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+  validateMiddleware(updateInvoiceSchema),
   invoiceController.updateInvoice
 );
 
@@ -84,5 +84,24 @@ router.post(
   permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
   invoiceController.validateCreditLimit
 );
+
+/**
+ * GET /invoices/:invoiceId
+ */
+router.get(
+  "/:invoiceId",
+  permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
+  invoiceController.getInvoice
+);
+
+/**
+ * GET /invoices/customer/:customerId
+ */
+router.get(
+  "/customer/:customerId",
+  permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
+  invoiceController.getInvoicesByCustomer
+);
+
 
 export default router;
