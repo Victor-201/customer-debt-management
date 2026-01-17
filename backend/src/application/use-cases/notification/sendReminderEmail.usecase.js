@@ -44,7 +44,7 @@ class SendReminderEmailUseCase {
             // 4. Build and send email
             const template = buildEmailTemplate(emailType, { customer, invoice });
 
-            let status = "SENT";
+            let status = "SUCCESS";
             let errorMessage = null;
 
             try {
