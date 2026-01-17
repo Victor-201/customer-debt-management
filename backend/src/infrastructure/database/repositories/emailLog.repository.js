@@ -1,36 +1,33 @@
-export default class EmailLogRepository {
-  constructor(database) {
-    this.database = database;
+import EmailLogRepositoryInterface from "../../../application/interfaces/repositories/emailLog.repository.interface.js";
+
+export default class EmailLogRepository extends EmailLogRepositoryInterface {
+  constructor({ EmailLogModel }) {
+    super();
+    this.EmailLogModel = EmailLogModel;
   }
 
   async hasSent(invoiceId, emailType) {
-    const query = `
-      SELECT 1
-      FROM email_logs
-      WHERE invoice_id = $1 AND email_type = $2 AND status = 'SUCCESS'
-      LIMIT 1
-    `;
-    const rows = await this.database.execute(query, [invoiceId, emailType]);
-    return rows.length > 0;
+    const log = await this.EmailLogModel.findOne({
+      where: {
+        invoice_id: invoiceId,
+        email_type: emailType,
+        status: "SUCCESS",
+      },
+    });
+    return !!log;
   }
 
   async save(log) {
-    const query = `
-      INSERT INTO email_logs (
-        customer_id,
-        invoice_id,
-        email_type,
-        status,
-        error_message
-      )
-      VALUES ($1,$2,$3,$4,$5)
-    `;
-    await this.database.execute(query, [
-      log.customerId,
-      log.invoiceId,
-      log.emailType,
-      log.status,
-      log.errorMessage,
-    ]);
+    const payload = {
+      customer_id: log.customerId,
+      invoice_id: log.invoiceId,
+      email_type: log.emailType,
+      status: log.status,
+      error_message: log.errorMessage,
+      sent_at: log.sentAt || new Date(),
+    };
+
+    const created = await this.EmailLogModel.create(payload);
+    return created.get({ plain: true });
   }
 }

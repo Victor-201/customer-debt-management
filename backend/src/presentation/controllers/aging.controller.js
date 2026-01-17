@@ -1,4 +1,6 @@
-export class AgingController {
+import { AgingPresenter } from "../presenters/aging.presenter.js";
+
+export default class AgingController {
   constructor({ generateAgingReportUseCase }) {
     this.generateAgingReportUseCase = generateAgingReportUseCase;
   }
@@ -17,7 +19,9 @@ export class AgingController {
         customerId
       });
 
-      return res.json({ data });
+      const viewModel = AgingPresenter.toViewModel(data);
+
+      return res.json({ data: viewModel });
     } catch (err) {
       next(err);
     }

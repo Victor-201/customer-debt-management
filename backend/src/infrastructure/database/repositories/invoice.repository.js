@@ -4,7 +4,7 @@ import { InvoiceStatus } from "../../../domain/value-objects/InvoiceStatus.js";
 import InvoiceRepositoryInterface from "../../../application/interfaces/repositories/invoice.repository.interface.js";
 
 export default class InvoiceRepository extends InvoiceRepositoryInterface {
-    constructor(InvoiceModel) {
+    constructor({ InvoiceModel }) {
         super();
         this.InvoiceModel = InvoiceModel;
     }
@@ -206,6 +206,18 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
         return row ? this._mapRowToEntity(row) : null;
     }
 
+
+    async findUnpaid() {
+        const rows = await this.InvoiceModel.findAll({
+            where: {
+                balance_amount: { [Op.gt]: 0 },
+                status: { [Op.in]: ["PENDING", "OVERDUE"] },
+            },
+            order: [["due_date", "ASC"]],
+        });
+
+        return rows.map(row => this._mapRowToEntity(row));
+    }
 
     _mapRowToEntity(row) {
         return new Invoice({

@@ -22,6 +22,14 @@ const config = {
     issuer: process.env.JWT_ISSUER || 'customer-debt-management',
     audience: process.env.JWT_AUDIENCE || 'customer-debt-management-users',
   },
+
+  email: {
+    host: process.env.EMAIL_HOST || process.env.SMTP_HOST,
+    port: parseInt(process.env.EMAIL_PORT || process.env.SMTP_PORT, 10) || 587,
+    user: process.env.EMAIL_USER || process.env.SMTP_USER,
+    pass: process.env.EMAIL_PASS || process.env.SMTP_PASSWORD,
+    from: process.env.EMAIL_FROM || process.env.SMTP_FROM || process.env.SMTP_USER || process.env.EMAIL_USER,
+  },
 };
 
 export default config;
