@@ -97,6 +97,24 @@ class Invoice {
     const diffTime = today - due;
     return Math.floor(diffTime / (1000 * 60 * 60 * 24));
   }
+
+  recalculatePayment(totalPaid) {
+    const paidMoney = new Money(totalPaid);
+
+    if (paidMoney.isGreaterThan(this.total_amount)) {
+      throw new Error("Paid amount cannot exceed total amount");
+    }
+
+    this.paid_amount = paidMoney;
+    this.balance_amount = this.total_amount.subtract(this.paid_amount);
+
+    if (this.balance_amount.isZero()) {
+      this.status = InvoiceStatus.PAID;
+    } else {
+      this.status = InvoiceStatus.PENDING;
+    }
+  }
+
 }
 
 export default Invoice;

@@ -4,7 +4,7 @@ import { InvoiceStatus } from "../../../domain/value-objects/InvoiceStatus.js";
 import InvoiceRepositoryInterface from "../../../application/interfaces/repositories/invoice.repository.interface.js";
 
 export default class InvoiceRepository extends InvoiceRepositoryInterface {
-    constructor({ InvoiceModel }) {
+    constructor( {InvoiceModel} ) {
         super();
         this.InvoiceModel = InvoiceModel;
     }

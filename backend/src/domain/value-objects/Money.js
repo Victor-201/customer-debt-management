@@ -63,6 +63,10 @@ class Money {
   toString() {
     return `${this.amount} ${this.currency}`;
   }
+
+  isZero() {
+    return this.amount === 0;
+  }
 }
 
 export { Money };

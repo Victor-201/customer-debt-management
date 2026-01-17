@@ -3,7 +3,7 @@ import PaymentRepositoryInterface from "../../../application/interfaces/reposito
 import { Op, Transaction } from "sequelize";
 
 export default class PaymentRepository extends PaymentRepositoryInterface {
-    constructor({ PaymentModel }) {
+    constructor( {PaymentModel} ) {
         super();
         this.PaymentModel = PaymentModel;
     }
@@ -35,7 +35,9 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
     }
 
     async findById(id) {
+        // console.log(id);
         const row = await this.PaymentModel.findByPk(id);
+        // console.log(row);
         return row ? this._mapRowToEntity(row) : null;
     }
 
@@ -51,30 +53,29 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
         return rows.map(row => this._mapRowToEntity(row));
     }
 
-    // payment.repository.js
-    async sumByInvoiceId(invoiceId, tx) {
-        const result = await this.PaymentModel.findOne({
+   async sumByInvoiceId(invoiceId, tx) {
+        const [result] = await this.PaymentModel.findAll({
             attributes: [
-                [
-                    this.PaymentModel.sequelize.literal(`
-                        COALESCE(
-                            SUM(
-                            CASE
-                                WHEN method = 'REVERSAL' THEN -amount
-                                ELSE amount
-                            END
-                            ),
-                            0
-                        )
-                    `),
-                    'total_paid'
-                ]
+            [
+                this.PaymentModel.sequelize.literal(`
+                COALESCE(
+                    SUM(
+                    CASE
+                        WHEN method = 'REVERSAL' THEN -amount
+                        ELSE amount
+                    END
+                    ),
+                    0
+                )
+                `),
+                'total_paid',
+            ],
             ],
             where: { invoice_id: invoiceId },
             transaction: tx,
             raw: true,
         });
-
+        // console.log(result);
         return Number(result.total_paid);
     }
 

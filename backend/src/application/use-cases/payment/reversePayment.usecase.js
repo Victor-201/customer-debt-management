@@ -1,5 +1,7 @@
 import Payment from "../../../domain/entities/Payment.js";
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
+import { Transaction } from "../../../infrastructure/database/transactions/sequelize.transaction.js";
+import { Money } from "../../../domain/value-objects/Money.js";
 
 class ReversePaymentUseCase {
   constructor(paymentRepository, invoiceRepository) {
@@ -7,40 +9,41 @@ class ReversePaymentUseCase {
     this.invoiceRepository = invoiceRepository;
   }
 
-  async execute(data) {
-    const { payment_id, reversed_by, reason } = data;
+  async execute({ paymentId, reversedBy, reason }) {
+    return Transaction(async (tx) => {
+      const originalPayment = await this.paymentRepository.findById(paymentId);
+      if (!originalPayment) {
+        throw new BusinessRuleError("Payment not found");
+      }
 
-    const originalPayment = await this.paymentRepository.findById(payment_id);
-    if (!originalPayment) {
-      throw new BusinessRuleError("Payment not found");
-    }
+      const reversedPayment = Payment.record({
+        invoice_id: originalPayment.invoice_id,
+        payment_date: new Date(),
+        amount: originalPayment.amount.amount,
+        method: "REVERSAL",
+        reference: reason ?? `Reverse payment ${originalPayment.id}`,
+        recorded_by: reversedBy,
+      });
 
-    const invoice = await this.invoiceRepository.findById(
-      originalPayment.invoice_id
-    );
-    if (!invoice) {
-      throw new BusinessRuleError("Invoice not found");
-    }
+      await this.paymentRepository.save(reversedPayment, tx);
 
-    const reversedPayment = Payment.record({
-      invoice_id: originalPayment.invoice_id,
-      payment_date: new Date(),
-      amount: originalPayment.amount.amount,
-      method: "REVERSAL",
-      reference: reason ?? `Reverse payment ${originalPayment.id}`,
-      recorded_by: reversed_by,
+      const totalPaid = await this.paymentRepository.sumByInvoiceId(
+        originalPayment.invoice_id,
+        tx
+      );
+
+      const invoice = await this.invoiceRepository.findById(
+        originalPayment.invoice_id,
+        tx
+      );
+
+      console.log(totalPaid);
+      invoice.recalculatePayment(totalPaid);
+
+      await this.invoiceRepository.save(invoice, tx);
+
+      return reversedPayment;
     });
-
-    await this.paymentRepository.save(reversedPayment);
-
-    const totalPaid = await this.paymentRepository.sumByInvoiceId(
-      originalPayment.invoice_id
-    );
-    invoice.recalcBalance(totalPaid);
-
-    await this.invoiceRepository.save(invoice);
-
-    return reversedPayment;
   }
 }
 

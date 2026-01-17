@@ -23,8 +23,8 @@ const router = express.Router();
 const InvoiceModel = initInvoiceModel(sequelize);
 const PaymentModel = initPaymentModel(sequelize);
 
-const invoiceRepository = new InvoiceRepository(InvoiceModel);
-const paymentRepository = new PaymentRepository(PaymentModel);
+const invoiceRepository = new InvoiceRepository({InvoiceModel});
+const paymentRepository = new PaymentRepository({PaymentModel});
 
 const paymentController = new PaymentController(paymentRepository, invoiceRepository);
 
