@@ -1,6 +1,6 @@
 import Payment from "../../../domain/entities/Payment.js";
 import PaymentRepositoryInterface from "../../../application/interfaces/repositories/payment.repository.interface.js";
-import { Op } from "sequelize";
+import { Op, Transaction } from "sequelize";
 
 export default class PaymentRepository extends PaymentRepositoryInterface {
     constructor(PaymentModel) {
@@ -8,7 +8,7 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
         this.PaymentModel = PaymentModel;
     }
 
-    async save(payment) {
+    async save(payment, tx = null) {
         const values = {
             id: payment.id ?? undefined,
             invoice_id: payment.invoice_id,
@@ -22,10 +22,11 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
         let row;
 
         if (!payment.id) {
-            row = await this.PaymentModel.create(values);
+            row = await this.PaymentModel.create(values, { transaction: tx });
         } else {
             await this.PaymentModel.update(values, {
                 where: { id: payment.id },
+                transaction: tx
             });
             row = await this.PaymentModel.findByPk(payment.id);
         }
@@ -50,12 +51,31 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
         return rows.map(row => this._mapRowToEntity(row));
     }
 
-    async sumByInvoiceId(invoiceId) {
-        const total = await this.PaymentModel.sum("amount", {
+    // payment.repository.js
+    async sumByInvoiceId(invoiceId, tx) {
+        const result = await this.PaymentModel.findOne({
+            attributes: [
+                [
+                    this.PaymentModel.sequelize.literal(`
+                        COALESCE(
+                            SUM(
+                            CASE
+                                WHEN method = 'REVERSAL' THEN -amount
+                                ELSE amount
+                            END
+                            ),
+                            0
+                        )
+                    `),
+                    'total_paid'
+                ]
+            ],
             where: { invoice_id: invoiceId },
+            transaction: tx,
+            raw: true,
         });
 
-        return Number(total || 0);
+        return Number(result.total_paid);
     }
 
     _mapRowToEntity(row) {

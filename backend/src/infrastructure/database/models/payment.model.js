@@ -22,7 +22,7 @@ export default (sequelize) =>
         allowNull: false,
       },
       method: {
-        type: DataTypes.ENUM("CASH", "BANK_TRANSFER"),
+        type: DataTypes.ENUM("CASH", "BANK_TRANSFER", "REVERSAL"),
         allowNull: false,
       },
       reference: DataTypes.STRING(100),

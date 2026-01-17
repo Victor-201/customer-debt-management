@@ -1,5 +1,6 @@
 import Payment from "../../../domain/entities/Payment.js";
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
+import { Transaction } from "../../../infrastructure/database/transactions/sequelize.transaction.js";
 
 class RecordPayment {
   constructor(paymentRepository, invoiceRepository) {
@@ -8,21 +9,32 @@ class RecordPayment {
   }
 
   async execute(data) {
-    const invoice = await this.invoiceRepository.findById(data.invoice_id);
-    if (!invoice) {
-      throw new BusinessRuleError("Invoice not found");
-    }
+    return Transaction(async (tx) => {
+      const invoice = await this.invoiceRepository.findByIdForUpdate(
+        data.invoiceId,
+        tx
+      );
 
-    const payment = Payment.record(data);
+      if (!invoice) {
+        throw new BusinessRuleError("Invoice not found");
+      }
 
-    await this.paymentRepository.save(payment);
+      const payment = Payment.record({
+        invoice_id: data.invoiceId,
+        payment_date: data.paymentDate,
+        amount: data.amount,
+        method: data.method,
+        reference: data.reference,
+        recorded_by: data.recorded_by,
+      });
+      
+      invoice.applyPayment(payment.amount);
 
-    const totalPaid = await this.paymentRepository.sumByInvoiceId(data.invoice_id);
-    invoice.recalcBalance(totalPaid);
+      const result = await this.paymentRepository.save(payment, tx);
+      await this.invoiceRepository.save(invoice, tx);
 
-    await this.invoiceRepository.save(invoice);
-
-    return payment;
+      return result;
+    });
   }
 }
 

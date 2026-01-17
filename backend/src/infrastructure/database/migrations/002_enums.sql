@@ -21,7 +21,7 @@ BEGIN
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'payment_method') THEN
-    CREATE TYPE payment_method AS ENUM ('CASH', 'BANK_TRANSFER');
+    CREATE TYPE payment_method AS ENUM ('CASH', 'BANK_TRANSFER', 'REVERSAL');
   END IF;
 
   IF NOT EXISTS (SELECT 1 FROM pg_type WHERE typname = 'email_type') THEN

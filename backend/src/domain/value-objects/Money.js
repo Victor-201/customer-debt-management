@@ -1,9 +1,16 @@
 class Money {
   constructor(amount, currency = "VND") {
-    if (amount < 0) {
+    const numericAmount = Number(amount);
+
+    if (Number.isNaN(numericAmount)) {
+      throw new Error(`Invalid money amount: ${amount}`);
+    }
+
+    if (numericAmount < 0) {
       throw new Error("Amount cannot be negative");
     }
-    this.amount = amount;
+
+    this.amount = numericAmount;
     this.currency = currency;
   }
 
