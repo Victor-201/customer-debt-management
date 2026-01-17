@@ -1,4 +1,4 @@
-import Invoice from "../../../domain/entities/Invoice.js";
+import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 
 class CreateInvoiceUseCase {
     constructor({ invoiceRepository }) {
@@ -6,10 +6,14 @@ class CreateInvoiceUseCase {
     }
 
     async execute(data) {
-        // 1. Check for existing invoice number
-        const existing = await this.invoiceRepository.findByInvoiceNumber(data.invoiceNumber);
+        const existing = await this.invoiceRepository.findByInvoiceNumber(
+            data.invoiceNumber
+        );
+
         if (existing) {
-            throw new Error(`Invoice number ${data.invoiceNumber} already exists.`);
+            throw new BusinessRuleError(
+                `Invoice number ${data.invoiceNumber} already exists.`
+            );
         }
 
         const invoice = Invoice.create({
@@ -21,7 +25,7 @@ class CreateInvoiceUseCase {
             created_by: data.createdBy ?? null,
         });
 
-        return await this.invoiceRepository.create(invoice);
+        return await this.invoiceRepository.save(invoice);
     }
 }
 
