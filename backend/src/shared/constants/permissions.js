@@ -32,3 +32,9 @@ export const RISK_PERMISSIONS = Object.freeze({
     ASSESS: "risk:assess",
     UPDATE_LEVEL: "risk:update"
 })
+
+export const PAYMENT_PERMISSIONS = Object.freeze({
+  READ: "payments:read",
+  CREATE: "payments:create",
+  REVERSE: "payments:reverse",
+});
