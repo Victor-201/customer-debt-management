@@ -49,7 +49,7 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
                 ["created_at", "ASC"],
             ],
         });
-
+        // console.log(rows);
         return rows.map(row => this._mapRowToEntity(row));
     }
 

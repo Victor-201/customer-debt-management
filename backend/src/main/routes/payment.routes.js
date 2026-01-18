@@ -28,20 +28,27 @@ const paymentRepository = new PaymentRepository({PaymentModel});
 
 const paymentController = new PaymentController(paymentRepository, invoiceRepository);
 
-// router.use(authMiddleware);
+router.use(authMiddleware);
 
 router.post(
   "/",
-//   permissionMiddleware(PAYMENT_PERMISSIONS.CREATE),
+  permissionMiddleware(PAYMENT_PERMISSIONS.CREATE),
   validateMiddleware(createPaymentSchema),
   paymentController.recordPayment
 );
 
 router.post(
   "/:paymentId/reverse",
-//   permissionMiddleware(PAYMENT_PERMISSIONS.REVERSE),
+  permissionMiddleware(PAYMENT_PERMISSIONS.REVERSE),
   validateMiddleware(reversePaymentSchema),
   paymentController.reversePayment
 );
+
+router.get(
+  '/:invoiceId',
+  permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+  validateMiddleware(reversePaymentSchema),
+  paymentController.getPaymentByInvoiceId
+)
 
 export default router;

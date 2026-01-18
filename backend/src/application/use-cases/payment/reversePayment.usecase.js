@@ -9,7 +9,7 @@ class ReversePaymentUseCase {
     this.invoiceRepository = invoiceRepository;
   }
 
-  async execute({ paymentId, reversedBy, reason }) {
+  async execute({ paymentId, reversedBy, reference }) {
     return Transaction(async (tx) => {
       const originalPayment = await this.paymentRepository.findById(paymentId);
       if (!originalPayment) {
@@ -21,7 +21,7 @@ class ReversePaymentUseCase {
         payment_date: new Date(),
         amount: originalPayment.amount.amount,
         method: "REVERSAL",
-        reference: reason ?? `Reverse payment ${originalPayment.id}`,
+        reference: reference ?? 'REVERSAL PAYMENT',
         recorded_by: reversedBy,
       });
 
@@ -37,7 +37,7 @@ class ReversePaymentUseCase {
         tx
       );
 
-      console.log(totalPaid);
+      // console.log(totalPaid);
       invoice.recalculatePayment(totalPaid);
 
       await this.invoiceRepository.save(invoice, tx);

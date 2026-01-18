@@ -1,5 +1,6 @@
 import RecordPaymentUseCase from "../../application/use-cases/payment/recordPayment.usecase.js";
 import ReversePaymentUseCase from "../../application/use-cases/payment/reversePayment.usecase.js";
+import GetPaymentByInvoiceId from "../../application/use-cases/payment/getPaymentByInvoice.usecase.js";
 
 class PaymentController {
     constructor(paymentRepository, invoiceRepository) {
@@ -12,6 +13,8 @@ class PaymentController {
             paymentRepository,
             invoiceRepository
         );
+
+        this.getPaymentByInvoiceIdUseCase = new GetPaymentByInvoiceId(paymentRepository);
     }
 
     
@@ -38,7 +41,7 @@ class PaymentController {
             const result = await this.reversePaymentUseCase.execute({
                 paymentId,
                 reversedBy: req.user?.userId ?? null,
-                reason: req.body?.reason,
+                reference: req.body?.reference,
             });
 
             res.json(result);
@@ -46,6 +49,17 @@ class PaymentController {
             this.#handleError(res, error);
         }
     };
+
+    getPaymentByInvoiceId = async (req, res) => {
+        try {
+            const { invoiceId } = req.params;
+            const result = await this.getPaymentByInvoiceIdUseCase.execute(invoiceId);
+
+            res.json(result);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    }
 
     #handleError(res, error) {
         if (error?.name === "BusinessRuleError") {
