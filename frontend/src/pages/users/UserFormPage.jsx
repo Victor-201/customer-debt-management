@@ -38,21 +38,17 @@ export default function UserFormPage() {
   const submit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.email) return;
-
-    const payload = {
-      name: form.name,
-      role: form.role,
-      isActive: form.isActive,
-    };
-    
-    if (form.password?.trim()) {
-      payload.password = form.password;
-    }
+    if (!form.name || !form.email) return;  
 
     if (isEdit) {
-      await userApi.update(userId, payload);
-    } else {
+      await userApi.update(userId, {   
+        name: form.name,
+        email: form.email,
+        isActive: form.isActive,
+        role: form.role,
+      });
+    }else {
+      if (!form.password) return;
       await userApi.create({
         name: form.name,
         email: form.email,
@@ -60,7 +56,6 @@ export default function UserFormPage() {
         role: form.role,
       });
     }
-
     navigate("/users");
   };
 
@@ -102,31 +97,22 @@ export default function UserFormPage() {
 
           {/* EMAIL */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1 block text-sm font-medium">
               Email
             </label>
             <input
               type="email"
-              className={`w-full rounded-lg border px-3 py-2 ${
-                isEdit
-                  ? "bg-gray-100 text-gray-500"
-                  : "border-gray-300 focus:border-blue-500"
-              }`}
-              value={form.email}
-              disabled={isEdit}
+              className="w-full rounded-lg border px-3 py-2"
+              value={form.email}              
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
               }
               required
-            />
-            {isEdit && (
-              <p className="mt-1 text-xs text-gray-400">
-                Email không thể thay đổi
-              </p>
-            )}
+            />            
           </div>
 
           {/* PASSWORD */}
+          {!isEdit && (
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               {isEdit ? "Đổi mật khẩu" : "Mật khẩu"}
@@ -134,34 +120,31 @@ export default function UserFormPage() {
             <input
               type="password"
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder={
-                isEdit
-                  ? "Nhập mật khẩu mới (nếu muốn đổi)"
-                  : "Nhập mật khẩu"
-              }
+              placeholder="Nhập mật khẩu"              
               value={form.password}
               onChange={(e) =>
                 setForm({ ...form, password: e.target.value })
               }
-              required={!isEdit}
+              required
             />
           </div>
+          )}
 
           {/* ROLE */}
           <div>
             <label className="mb-1 block text-sm font-medium text-gray-700">
               Quyền
             </label>
-            {/* <select
+            <select
               className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
               value={form.role}
               onChange={(e) =>
                 setForm({ ...form, role: e.target.value })
               }
-            > */}
-              {/* <option value="ADMIN">ADMIN</option> */}
+            >
+              <option value="ADMIN">ADMIN</option>
               <option value="ACCOUNTANT">ACCOUNTANT</option>
-            {/* </select> */}
+            </select>
           </div>
 
           {/* ACTIVE */}
