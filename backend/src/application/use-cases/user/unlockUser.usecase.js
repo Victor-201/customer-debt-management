@@ -11,13 +11,11 @@ export default class UnlockUserUseCase {
       throw new BusinessRuleError("User not found");
     }
 
-    user.unlock();
+    if (user.isActive) {
+      throw new BusinessRuleError("User is already unlocked");
+    }
 
-    await this.userRepository.update(userId, {
-      name: user.name,
-      role: user.role,
-      isActive: user.isActive,
-    });
+    await this.userRepository.unlock(userId);
 
     return { message: "User unlocked successfully" };
   }
