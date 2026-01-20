@@ -12,25 +12,18 @@ import {
   FiX,
   FiHome,
 } from "react-icons/fi";
-import {
-  logoutAsync,
-  selectUser,
-  selectAccessToken,
-} from "../store/auth.slice";
+import { logoutAsync, selectUser } from "../store/auth.slice";
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
   const user = useSelector(selectUser);
-
-  const accessToken = useSelector(selectAccessToken);
-
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   const navItems = [
     { to: "/dashboard", icon: <FiHome />, label: "Dashboard" },
-    { to: "/users", icon: <FiUsers />, label: "Nhân viên" }, 
+    { to: "/users", icon: <FiUsers />, label: "Nhân viên" },
     { to: "/invoices", icon: <FiFileText />, label: "Hóa đơn" },
     { to: "/payments", icon: <FiDollarSign />, label: "Thanh toán" },
     { to: "/customers", icon: <FiUsers />, label: "Khách hàng" },
@@ -38,14 +31,12 @@ const DashboardLayout = () => {
   ];
 
   const handleLogout = async () => {
-    await dispatch(logoutAsync()).unwrap();
-    navigate("/login", { replace: true });
+    try {
+      await dispatch(logoutAsync()).unwrap();
+    } finally {
+      navigate("/login", { replace: true });
+    }
   };
-
-  if (!accessToken) {
-    navigate("/login", { replace: true });
-    return null;
-  }
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
@@ -58,12 +49,11 @@ const DashboardLayout = () => {
           flexDirection: "column",
           transition: "width var(--transition-normal)",
           position: "fixed",
-          top: 0,
-          left: 0,
-          bottom: 0,
+          inset: 0,
           zIndex: 100,
         }}
       >
+        {/* Logo + Toggle */}
         <div
           style={{
             padding: "var(--spacing-4)",
@@ -83,15 +73,15 @@ const DashboardLayout = () => {
             style={{
               background: "none",
               border: "none",
-              color: "var(--color-text-inverse)",
+              color: "inherit",
               cursor: "pointer",
-              padding: "var(--spacing-2)",
             }}
           >
             {sidebarOpen ? <FiX /> : <FiMenu />}
           </button>
         </div>
 
+        {/* Navigation */}
         <nav style={{ flex: 1, padding: "var(--spacing-4) 0" }}>
           {navItems.map((item) => (
             <NavLink
@@ -109,22 +99,21 @@ const DashboardLayout = () => {
                   ? "var(--color-primary-light)"
                   : "rgba(255,255,255,0.7)",
                 backgroundColor: isActive
-                  ? "rgba(59, 130, 246, 0.2)"
+                  ? "rgba(59,130,246,0.2)"
                   : "transparent",
                 textDecoration: "none",
-                transition: "all var(--transition-fast)",
                 borderLeft: isActive
                   ? "3px solid var(--color-primary)"
                   : "3px solid transparent",
-                fontSize: "var(--font-size-sm)",
               })}
             >
-              <span style={{ fontSize: "18px" }}>{item.icon}</span>
+              {item.icon}
               {sidebarOpen && <span>{item.label}</span>}
             </NavLink>
           ))}
         </nav>
 
+        {/* User + Logout */}
         <div
           style={{
             padding: "var(--spacing-4)",
@@ -133,51 +122,45 @@ const DashboardLayout = () => {
         >
           {sidebarOpen && user && (
             <div style={{ marginBottom: "var(--spacing-3)" }}>
-              <p style={{ fontWeight: 500, fontSize: "var(--font-size-sm)" }}>
-                {user.name}
-              </p>
-              <p style={{ fontSize: "var(--font-size-xs)", opacity: 0.7 }}>
-                {user.email}
-              </p>
+              <p>{user.name}</p>
+              <small style={{ opacity: 0.7 }}>{user.email}</small>
             </div>
           )}
 
           <button
             onClick={handleLogout}
             style={{
+              width: "100%",
               display: "flex",
               alignItems: "center",
-              gap: "var(--spacing-2)",
               justifyContent: sidebarOpen ? "flex-start" : "center",
-              width: "100%",
-              padding: "var(--spacing-2) var(--spacing-3)",
-              backgroundColor: "rgba(255,255,255,0.1)",
+              gap: "var(--spacing-2)",
+              padding: "var(--spacing-2)",
+              background: "rgba(255,255,255,0.1)",
               border: "none",
               borderRadius: "var(--radius-md)",
-              color: "var(--color-text-inverse)",
+              color: "inherit",
               cursor: "pointer",
-              fontSize: "var(--font-size-sm)",
-              transition: "background-color var(--transition-fast)",
             }}
           >
             <FiLogOut />
-            {sidebarOpen && <span>Đăng xuất</span>}
+            {sidebarOpen && "Đăng xuất"}
           </button>
         </div>
       </aside>
 
+      {/* Main */}
       <main
         style={{
           flex: 1,
           marginLeft: sidebarOpen ? "260px" : "70px",
           transition: "margin-left var(--transition-normal)",
           backgroundColor: "var(--color-background)",
-          minHeight: "100vh",
         }}
       >
         <header
           style={{
-            height: "60px",
+            height: 60,
             backgroundColor: "var(--color-surface)",
             borderBottom: "1px solid var(--color-border-light)",
             display: "flex",
@@ -189,18 +172,8 @@ const DashboardLayout = () => {
             zIndex: 50,
           }}
         >
-          <span
-            style={{
-              fontSize: "var(--font-size-sm)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
-            Quản lý Công nợ Khách hàng
-          </span>
-
-          <button className="btn btn-ghost btn-icon">
-            <FiSettings />
-          </button>
+          <span>Quản lý Công nợ Khách hàng</span>
+          <FiSettings />
         </header>
 
         <div style={{ padding: "var(--spacing-6)" }}>
