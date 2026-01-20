@@ -11,11 +11,13 @@ export default class LockUserUseCase {
       throw new BusinessRuleError("User not found");
     }
 
-    if (!user.isActive) {
-      throw new BusinessRuleError("User is already locked");
-    }
+    user.lock();
 
-    await this.userRepository.lock(userId);
+    await this.userRepository.update(userId, {
+      name: user.name,
+      role: user.role,
+      isActive: user.isActive,
+    });
 
     return { message: "User locked successfully" };
   }
