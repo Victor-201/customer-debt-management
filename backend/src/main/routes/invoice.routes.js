@@ -31,9 +31,9 @@ const customerRepository = new CustomerRepository({ CustomerModel, InvoiceModel 
 const paymentRepository = new PaymentRepository({ PaymentModel });
 
 const invoiceController = new InvoiceController(
-  invoiceRepository,
-  paymentRepository,
-  customerRepository
+   invoiceRepository,
+   paymentRepository,
+   customerRepository
 );
 
 router.use(authMiddleware);
@@ -42,65 +42,65 @@ router.use(authMiddleware);
  * POST /invoices
  */
 router.post(
-  "/",
-  permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
-  validateMiddleware(createInvoiceSchema),
-  invoiceController.createInvoice
+    "/",
+    permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
+    validateMiddleware(createInvoiceSchema),
+    invoiceController.createInvoice
 );
 
 /**
  * PATCH /invoices/:invoiceId
  */
 router.patch(
-  "/:invoiceId",
-  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-  validateMiddleware(updateInvoiceSchema),
-  invoiceController.updateInvoice
+    "/:invoiceId",
+    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+    validateMiddleware(updateInvoiceSchema),
+    invoiceController.updateInvoice
 );
 
 /**
  * POST /invoices/:invoiceId/mark-paid
  */
 router.post(
-  "/:invoiceId/mark-paid",
-  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-  invoiceController.markInvoicePaid
+    "/:invoiceId/mark-paid",
+    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+    invoiceController.markInvoicePaid
 );
 
 /**
  * POST /invoices/update-overdue
  */
 router.post(
-  "/update-overdue",
-  permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
-  invoiceController.updateOverdueInvoices
+    "/update-overdue",
+    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+    invoiceController.updateOverdueInvoices
 );
 
 /**
  * POST /invoices/validate-credit-limit
  */
 router.post(
-  "/validate-credit-limit",
-  permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
-  invoiceController.validateCreditLimit
+    "/validate-credit-limit",
+    permissionMiddleware(INVOICE_PERMISSIONS.CREATE),
+    invoiceController.validateCreditLimit
 );
 
 /**
  * GET /invoices/:invoiceId
  */
 router.get(
-  "/:invoiceId",
-  permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
-  invoiceController.getInvoice
+    "/:invoiceId",
+    permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
+    invoiceController.getInvoice
 );
 
 /**
  * GET /invoices/customer/:customerId
  */
 router.get(
-  "/customer/:customerId",
-  permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
-  invoiceController.getInvoicesByCustomer
+    "/customer/:customerId",
+    permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
+    invoiceController.getInvoicesByCustomer
 );
 
 
