@@ -27,22 +27,22 @@ const customerRepository = new CustomerRepository({ CustomerModel, InvoiceModel 
 const emailLogRepository = new EmailLogRepository({ EmailLogModel }); // Assuming it's refactored to Sequelize or uses a similar pattern
 
 const emailService = new NodemailerService({
-  host: config.email.host,
-  port: config.email.port,
-  from: config.email.from,
-  auth: {
-    user: config.email.user,
-    pass: config.email.pass
-  }
+    host: config.email.host,
+    port: config.email.port,
+    from: config.email.from,
+    auth: {
+        user: config.email.user,
+        pass: config.email.pass
+    }
 });
 
 /* ================== USE CASES ================== */
 const logHistoryEmailUseCase = new LogHistoryEmailUseCase({ emailLogRepository });
 const sendReminderEmailUseCase = new SendReminderEmailUseCase({
-  invoiceRepository,
-  customerRepository,
-  emailService,
-  logHistoryEmailUseCase
+    invoiceRepository,
+    customerRepository,
+    emailService,
+    logHistoryEmailUseCase
 });
 const generateAgingReportUseCase = new GenerateAgingReportUseCase({ invoiceRepository });
 
