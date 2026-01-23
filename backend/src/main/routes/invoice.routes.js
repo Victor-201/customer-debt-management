@@ -89,18 +89,18 @@ router.post(
  * GET /invoices/:invoiceId
  */
 router.get(
-    "/:invoiceId",
-    permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
-    invoiceController.getInvoice
+  "/:invoiceId",
+  permissionMiddleware(INVOICE_PERMISSIONS.READ),
+  invoiceController.getInvoice
 );
 
 /**
  * GET /invoices/customer/:customerId
  */
 router.get(
-    "/customer/:customerId",
-    permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
-    invoiceController.getInvoicesByCustomer
+  "/customer/:customerId",
+  permissionMiddleware(INVOICE_PERMISSIONS.READ),
+  invoiceController.getInvoicesByCustomer
 );
 
 
