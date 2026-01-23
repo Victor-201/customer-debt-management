@@ -90,7 +90,7 @@ router.post(
  */
 router.get(
   "/:invoiceId",
-  permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
+  permissionMiddleware(INVOICE_PERMISSIONS.READ),
   invoiceController.getInvoice
 );
 
@@ -99,7 +99,7 @@ router.get(
  */
 router.get(
   "/customer/:customerId",
-  permissionMiddleware(INVOICE_PERMISSIONS.VIEW),
+  permissionMiddleware(INVOICE_PERMISSIONS.READ),
   invoiceController.getInvoicesByCustomer
 );
 
