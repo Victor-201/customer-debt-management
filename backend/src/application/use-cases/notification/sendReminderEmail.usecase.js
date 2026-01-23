@@ -7,11 +7,13 @@ class SendReminderEmailUseCase {
         customerRepository,
         emailService,
         logHistoryEmailUseCase,
+        emailLogRepository,
     }) {
         this.invoiceRepository = invoiceRepository;
         this.customerRepository = customerRepository;
         this.emailService = emailService;
         this.logHistoryEmailUseCase = logHistoryEmailUseCase;
+        this.emailLogRepository = emailLogRepository;
     }
 
     async execute({ today = new Date() } = {}) {
@@ -35,11 +37,27 @@ class SendReminderEmailUseCase {
                 emailType = EmailType.BEFORE_DUE;
             } else if (daysOverdue === 1) {
                 emailType = EmailType.OVERDUE_1;
-            } else if (daysOverdue === 7) {
-                emailType = EmailType.OVERDUE_2;
+            } else if (daysOverdue > 1) {
+                const riskLevel = customer.riskLevel;
+                let interval = 3; // Default for NORMAL and HIGH_RISK
+
+                if (riskLevel === "WARNING") {
+                    interval = 2;
+                }
+                if (riskLevel === "HIGH_RISK") {
+                    interval = 1;
+                }
+
+                if ((daysOverdue - 1) % interval === 0) {
+                    emailType = EmailType.OVERDUE_2;
+                }
             }
 
             if (!emailType) continue;
+
+            // 3.5 Check if already sent today
+            const alreadySent = await this.emailLogRepository.hasSentToday(invoice.id, emailType);
+            if (alreadySent) continue;
 
             // 4. Build and send email
             const template = buildEmailTemplate(emailType, { customer, invoice });

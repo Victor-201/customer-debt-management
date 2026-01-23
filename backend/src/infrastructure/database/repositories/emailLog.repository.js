@@ -1,3 +1,4 @@
+import { Op } from "sequelize";
 import EmailLogRepositoryInterface from "../../../application/interfaces/repositories/emailLog.repository.interface.js";
 
 export default class EmailLogRepository extends EmailLogRepositoryInterface {
@@ -12,6 +13,23 @@ export default class EmailLogRepository extends EmailLogRepositoryInterface {
         invoice_id: invoiceId,
         email_type: emailType,
         status: "SUCCESS",
+      },
+    });
+    return !!log;
+  }
+
+  async hasSentToday(invoiceId, emailType) {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const log = await this.EmailLogModel.findOne({
+      where: {
+        invoice_id: invoiceId,
+        email_type: emailType,
+        status: "SUCCESS",
+        sent_at: {
+          [Op.gte]: today,
+        },
       },
     });
     return !!log;

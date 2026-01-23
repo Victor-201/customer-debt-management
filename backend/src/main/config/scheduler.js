@@ -43,7 +43,8 @@ export function initScheduler() {
         invoiceRepository,
         customerRepository,
         emailService,
-        logHistoryEmailUseCase
+        logHistoryEmailUseCase,
+        emailLogRepository
     });
 
     // Init Job
