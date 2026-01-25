@@ -21,7 +21,7 @@ export const paymentApi = {
      * @returns {Promise<Array>}
      */
     getByInvoiceId: async (invoiceId) => {
-        const response = await apiClient.get(`/payments/invoice/${invoiceId}`);
+        const response = await apiClient.get(`/api/payments/invoice/${invoiceId}`);
         return response.data;
     },
 
@@ -31,7 +31,7 @@ export const paymentApi = {
      * @returns {Promise<Object>}
      */
     getById: async (id) => {
-        const response = await apiClient.get(`/payments/${id}`);
+        const response = await apiClient.get(`/api/payments/${id}`);
         return response.data;
     },
 
@@ -51,7 +51,7 @@ export const paymentApi = {
      * @returns {Promise<{success: boolean, invoice: Object}>}
      */
     delete: async (id) => {
-        const response = await apiClient.delete(`/payments/${id}`);
+        const response = await apiClient.delete(`/api/payments/${id}`);
         return response.data;
     },
 

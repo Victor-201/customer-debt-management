@@ -2,14 +2,14 @@ import apiClient from "./axiosClient";
 
 export const authApi = {
   login(data) {
-    return apiClient.post("/auth/login", data);
+    return apiClient.post("/api/auth/login", data);
   },
 
   refresh() {
-    return apiClient.post("/auth/refresh-token");
+    return apiClient.post("/api/auth/refresh-token");
   },
 
   logout() {
-    return apiClient.post("/auth/logout");
+    return apiClient.post("/api/auth/logout");
   },
 };

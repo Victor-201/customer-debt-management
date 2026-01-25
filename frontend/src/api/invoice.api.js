@@ -21,7 +21,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     getById: async (id) => {
-        const response = await apiClient.get(`/invoices/${id}`);
+        const response = await apiClient.get(`/api/invoices/${id}`);
         return response.data;
     },
 
@@ -42,7 +42,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     update: async (id, invoiceData) => {
-        const response = await apiClient.patch(`/invoices/${id}`, invoiceData);
+        const response = await apiClient.patch(`/api/invoices/${id}`, invoiceData);
         return response.data;
     },
 
@@ -52,7 +52,7 @@ export const invoiceApi = {
      * @returns {Promise<{success: boolean}>}
      */
     delete: async (id) => {
-        const response = await apiClient.delete(`/invoices/${id}`);
+        const response = await apiClient.delete(`/api/invoices/${id}`);
         return response.data;
     },
 
@@ -63,7 +63,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     updateStatus: async (id, status) => {
-        const response = await apiClient.patch(`/invoices/${id}/status`, { status });
+        const response = await apiClient.patch(`/api/invoices/${id}/status`, { status });
         return response.data;
     },
 
@@ -73,7 +73,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     send: async (id) => {
-        const response = await apiClient.post(`/invoices/${id}/send`);
+        const response = await apiClient.post(`/api/invoices/${id}/send`);
         return response.data;
     },
 
@@ -83,7 +83,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     cancel: async (id) => {
-        const response = await apiClient.post(`/invoices/${id}/cancel`);
+        const response = await apiClient.post(`/api/invoices/${id}/cancel`);
         return response.data;
     },
 
