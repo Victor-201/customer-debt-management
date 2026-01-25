@@ -64,6 +64,10 @@ class Money {
     return `${this.amount} ${this.currency}`;
   }
 
+  toJSON() {
+    return this.amount;
+  }
+
   isZero() {
     return this.amount === 0;
   }

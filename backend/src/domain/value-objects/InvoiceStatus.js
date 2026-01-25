@@ -49,6 +49,10 @@ class InvoiceStatus {
   toString() {
     return this.value;
   }
+
+  toJSON() {
+    return this.value;
+  }
 }
 
 export { InvoiceStatus };
