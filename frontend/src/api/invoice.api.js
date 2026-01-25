@@ -11,7 +11,7 @@ export const invoiceApi = {
      * @returns {Promise<{data: Array, total: number, page: number, limit: number, totalPages: number}>}
      */
     getAll: async (filters = {}) => {
-        const response = await apiClient.get('/invoices', { params: filters });
+        const response = await apiClient.get('/api/invoices', { params: filters });
         return response.data;
     },
 
@@ -31,7 +31,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     create: async (invoiceData) => {
-        const response = await apiClient.post('/invoices', invoiceData);
+        const response = await apiClient.post('/api/invoices', invoiceData);
         return response.data;
     },
 
@@ -92,7 +92,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     getSummary: async () => {
-        const response = await apiClient.get('/invoices/summary');
+        const response = await apiClient.get('/api/invoices/summary');
         return response.data;
     }
 };

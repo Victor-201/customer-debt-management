@@ -196,11 +196,11 @@ const paymentSlice = createSlice({
             })
             .addCase(fetchPayments.fulfilled, (state, action) => {
                 state.loading = false;
-                state.list = action.payload.data;
-                state.total = action.payload.total;
-                state.page = action.payload.page;
-                state.limit = action.payload.limit;
-                state.totalPages = action.payload.totalPages;
+                state.list = action.payload?.data || [];
+                state.total = action.payload?.total || 0;
+                state.page = action.payload?.page || 1;
+                state.limit = action.payload?.limit || 10;
+                state.totalPages = action.payload?.totalPages || 0;
             })
             .addCase(fetchPayments.rejected, (state, action) => {
                 state.loading = false;

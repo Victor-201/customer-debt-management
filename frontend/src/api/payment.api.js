@@ -11,7 +11,7 @@ export const paymentApi = {
      * @returns {Promise<{data: Array, total: number, page: number, limit: number, totalPages: number}>}
      */
     getAll: async (filters = {}) => {
-        const response = await apiClient.get('/payments', { params: filters });
+        const response = await apiClient.get('/api/payments', { params: filters });
         return response.data;
     },
 
@@ -41,7 +41,7 @@ export const paymentApi = {
      * @returns {Promise<{payment: Object, invoice: Object}>}
      */
     create: async (paymentData) => {
-        const response = await apiClient.post('/payments', paymentData);
+        const response = await apiClient.post('/api/payments', paymentData);
         return response.data;
     },
 
@@ -60,7 +60,7 @@ export const paymentApi = {
      * @returns {Promise<Object>}
      */
     getSummary: async () => {
-        const response = await apiClient.get('/payments/summary');
+        const response = await apiClient.get('/api/payments/summary');
         return response.data;
     },
 
@@ -70,7 +70,7 @@ export const paymentApi = {
      * @returns {Promise<Array>}
      */
     getRecent: async (limit = 5) => {
-        const response = await apiClient.get('/payments/recent', { params: { limit } });
+        const response = await apiClient.get('/api/payments/recent', { params: { limit } });
         return response.data;
     }
 };
