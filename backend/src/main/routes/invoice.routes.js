@@ -39,6 +39,26 @@ const invoiceController = new InvoiceController(
 router.use(authMiddleware);
 
 /**
+ * GET /invoices
+ * List all invoices with filtering and pagination
+ */
+router.get(
+    "/",
+    permissionMiddleware(INVOICE_PERMISSIONS.READ),
+    invoiceController.getAllInvoices
+);
+
+/**
+ * GET /invoices/summary
+ * Get invoice statistics
+ */
+router.get(
+    "/summary",
+    permissionMiddleware(INVOICE_PERMISSIONS.READ),
+    invoiceController.getInvoiceSummary
+);
+
+/**
  * POST /invoices
  */
 router.post(

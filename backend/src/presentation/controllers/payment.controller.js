@@ -1,6 +1,9 @@
 import RecordPaymentUseCase from "../../application/use-cases/payment/recordPayment.usecase.js";
 import ReversePaymentUseCase from "../../application/use-cases/payment/reversePayment.usecase.js";
 import GetPaymentByInvoiceId from "../../application/use-cases/payment/getPaymentByInvoice.usecase.js";
+import GetAllPaymentsUseCase from "../../application/use-cases/payment/getAllPayments.usecase.js";
+import GetRecentPaymentsUseCase from "../../application/use-cases/payment/getRecentPayments.usecase.js";
+import GetPaymentSummaryUseCase from "../../application/use-cases/payment/getPaymentSummary.usecase.js";
 
 class PaymentController {
     constructor(paymentRepository, invoiceRepository) {
@@ -15,9 +18,48 @@ class PaymentController {
         );
 
         this.getPaymentByInvoiceIdUseCase = new GetPaymentByInvoiceId(paymentRepository);
+        this.getAllPaymentsUseCase = new GetAllPaymentsUseCase(paymentRepository);
+        this.getRecentPaymentsUseCase = new GetRecentPaymentsUseCase(paymentRepository);
+        this.getPaymentSummaryUseCase = new GetPaymentSummaryUseCase(paymentRepository);
     }
 
-    
+    /**
+     * GET /payments
+     */
+    getAllPayments = async (req, res) => {
+        try {
+            const result = await this.getAllPaymentsUseCase.execute(req.query);
+            res.json(result);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
+
+    /**
+     * GET /payments/recent
+     */
+    getRecentPayments = async (req, res) => {
+        try {
+            const limit = req.query.limit || 10;
+            const payments = await this.getRecentPaymentsUseCase.execute(limit);
+            res.json(payments);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
+
+    /**
+     * GET /payments/summary
+     */
+    getPaymentSummary = async (req, res) => {
+        try {
+            const summary = await this.getPaymentSummaryUseCase.execute(req.query);
+            res.json(summary);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
+
     recordPayment = async (req, res) => {
         try {
             const payload = {

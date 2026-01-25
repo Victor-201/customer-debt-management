@@ -30,6 +30,36 @@ const paymentController = new PaymentController(paymentRepository, invoiceReposi
 
 router.use(authMiddleware);
 
+/**
+ * GET /payments
+ * List all payments with filtering and pagination
+ */
+router.get(
+    "/",
+    permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+    paymentController.getAllPayments
+);
+
+/**
+ * GET /payments/recent
+ * Get recent payments
+ */
+router.get(
+    "/recent",
+    permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+    paymentController.getRecentPayments
+);
+
+/**
+ * GET /payments/summary
+ * Get payment statistics
+ */
+router.get(
+    "/summary",
+    permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+    paymentController.getPaymentSummary
+);
+
 router.post(
   "/",
   permissionMiddleware(PAYMENT_PERMISSIONS.CREATE),
