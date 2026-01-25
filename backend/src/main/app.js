@@ -8,7 +8,12 @@ import errorMiddleware from "./middlewares/error.middleware.js";
 
 const app = express();
 
-const allowedOrigins = ["http://localhost:5173"];
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://fecredit.hailamdev.space",
+  "https://fecredit.hailamdev.space",
+  process.env.FRONTEND_URL,
+].filter(Boolean);
 
 const corsOptions = {
   origin(origin, callback) {

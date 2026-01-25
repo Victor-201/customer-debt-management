@@ -1,0 +1,59 @@
+# Customer Debt Management - Backend Dockerfile
+# Node.js Express API with PostgreSQL
+
+FROM node:20-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /app
+
+# Copy package files
+COPY backend/package*.json backend/yarn.lock* ./
+
+# Install dependencies using yarn (project uses yarn.lock)
+RUN yarn install --frozen-lockfile --production && yarn cache clean
+
+# Development stage
+FROM base AS development
+WORKDIR /app
+COPY backend/package*.json backend/yarn.lock* ./
+RUN yarn install
+COPY backend/ .
+EXPOSE 4000
+CMD ["yarn", "dev"]
+
+# Production build stage
+FROM base AS builder
+WORKDIR /app
+COPY backend/package*.json backend/yarn.lock* ./
+RUN yarn install --frozen-lockfile
+COPY backend/ .
+
+# Production stage
+FROM base AS production
+WORKDIR /app
+
+# Create non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 expressjs
+
+# Copy dependencies and source
+COPY --from=deps /app/node_modules ./node_modules
+COPY backend/ .
+
+# Set ownership
+RUN chown -R expressjs:nodejs /app
+
+USER expressjs
+
+# Environment variables
+ENV NODE_ENV=production
+ENV PORT=4000
+
+EXPOSE 4000
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD wget --no-verbose --tries=1 --spider http://localhost:4000/api/health || exit 1
+
+CMD ["node", "src/main/server.js"]

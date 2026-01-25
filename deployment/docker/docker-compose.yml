@@ -1,0 +1,126 @@
+# Customer Debt Management - Docker Compose
+# Backend API: port 4000
+# PostgreSQL: external port 5433
+
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  postgres:
+    image: postgres:16-alpine
+    container_name: cdm-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-postgres}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-nguyen2022}
+      POSTGRES_DB: ${DB_NAME:-customer_debt_db}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./init-db:/docker-entrypoint-initdb.d
+    ports:
+      - "5433:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${DB_USERNAME:-postgres} -d ${DB_NAME:-customer_debt_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - cdm-network
+
+  # Backend API
+  backend:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile.backend
+      target: production
+    container_name: cdm-backend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USERNAME: ${DB_USERNAME:-postgres}
+      DB_PASSWORD: ${DB_PASSWORD:-nguyen2022}
+      DB_NAME: ${DB_NAME:-customer_debt_db}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_ACCESS_EXPIRY: ${JWT_ACCESS_EXPIRY:-15m}
+      JWT_REFRESH_EXPIRY: ${JWT_REFRESH_EXPIRY:-7d}
+      SMTP_HOST: ${SMTP_HOST:-smtp.gmail.com}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      EMAIL_FROM: ${EMAIL_FROM:-Customer Debt Management}
+    ports:
+      - "4000:4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    healthcheck:
+      test: [ "CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:4000/api/health" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    networks:
+      - cdm-network
+
+  # Frontend + Nginx Reverse Proxy
+  frontend:
+    build:
+      context: ../../
+      dockerfile: deployment/docker/Dockerfile.frontend
+      target: production
+      args:
+        VITE_API_URL: /api
+    container_name: cdm-frontend
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    depends_on:
+      - backend
+    networks:
+      - cdm-network
+
+  # Nginx Reverse Proxy (Production with SSL)
+  nginx:
+    image: nginx:alpine
+    container_name: cdm-nginx
+    restart: unless-stopped
+    ports:
+      - "8888:80" # Changed from 80 to 8888 to avoid conflict with tech-store
+      - "8445:443" # Changed from 443 to 8445 to avoid conflict with tech-store
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - cdm-network
+    profiles:
+      - production
+
+  # Certbot for SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: cdm-certbot
+    volumes:
+      - ./certbot/conf:/etc/letsencrypt
+      - ./certbot/www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+    profiles:
+      - production
+    networks:
+      - cdm-network
+
+networks:
+  cdm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+    driver: local
