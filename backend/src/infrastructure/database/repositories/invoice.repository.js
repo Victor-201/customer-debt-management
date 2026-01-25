@@ -275,33 +275,36 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
      * Get invoice summary statistics
      */
     async getSummary() {
-        const [result] = await this.InvoiceModel.sequelize.query(`
-            SELECT 
-                COUNT(*) as total_count,
-                COUNT(*) FILTER (WHERE status = 'PENDING') as pending_count,
-                COUNT(*) FILTER (WHERE status = 'PAID') as paid_count,
-                COUNT(*) FILTER (WHERE status = 'OVERDUE') as overdue_count,
-                COUNT(*) FILTER (WHERE status = 'PARTIAL') as partial_count,
-                COALESCE(SUM(total_amount), 0) as total_amount,
-                COALESCE(SUM(paid_amount), 0) as total_paid,
-                COALESCE(SUM(balance_amount), 0) as total_balance,
-                COALESCE(SUM(balance_amount) FILTER (WHERE status = 'OVERDUE'), 0) as overdue_amount
-            FROM invoices
-        `);
+        try {
+            const [result] = await this.InvoiceModel.sequelize.query(`
+                SELECT 
+                    COUNT(*) as total_count,
+                    COUNT(*) FILTER (WHERE status = 'PENDING') as pending_count,
+                    COUNT(*) FILTER (WHERE status = 'PAID') as paid_count,
+                    COUNT(*) FILTER (WHERE status = 'OVERDUE') as overdue_count,
+                    COALESCE(SUM(total_amount), 0) as total_amount,
+                    COALESCE(SUM(paid_amount), 0) as total_paid,
+                    COALESCE(SUM(balance_amount), 0) as total_balance,
+                    COALESCE(SUM(balance_amount) FILTER (WHERE status = 'OVERDUE'), 0) as overdue_amount
+                FROM invoices
+            `);
 
-        const summary = result[0];
+            const summary = result[0] || {};
 
-        return {
-            totalCount: parseInt(summary.total_count, 10),
-            pendingCount: parseInt(summary.pending_count, 10),
-            paidCount: parseInt(summary.paid_count, 10),
-            overdueCount: parseInt(summary.overdue_count, 10),
-            partialCount: parseInt(summary.partial_count, 10),
-            totalAmount: parseFloat(summary.total_amount),
-            totalPaid: parseFloat(summary.total_paid),
-            totalBalance: parseFloat(summary.total_balance),
-            overdueAmount: parseFloat(summary.overdue_amount),
-        };
+            return {
+                totalCount: parseInt(summary.total_count || 0, 10),
+                pendingCount: parseInt(summary.pending_count || 0, 10),
+                paidCount: parseInt(summary.paid_count || 0, 10),
+                overdueCount: parseInt(summary.overdue_count || 0, 10),
+                totalAmount: parseFloat(summary.total_amount || 0),
+                totalPaid: parseFloat(summary.total_paid || 0),
+                totalBalance: parseFloat(summary.total_balance || 0),
+                overdueAmount: parseFloat(summary.overdue_amount || 0),
+            };
+        } catch (error) {
+            console.error('Invoice summary query error:', error);
+            throw error;
+        }
     }
 
     _mapRowToEntity(row) {

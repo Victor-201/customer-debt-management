@@ -149,7 +149,7 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
             dateFilter = `WHERE payment_date <= '${endDate}'`;
         }
 
-        const [result] = await this.PaymentModel.sequelize.query(`
+        const query = `
             SELECT 
                 COUNT(*) FILTER (WHERE method != 'REVERSAL') as total_count,
                 COALESCE(SUM(CASE WHEN method = 'REVERSAL' THEN -amount ELSE amount END), 0) as net_amount,
@@ -157,26 +157,30 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
                 COALESCE(SUM(amount) FILTER (WHERE method = 'REVERSAL'), 0) as total_reversed,
                 COUNT(*) FILTER (WHERE method = 'BANK_TRANSFER') as bank_transfer_count,
                 COUNT(*) FILTER (WHERE method = 'CASH') as cash_count,
-                COUNT(*) FILTER (WHERE method = 'CHECK') as check_count,
-                COUNT(*) FILTER (WHERE method = 'CREDIT_CARD') as credit_card_count
+                COUNT(*) FILTER (WHERE method = 'REVERSAL') as reversal_count
             FROM payments
             ${dateFilter}
-        `);
+        `;
 
-        const summary = result[0];
+        try {
+            const [result] = await this.PaymentModel.sequelize.query(query);
+            const summary = result[0] || {};
 
-        return {
-            totalCount: parseInt(summary.total_count, 10),
-            netAmount: parseFloat(summary.net_amount),
-            totalReceived: parseFloat(summary.total_received),
-            totalReversed: parseFloat(summary.total_reversed),
-            byMethod: {
-                bankTransfer: parseInt(summary.bank_transfer_count, 10),
-                cash: parseInt(summary.cash_count, 10),
-                check: parseInt(summary.check_count, 10),
-                creditCard: parseInt(summary.credit_card_count, 10),
-            },
-        };
+            return {
+                totalCount: parseInt(summary.total_count || 0, 10),
+                netAmount: parseFloat(summary.net_amount || 0),
+                totalReceived: parseFloat(summary.total_received || 0),
+                totalReversed: parseFloat(summary.total_reversed || 0),
+                byMethod: {
+                    bankTransfer: parseInt(summary.bank_transfer_count || 0, 10),
+                    cash: parseInt(summary.cash_count || 0, 10),
+                    reversal: parseInt(summary.reversal_count || 0, 10),
+                },
+            };
+        } catch (error) {
+            console.error('Payment summary query error:', error);
+            throw error;
+        }
     }
 
     _mapRowToEntity(row) {
