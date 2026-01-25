@@ -219,6 +219,91 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
         return rows.map(row => this._mapRowToEntity(row));
     }
 
+    /**
+     * Find all invoices with pagination, filtering, and sorting
+     */
+    async findAll({ status, search, sortBy, sortOrder, page, limit, customerId }) {
+        const where = {};
+
+        // Filter by status
+        if (status) {
+            where.status = status;
+        }
+
+        // Filter by customer
+        if (customerId) {
+            where.customer_id = customerId;
+        }
+
+        // Search by invoice number
+        if (search) {
+            where.invoice_number = { [Op.iLike]: `%${search}%` };
+        }
+
+        // Map frontend sortBy to database columns
+        const sortFieldMap = {
+            createdAt: 'created_at',
+            issueDate: 'issue_date',
+            dueDate: 'due_date',
+            totalAmount: 'total_amount',
+            balanceAmount: 'balance_amount',
+            invoiceNumber: 'invoice_number',
+        };
+
+        const orderField = sortFieldMap[sortBy] || 'created_at';
+        const orderDirection = sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC';
+
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await this.InvoiceModel.findAndCountAll({
+            where,
+            order: [[orderField, orderDirection]],
+            limit,
+            offset,
+        });
+
+        return {
+            data: rows.map(row => this._mapRowToEntity(row)),
+            total: count,
+            page,
+            limit,
+            totalPages: Math.ceil(count / limit),
+        };
+    }
+
+    /**
+     * Get invoice summary statistics
+     */
+    async getSummary() {
+        const [result] = await this.InvoiceModel.sequelize.query(`
+            SELECT 
+                COUNT(*) as total_count,
+                COUNT(*) FILTER (WHERE status = 'PENDING') as pending_count,
+                COUNT(*) FILTER (WHERE status = 'PAID') as paid_count,
+                COUNT(*) FILTER (WHERE status = 'OVERDUE') as overdue_count,
+                COUNT(*) FILTER (WHERE status = 'PARTIAL') as partial_count,
+                COALESCE(SUM(total_amount), 0) as total_amount,
+                COALESCE(SUM(paid_amount), 0) as total_paid,
+                COALESCE(SUM(balance_amount), 0) as total_balance,
+                COALESCE(SUM(balance_amount) FILTER (WHERE status = 'OVERDUE'), 0) as overdue_amount
+            FROM invoices
+        `);
+
+        const summary = result[0];
+
+        return {
+            totalCount: parseInt(summary.total_count, 10),
+            pendingCount: parseInt(summary.pending_count, 10),
+            paidCount: parseInt(summary.paid_count, 10),
+            overdueCount: parseInt(summary.overdue_count, 10),
+            partialCount: parseInt(summary.partial_count, 10),
+            totalAmount: parseFloat(summary.total_amount),
+            totalPaid: parseFloat(summary.total_paid),
+            totalBalance: parseFloat(summary.total_balance),
+            overdueAmount: parseFloat(summary.overdue_amount),
+        };
+    }
+
     _mapRowToEntity(row) {
         return new Invoice({
             id: row.id,

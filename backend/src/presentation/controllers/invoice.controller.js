@@ -6,6 +6,8 @@ import UpdateOverdueInvoicesUseCase from "../../application/use-cases/invoice/up
 import ValidateCreditLimitUseCase from "../../application/use-cases/invoice/validateCreditLimit.usecase.js";
 import GetInvoiceUseCase from "../../application/use-cases/invoice/getInvoice.usecase.js";
 import GetInvoicesByCustomerUseCase from "../../application/use-cases/invoice/GetInvoicesByCustomer.usecase.js";
+import GetAllInvoicesUseCase from "../../application/use-cases/invoice/getAllInvoices.usecase.js";
+import GetInvoiceSummaryUseCase from "../../application/use-cases/invoice/getInvoiceSummary.usecase.js";
 
 class InvoiceController {
     constructor(invoiceRepository, paymentRepository, customerRepository) {
@@ -22,7 +24,33 @@ class InvoiceController {
 
         this.getInvoiceUseCase = new GetInvoiceUseCase(invoiceRepository);
         this.getInvoicesByCustomerUseCase = new GetInvoicesByCustomerUseCase(invoiceRepository);
+        this.getAllInvoicesUseCase = new GetAllInvoicesUseCase(invoiceRepository);
+        this.getInvoiceSummaryUseCase = new GetInvoiceSummaryUseCase(invoiceRepository);
     }
+
+    /**
+     * GET /invoices
+     */
+    getAllInvoices = async (req, res) => {
+        try {
+            const result = await this.getAllInvoicesUseCase.execute(req.query);
+            res.json(result);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
+
+    /**
+     * GET /invoices/summary
+     */
+    getInvoiceSummary = async (req, res) => {
+        try {
+            const summary = await this.getInvoiceSummaryUseCase.execute();
+            res.json(summary);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
 
     /**
      * POST /invoices

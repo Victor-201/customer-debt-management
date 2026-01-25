@@ -79,6 +79,106 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
         return Number(result.total_paid);
     }
 
+    /**
+     * Find all payments with pagination and filtering
+     */
+    async findAll({ search, page, limit, invoiceId, startDate, endDate }) {
+        const where = {};
+
+        if (invoiceId) {
+            where.invoice_id = invoiceId;
+        }
+
+        if (search) {
+            where[Op.or] = [
+                { reference: { [Op.iLike]: `%${search}%` } },
+            ];
+        }
+
+        if (startDate) {
+            where.payment_date = { ...where.payment_date, [Op.gte]: startDate };
+        }
+
+        if (endDate) {
+            where.payment_date = { ...where.payment_date, [Op.lte]: endDate };
+        }
+
+        const offset = (page - 1) * limit;
+
+        const { count, rows } = await this.PaymentModel.findAndCountAll({
+            where,
+            order: [['payment_date', 'DESC'], ['created_at', 'DESC']],
+            limit,
+            offset,
+        });
+
+        return {
+            data: rows.map(row => this._mapRowToEntity(row)),
+            total: count,
+            page,
+            limit,
+            totalPages: Math.ceil(count / limit),
+        };
+    }
+
+    /**
+     * Find recent payments
+     */
+    async findRecent(limit = 10) {
+        const rows = await this.PaymentModel.findAll({
+            where: {
+                method: { [Op.ne]: 'REVERSAL' },
+            },
+            order: [['payment_date', 'DESC'], ['created_at', 'DESC']],
+            limit,
+        });
+
+        return rows.map(row => this._mapRowToEntity(row));
+    }
+
+    /**
+     * Get payment summary statistics
+     */
+    async getSummary({ startDate, endDate }) {
+        let dateFilter = '';
+        if (startDate && endDate) {
+            dateFilter = `WHERE payment_date >= '${startDate}' AND payment_date <= '${endDate}'`;
+        } else if (startDate) {
+            dateFilter = `WHERE payment_date >= '${startDate}'`;
+        } else if (endDate) {
+            dateFilter = `WHERE payment_date <= '${endDate}'`;
+        }
+
+        const [result] = await this.PaymentModel.sequelize.query(`
+            SELECT 
+                COUNT(*) FILTER (WHERE method != 'REVERSAL') as total_count,
+                COALESCE(SUM(CASE WHEN method = 'REVERSAL' THEN -amount ELSE amount END), 0) as net_amount,
+                COALESCE(SUM(amount) FILTER (WHERE method != 'REVERSAL'), 0) as total_received,
+                COALESCE(SUM(amount) FILTER (WHERE method = 'REVERSAL'), 0) as total_reversed,
+                COUNT(*) FILTER (WHERE method = 'BANK_TRANSFER') as bank_transfer_count,
+                COUNT(*) FILTER (WHERE method = 'CASH') as cash_count,
+                COUNT(*) FILTER (WHERE method = 'CHECK') as check_count,
+                COUNT(*) FILTER (WHERE method = 'CREDIT_CARD') as credit_card_count
+            FROM payments
+            ${dateFilter}
+        `);
+
+        const summary = result[0];
+
+        return {
+            totalCount: parseInt(summary.total_count, 10),
+            netAmount: parseFloat(summary.net_amount),
+            totalReceived: parseFloat(summary.total_received),
+            totalReversed: parseFloat(summary.total_reversed),
+            byMethod: {
+                bankTransfer: parseInt(summary.bank_transfer_count, 10),
+                cash: parseInt(summary.cash_count, 10),
+                check: parseInt(summary.check_count, 10),
+                creditCard: parseInt(summary.credit_card_count, 10),
+            },
+        };
+    }
+
     _mapRowToEntity(row) {
         return new Payment({
             id: row.id,
