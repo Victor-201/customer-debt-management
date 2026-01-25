@@ -90,25 +90,26 @@ const InvoiceListPage = () => {
     // Table columns
     const columns = [
         {
-            key: 'id',
+            key: 'invoiceNumber',
             header: 'Mã HĐ',
             sortable: true,
-            width: '120px',
+            width: '150px',
             render: (value, row) => (
                 <Link
                     to={`/invoices/${row.id}`}
                     className="font-semibold text-[var(--color-primary)] hover:underline"
                 >
-                    {value}
+                    {value || row.id}
                 </Link>
             )
         },
         {
-            key: 'customerName',
-            header: 'Khách hàng',
+            key: 'customerId',
+            header: 'Mã KH',
             sortable: true,
+            width: '200px',
             render: (value) => (
-                <span className="font-medium">{value}</span>
+                <span className="font-mono text-sm">{value}</span>
             )
         },
         {
@@ -141,7 +142,7 @@ const InvoiceListPage = () => {
             }
         },
         {
-            key: 'total',
+            key: 'totalAmount',
             header: 'Tổng tiền',
             sortable: true,
             width: '130px',
@@ -152,7 +153,7 @@ const InvoiceListPage = () => {
             )
         },
         {
-            key: 'balance',
+            key: 'balanceAmount',
             header: 'Còn lại',
             sortable: true,
             width: '130px',

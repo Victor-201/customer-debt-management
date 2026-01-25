@@ -115,6 +115,23 @@ class Invoice {
     }
   }
 
+  toJSON() {
+    return {
+      id: this.id,
+      customerId: this.customer_id,
+      invoiceNumber: this.invoice_number,
+      issueDate: this.issue_date,
+      dueDate: this.due_date,
+      totalAmount: this.total_amount.toJSON(),
+      paidAmount: this.paid_amount.toJSON(),
+      balanceAmount: this.balance_amount.toJSON(),
+      status: this.status.toJSON(),
+      createdBy: this.created_by,
+      createdAt: this.created_at,
+      updatedAt: this.updated_at,
+    };
+  }
+
 }
 
 export default Invoice;

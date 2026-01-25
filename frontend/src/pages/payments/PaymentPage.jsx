@@ -78,7 +78,7 @@ const PaymentPage = () => {
     };
 
     // Calculate total amount
-    const totalAmount = payments.reduce((sum, p) => sum + p.amount, 0);
+    const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
     // Table columns
     const columns = [
@@ -86,31 +86,23 @@ const PaymentPage = () => {
             key: 'id',
             header: 'Mã phiếu thu',
             sortable: true,
-            width: '130px',
+            width: '200px',
             render: (value) => (
-                <span className="font-semibold">{value}</span>
+                <span className="font-mono text-sm">{value}</span>
             )
         },
         {
             key: 'invoiceId',
-            header: 'Hóa đơn',
+            header: 'Mã HĐ',
             sortable: true,
-            width: '130px',
+            width: '200px',
             render: (value) => (
                 <Link
                     to={`/invoices/${value}`}
-                    className="text-[var(--color-primary)] hover:underline flex items-center gap-1"
+                    className="text-[var(--color-primary)] hover:underline flex items-center gap-1 font-mono text-sm"
                 >
                     {value} <FiExternalLink className="w-3 h-3" />
                 </Link>
-            )
-        },
-        {
-            key: 'customerName',
-            header: 'Khách hàng',
-            sortable: true,
-            render: (value) => (
-                <span className="font-medium">{value}</span>
             )
         },
         {
@@ -121,7 +113,7 @@ const PaymentPage = () => {
             render: (value) => formatDate(value)
         },
         {
-            key: 'paymentMethod',
+            key: 'method',
             header: 'Phương thức',
             width: '130px',
             render: (value) => (
@@ -144,7 +136,7 @@ const PaymentPage = () => {
         {
             key: 'reference',
             header: 'Tham chiếu',
-            width: '130px',
+            width: '150px',
             render: (value) => (
                 <span className="text-gray-500 text-sm">
                     {value || '-'}
@@ -169,8 +161,8 @@ const PaymentPage = () => {
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {PAYMENT_METHOD_OPTIONS.map(method => {
-                    const methodPayments = payments.filter(p => p.paymentMethod === method.value);
-                    const methodTotal = methodPayments.reduce((sum, p) => sum + p.amount, 0);
+                    const methodPayments = payments.filter(p => p.method === method.value);
+                    const methodTotal = methodPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
                     return (
                         <div key={method.value} className="card">

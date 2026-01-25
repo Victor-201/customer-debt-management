@@ -40,6 +40,19 @@ class Payment {
       recorded_by,
     });
   }
+
+  toJSON() {
+    return {
+      id: this.id,
+      invoiceId: this.invoice_id,
+      paymentDate: this.payment_date,
+      amount: this.amount.toJSON(),
+      method: this.method,
+      reference: this.reference,
+      recordedBy: this.recorded_by,
+      createdAt: this.created_at,
+    };
+  }
 }
 
 export default Payment;
