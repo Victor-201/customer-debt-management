@@ -4,7 +4,7 @@ const BASE =
   import.meta.env.VITE_API_URL || import.meta.env.VITE_API_GATEWAY_URL || "";
 
 const apiClient = axios.create({
-  baseURL: BASE + "/api",
+  baseURL: BASE,
   withCredentials: true,
   timeout: 15000,
   headers: {
