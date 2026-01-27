@@ -1,13 +1,24 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import userApi from "../../api/user.api";
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchUserById,
+  createUser,
+  updateUser,
+  selectSelectedUser,
+  selectUsersLoading,
+  clearSelectedUser,
+} from "../../store/user.slice";
 
 export default function UserFormPage() {
   const { userId } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isEdit = Boolean(userId);
 
-  const [loading, setLoading] = useState(false);
+  const selectedUser = useSelector(selectSelectedUser);
+  const loading = useSelector(selectUsersLoading);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -18,45 +29,57 @@ export default function UserFormPage() {
 
   /* ===== LOAD USER ===== */
   useEffect(() => {
-    if (!isEdit) return;
+    if (isEdit) {
+      dispatch(fetchUserById(userId));
+    }
+    return () => {
+      dispatch(clearSelectedUser());
+    };
+  }, [dispatch, userId, isEdit]);
 
-    setLoading(true);
-    userApi
-      .getById(userId)
-      .then((res) => {
-        setForm({
-          name: res.data.name,
-          email: res.data.email,
-          role: res.data.role,
-          isActive: res.data.isActive,
-          password: "",
-        });
-      })
-      .finally(() => setLoading(false));
-  }, [userId, isEdit]);
+  // Populate form when selectedUser changes
+  useEffect(() => {
+    if (isEdit && selectedUser) {
+      setForm({
+        name: selectedUser.name || "",
+        email: selectedUser.email || "",
+        role: selectedUser.role || "ACCOUNTANT",
+        isActive: selectedUser.isActive ?? true,
+        password: "",
+      });
+    }
+  }, [isEdit, selectedUser]);
 
   const submit = async (e) => {
     e.preventDefault();
 
-    if (!form.name || !form.email) return;  
+    if (!form.name || !form.email) return;
 
-    if (isEdit) {
-      await userApi.update(userId, {   
-        name: form.name,
-        email: form.email,
-        isActive: form.isActive,
-        role: form.role,
-      });
-    }else {
-      if (!form.password) return;
-      await userApi.create({
-        name: form.name,
-        email: form.email,
-        password: form.password,
-        role: form.role,
-      });
+    try {
+      if (isEdit) {
+        await dispatch(updateUser({
+          id: userId,
+          data: {
+            name: form.name,
+            email: form.email,
+            isActive: form.isActive,
+            role: form.role,
+          }
+        })).unwrap();
+      } else {
+        if (!form.password) return;
+        await dispatch(createUser({
+          name: form.name,
+          email: form.email,
+          password: form.password,
+          role: form.role,
+        })).unwrap();
+      }
+      navigate("/users");
+    } catch (err) {
+      console.error(err);
+      alert(err?.error || "Có lỗi xảy ra");
     }
-    navigate("/users");
   };
 
   return (
@@ -103,31 +126,31 @@ export default function UserFormPage() {
             <input
               type="email"
               className="w-full rounded-lg border px-3 py-2"
-              value={form.email}              
+              value={form.email}
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
               }
               required
-            />            
+            />
           </div>
 
           {/* PASSWORD */}
           {!isEdit && (
-          <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
-              {isEdit ? "Đổi mật khẩu" : "Mật khẩu"}
-            </label>
-            <input
-              type="password"
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
-              placeholder="Nhập mật khẩu"              
-              value={form.password}
-              onChange={(e) =>
-                setForm({ ...form, password: e.target.value })
-              }
-              required
-            />
-          </div>
+            <div>
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                {isEdit ? "Đổi mật khẩu" : "Mật khẩu"}
+              </label>
+              <input
+                type="password"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                placeholder="Nhập mật khẩu"
+                value={form.password}
+                onChange={(e) =>
+                  setForm({ ...form, password: e.target.value })
+                }
+                required
+              />
+            </div>
           )}
 
           {/* ROLE */}

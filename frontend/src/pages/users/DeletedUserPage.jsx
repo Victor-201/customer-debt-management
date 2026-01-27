@@ -1,55 +1,52 @@
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { FiTrash2, FiRotateCcw } from "react-icons/fi";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 
-import userApi from "../../api/user.api";
+import {
+  fetchDeletedUsers,
+  restoreUser,
+  hardDeleteUser,
+  selectDeletedUsers,
+  selectUsersLoading,
+} from "../../store/user.slice";
 
 export default function DeletedUserPage() {
-  const [users, setUsers] = useState([]);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
- 
-  const fetchUsers = async () => {
-    try {
-      const res = await userApi.getDeleted();
-      setUsers(res.data);
-    } catch (err) {
-      console.error(err);
-      alert("Không thể tải danh sách thùng rác");
-    }
-  };
+
+  const users = useSelector(selectDeletedUsers);
+  const loading = useSelector(selectUsersLoading);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    dispatch(fetchDeletedUsers());
+  }, [dispatch]);
 
   /* ===== RESTORE USER ===== */
-  const restoreUser = async (id) => {
+  const handleRestoreUser = async (id) => {
     try {
-      await userApi.restore(id);
+      await dispatch(restoreUser(id)).unwrap();
       alert("Khôi phục nhân viên thành công");
-      navigate("/users"); 
+      navigate("/users");
     } catch (err) {
       console.error(err);
       alert(
-        err?.response?.data?.error ||
-          "Không thể khôi phục nhân viên"
+        err?.error || "Không thể khôi phục nhân viên"
       );
     }
   };
 
   /* ===== HARD DELETE ===== */
-  const hardDeleteUser = async (id) => {
+  const handleHardDeleteUser = async (id) => {
     if (!window.confirm("Xóa vĩnh viễn nhân viên này?")) return;
 
     try {
-      await userApi.hardDelete(id);
+      await dispatch(hardDeleteUser(id)).unwrap();
       alert("Đã xóa vĩnh viễn nhân viên");
-      fetchUsers();
     } catch (err) {
       console.error(err);
       alert(
-        err?.response?.data?.error ||
-          "Không thể xóa vĩnh viễn nhân viên"
+        err?.error || "Không thể xóa vĩnh viễn nhân viên"
       );
     }
   };
@@ -118,7 +115,7 @@ export default function DeletedUserPage() {
                   <div className="flex justify-end gap-2">
                     {/* RESTORE */}
                     <button
-                      onClick={() => restoreUser(u.id)}
+                      onClick={() => handleRestoreUser(u.id)}
                       className="rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
                       title="Khôi phục"
                     >
@@ -127,7 +124,7 @@ export default function DeletedUserPage() {
 
                     {/* HARD DELETE */}
                     <button
-                      onClick={() => hardDeleteUser(u.id)}
+                      onClick={() => handleHardDeleteUser(u.id)}
                       className="rounded-md bg-red-600 p-2 text-white hover:bg-red-700"
                       title="Xóa vĩnh viễn"
                     >

@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
 import {
   FiEdit,
   FiLock,
@@ -9,30 +10,31 @@ import {
   FiArchive,
 } from "react-icons/fi";
 
-import userApi from "../../api/user.api";
-import { useSelector } from "react-redux";
 import { selectUser } from "../../store/auth.slice";
+import {
+  fetchUsers,
+  lockUser,
+  unlockUser,
+  softDeleteUser,
+  selectUsers,
+  selectUsersLoading,
+} from "../../store/user.slice";
 
 export default function UserListPage() {
-  const [users, setUsers] = useState([]);
-  const [search, setSearch] = useState("");
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [search, setSearch] = useState("");
+
   const currentUser = useSelector(selectUser);
+  const allUsers = useSelector(selectUsers);
+  const loading = useSelector(selectUsersLoading);
 
-  const fetchUsers = async () => {
-    const res = await userApi.getAll();
-
-    // HIỂN THỊ ACCOUNTANT
-    const accountants = res.data.filter(
-      (u) => u.role === "ACCOUNTANT"
-    );
-
-    setUsers(accountants);
-  };
+  // Filter to show only ACCOUNTANT users
+  const users = allUsers.filter((u) => u.role === "ACCOUNTANT");
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    dispatch(fetchUsers());
+  }, [dispatch]);
 
   /* ===== SEARCH ===== */
   const filteredUsers = users.filter(
@@ -40,7 +42,7 @@ export default function UserListPage() {
       u.name.toLowerCase().includes(search.toLowerCase()) ||
       u.email.toLowerCase().includes(search.toLowerCase())
   );
-  
+
   const toggleLock = async (u) => {
     if (u.id === currentUser?.id) {
       alert("Không thể khóa chính mình");
@@ -49,30 +51,21 @@ export default function UserListPage() {
 
     try {
       if (u.isActive) {
-        await userApi.lock(u.id);
+        await dispatch(lockUser(u.id)).unwrap();
       } else {
-        await userApi.unlock(u.id);
+        await dispatch(unlockUser(u.id)).unwrap();
       }
-
-      setUsers((prev) =>
-        prev.map((item) =>
-          item.id === u.id
-            ? { ...item, isActive: !item.isActive }
-            : item
-        )
-      );
     } catch (err) {
       console.error(err);
       alert("Không thể thay đổi trạng thái");
     }
   };
 
-  const softDelete = async (id) => {
+  const handleSoftDelete = async (id) => {
     if (!window.confirm("Xóa nhân viên này? (sẽ vào thùng rác)")) return;
 
     try {
-      await userApi.softDelete(id);
-      setUsers((prev) => prev.filter((u) => u.id !== id));
+      await dispatch(softDeleteUser(id)).unwrap();
       alert("Đã chuyển vào thùng rác");
     } catch (err) {
       console.error(err);
@@ -192,26 +185,25 @@ export default function UserListPage() {
                     <button
                       onClick={() => toggleLock(u)}
                       disabled={u.id === currentUser?.id}
-                      className={`rounded-md p-2 text-white ${
-                        u.id === currentUser?.id
-                          ? "bg-gray-300 cursor-not-allowed"
-                          : u.isActive
+                      className={`rounded-md p-2 text-white ${u.id === currentUser?.id
+                        ? "bg-gray-300 cursor-not-allowed"
+                        : u.isActive
                           ? "bg-yellow-500 hover:bg-yellow-600"
                           : "bg-green-600 hover:bg-green-700"
-                      }`}
+                        }`}
                       title={
                         u.id === currentUser?.id
                           ? "Không thể khóa chính mình"
                           : u.isActive
-                          ? "Khóa"
-                          : "Mở khóa"
+                            ? "Khóa"
+                            : "Mở khóa"
                       }
                     >
                       {u.isActive ? <FiLock /> : <FiUnlock />}
                     </button>
 
                     <button
-                      onClick={() => softDelete(u.id)}
+                      onClick={() => handleSoftDelete(u.id)}
                       className="rounded-md bg-red-600 p-2 text-white hover:bg-red-700"
                       title="Xóa (vào thùng rác)"
                     >
@@ -234,7 +226,7 @@ export default function UserListPage() {
             )}
           </tbody>
         </table>
-      </div>      
+      </div>
     </div>
   );
 }
