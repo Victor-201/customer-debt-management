@@ -162,22 +162,28 @@ const DashboardPage = () => {
     fetchDashboardData();
   }, []);
 
-  // Transform aging data for chart
-  const agingChartData = dashboardData.agingReport
-    ? Object.entries(dashboardData.agingReport)
-      .filter(([key]) => key !== 'total')
-      .map(([key, value]) => ({
-        name: AGING_LABELS[key] || key,
-        value: value?.total || 0,
-        count: value?.count || 0,
-        fill: AGING_COLORS[key] || '#CBD5E1'
-      }))
-    : [];
+  // Transform aging data for chart - API returns { data: { summary, buckets } }
+  const agingBuckets = dashboardData.agingReport?.data?.buckets || dashboardData.agingReport?.buckets || [];
+  const agingSummary = dashboardData.agingReport?.data?.summary || dashboardData.agingReport?.summary || {};
+  const agingChartData = agingBuckets.map((bucket, index) => {
+    const colorKeys = ['current', 'overdue_1_30', 'overdue_31_60', 'overdue_61_90', 'overdue_90_plus'];
+    return {
+      name: bucket.label || `T${index + 1}`,
+      value: bucket.amount || 0,
+      percent: bucket.percent || 0,
+      fill: AGING_COLORS[colorKeys[index]] || '#CBD5E1'
+    };
+  });
 
-  // Calculate percentage for pie chart
-  const totalAR = dashboardData.totalAR?.totalAR || 0;
-  const overdueAmount = dashboardData.overdueReport?.totalOverdueAmount || 0;
-  const overduePercent = totalAR > 0 ? (overdueAmount / totalAR * 100) : 0;
+  // Calculate totalAR - API returns array of customers with totalAr
+  const totalARList = Array.isArray(dashboardData.totalAR) ? dashboardData.totalAR : (dashboardData.totalAR?.data || []);
+  const totalAR = totalARList.reduce((sum, item) => sum + (item.totalAr || 0), 0);
+
+  // Get overdue from aging summary
+  const overdueAmount = agingSummary.totalOverdue || 0;
+  const overduePercent = (agingSummary.totalOutstanding || totalAR) > 0
+    ? ((overdueAmount / (agingSummary.totalOutstanding || totalAR)) * 100)
+    : 0;
 
   const pieData = [
     { name: 'Quá hạn', value: overduePercent, color: '#F59E0B' },
@@ -215,7 +221,7 @@ const DashboardPage = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <KPICard
             title="Tổng công nợ"
-            value={formatCurrency(dashboardData.totalAR?.totalAR || 0)}
+            value={formatCurrency(agingSummary.totalOutstanding || totalAR || 0)}
             icon={TrendingUp}
             colorClass="text-blue-600"
             loading={loading}
