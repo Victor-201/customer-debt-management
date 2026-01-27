@@ -20,6 +20,12 @@ import InvoiceFormPage from "../pages/invoices/InvoiceFormPage";
 import InvoiceDetailPage from "../pages/invoices/InvoiceDetailPage";
 /* ================= PAYMENTS ================= */
 import PaymentPage from "../pages/payments/PaymentPage";
+/* ================= REPORTS ================= */
+import AgingReportPage from "../pages/reports/AgingReportPage";
+import HighRiskCustomerPage from "../pages/reports/HighRiskCustomerPage";
+import OverdueARPage from "../pages/reports/OverdueARPage";
+/* ================= SETTINGS ================= */
+import AutomationSettingsPage from "../pages/settings/AutomationSettingsPage";
 
 const AppRoutes = () => {
   return (
@@ -62,6 +68,15 @@ const AppRoutes = () => {
 
         {/* ================= PAYMENTS ================= */}
         <Route path="/payments" element={<PaymentPage />} />
+
+        {/* ================= REPORTS ================= */}
+        <Route path="/reports/aging" element={<AgingReportPage />} />
+        <Route path="/reports/high-risk" element={<HighRiskCustomerPage />} />
+        <Route path="/reports/overdue" element={<OverdueARPage />} />
+
+        {/* ================= SETTINGS ================= */}
+        <Route path="/settings" element={<AutomationSettingsPage />} />
+        <Route path="/settings/automation" element={<AutomationSettingsPage />} />
       </Route>
 
       {/* ================= FALLBACK ================= */}

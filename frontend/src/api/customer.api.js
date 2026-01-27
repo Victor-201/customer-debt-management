@@ -21,8 +21,23 @@ export const customerApi = {
     return apiClient.put(`/api/customers/${id}`, data);
   },
 
-  // (Nếu backend có) Xóa khách hàng
+  // Xóa khách hàng
   deleteCustomer(id) {
     return apiClient.delete(`/api/customers/${id}`);
+  },
+
+  // Lấy danh sách khách hàng active
+  getActiveCustomers() {
+    return apiClient.get("/api/customers/active");
+  },
+
+  // Cập nhật trạng thái khách hàng
+  updateStatus(id, status) {
+    return apiClient.patch(`/api/customers/${id}/status`, { status });
+  },
+
+  // Đánh giá rủi ro khách hàng
+  assessRisk(id) {
+    return apiClient.patch(`/api/customers/${id}/assess-risk`);
   },
 };

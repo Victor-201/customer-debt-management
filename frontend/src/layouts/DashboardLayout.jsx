@@ -30,11 +30,12 @@ const DashboardLayout = () => {
 
   const navItems = [
     { to: "/dashboard", icon: <FiHome />, label: "Dashboard" },
-    { to: "/users", icon: <FiUsers />, label: "Nhân viên" }, 
+    { to: "/users", icon: <FiUsers />, label: "Nhân viên" },
     { to: "/invoices", icon: <FiFileText />, label: "Hóa đơn" },
     { to: "/payments", icon: <FiDollarSign />, label: "Thanh toán" },
     { to: "/customers", icon: <FiUsers />, label: "Khách hàng" },
-    { to: "/reports", icon: <FiPieChart />, label: "Báo cáo" },
+    { to: "/reports/aging", icon: <FiPieChart />, label: "Báo cáo tuổi nợ" },
+    { to: "/settings", icon: <FiSettings />, label: "Tự động hóa" },
   ];
 
   const handleLogout = async () => {
