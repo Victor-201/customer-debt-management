@@ -2,6 +2,15 @@ import Joi from "joi";
 
 const INVOICE_STATUS = ["DRAFT", "PENDING", "OVERDUE", "PAID", "CANCELLED"];
 const uuid = Joi.string().guid({ version: "uuidv4" });
+
+// Invoice Item schema for validation
+const invoiceItemSchema = Joi.object({
+    id: Joi.alternatives().try(Joi.string(), Joi.number()).optional(),
+    description: Joi.string().min(1).max(255).required(),
+    quantity: Joi.number().integer().min(1).required(),
+    unitPrice: Joi.number().precision(2).min(0).required()
+});
+
 const createInvoiceSchema = Joi.object({
 
     customerId: uuid.required(),
@@ -18,6 +27,9 @@ const createInvoiceSchema = Joi.object({
     balanceAmount: Joi.number().precision(2).min(0).optional(),
 
     status: Joi.string().valid(...INVOICE_STATUS).required(),
+
+    // Invoice line items
+    items: Joi.array().items(invoiceItemSchema).optional()
 
 })
     // due_date >= issue_date
@@ -67,6 +79,9 @@ const updateInvoiceSchema = Joi.object({
     balanceAmount: Joi.number().precision(2).min(0).optional(),
 
     status: Joi.string().valid(...INVOICE_STATUS).optional(),
+
+    // Invoice line items (optional for partial updates)
+    items: Joi.array().items(invoiceItemSchema).optional()
 })
     // nếu có đủ dữ liệu ngày thì check due >= issue
     .custom((value, helpers) => {
