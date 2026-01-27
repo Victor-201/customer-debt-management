@@ -1,6 +1,6 @@
 import Joi from "joi";
 
-const INVOICE_STATUS = ["PENDING", "OVERDUE", "PAID"];
+const INVOICE_STATUS = ["DRAFT", "PENDING", "OVERDUE", "PAID", "CANCELLED"];
 const uuid = Joi.string().guid({ version: "uuidv4" });
 const createInvoiceSchema = Joi.object({
 
