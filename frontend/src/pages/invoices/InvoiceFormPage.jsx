@@ -14,7 +14,7 @@ import {
 } from '../../store/invoice.slice.js';
 
 import {
-    fetchCustomerOptions,
+    fetchCustomers,
     selectCustomerOptions
 } from '../../store/customer.slice.js';
 
@@ -58,7 +58,7 @@ const InvoiceFormPage = () => {
 
     // Fetch customer options
     useEffect(() => {
-        dispatch(fetchCustomerOptions());
+        dispatch(fetchCustomers());
     }, [dispatch]);
 
     // If editing, load invoice data
