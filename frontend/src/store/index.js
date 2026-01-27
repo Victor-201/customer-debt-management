@@ -4,6 +4,7 @@ import customerReducer from "./customer.slice";
 import invoiceReducer from "./invoice.slice";
 import paymentReducer from "./payment.slice";
 import reportReducer from "./report.slice";
+import userReducer from "./user.slice";
 
 export const store = configureStore({
   reducer: {
@@ -12,6 +13,7 @@ export const store = configureStore({
     invoices: invoiceReducer,
     payments: paymentReducer,
     reports: reportReducer,
+    users: userReducer,
   },
 });
 
