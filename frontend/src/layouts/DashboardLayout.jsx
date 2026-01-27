@@ -172,15 +172,6 @@ const DashboardLayout = () => {
       </aside>
 
       <main className={`main-content ${sidebarOpen ? "main-content--sidebar-open" : "main-content--sidebar-collapsed"}`}>
-        <header className="main-header">
-          <span className="main-header__breadcrumb">
-            Quản lý Công nợ Khách hàng
-          </span>
-          <button className="btn btn-ghost btn-icon">
-            <FiSettings />
-          </button>
-        </header>
-
         <div className="main-body">
           <Outlet />
         </div>
