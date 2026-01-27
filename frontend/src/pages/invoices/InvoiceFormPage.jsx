@@ -219,15 +219,19 @@ const InvoiceFormPage = () => {
 
         const invoiceData = {
             customerId: formData.customerId,
+            invoiceNumber: formData.invoiceNumber ?? undefined, // Ensure optional
             issueDate: formData.issueDate,
             dueDate: formData.dueDate,
             totalAmount: calculations.total,
             paidAmount: 0,
-            status: asDraft ? INVOICE_STATUS.DRAFT : INVOICE_STATUS.PENDING
+            status: asDraft ? INVOICE_STATUS.DRAFT : INVOICE_STATUS.PENDING,
+            items: formData.items // Include items
         };
 
         try {
             if (isEdit) {
+                // For update, we might want to exclude invoiceNumber if it shouldn't change, 
+                // or ensure backend ignores it if not provided.
                 await dispatch(updateInvoice({ id, data: invoiceData })).unwrap();
             } else {
                 const result = await dispatch(createInvoice(invoiceData)).unwrap();
@@ -250,7 +254,8 @@ const InvoiceFormPage = () => {
                 customerId: formData.customerId,
                 issueDate: formData.issueDate,
                 dueDate: formData.dueDate,
-                totalAmount: calculations.total
+                totalAmount: calculations.total,
+                items: formData.items // Include items
             };
 
             try {

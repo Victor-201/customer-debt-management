@@ -1,6 +1,8 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
 import Invoice from "../../../domain/entities/Invoice.js";
 
+import InvoiceItem from "../../../domain/entities/InvoiceItem.js";
+
 class CreateInvoiceUseCase {
     constructor(invoiceRepository) {
         this.invoiceRepository = invoiceRepository;
@@ -17,6 +19,12 @@ class CreateInvoiceUseCase {
             );
         }
 
+        const items = (data.items || []).map(item => InvoiceItem.create({
+            description: item.description,
+            quantity: item.quantity,
+            unitPrice: item.unitPrice
+        }));
+
         const invoice = Invoice.create({
             customer_id: data.customerId,
             invoice_number: data.invoiceNumber,
@@ -24,6 +32,7 @@ class CreateInvoiceUseCase {
             due_date: data.dueDate,
             total_amount: data.totalAmount,
             created_by: data.createdBy ?? null,
+            items: items
         });
 
         return await this.invoiceRepository.save(invoice);
