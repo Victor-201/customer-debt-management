@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiPlus, FiEye, FiEdit2, FiTrash2, FiDollarSign, FiFilter } from 'react-icons/fi';
+import { FiPlus, FiEye, FiEdit2, FiXCircle, FiDollarSign, FiFilter } from 'react-icons/fi';
 
 import {
     fetchInvoices,
@@ -204,13 +204,13 @@ const InvoiceListPage = () => {
                         </>
                     )}
 
-                    {row.paidAmount === 0 && row.status !== INVOICE_STATUS.CANCELLED && (
+                    {row.status !== INVOICE_STATUS.PAID && row.status !== INVOICE_STATUS.CANCELLED && (
                         <button
-                            className="p-2 rounded-lg hover:bg-red-50 transition-colors text-[var(--color-error)]"
+                            className="p-2 rounded-lg hover:bg-orange-50 transition-colors text-orange-500"
                             onClick={(e) => { e.stopPropagation(); setDeleteModal({ open: true, invoice: row }); }}
-                            title="Xóa"
+                            title="Hủy hóa đơn"
                         >
-                            <FiTrash2 className="w-4 h-4" />
+                            <FiXCircle className="w-4 h-4" />
                         </button>
                     )}
                 </div>
