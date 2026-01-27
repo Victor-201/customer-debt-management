@@ -5,7 +5,7 @@ import { FiPlus, FiEye, FiEdit2, FiTrash2, FiDollarSign, FiFilter } from 'react-
 
 import {
     fetchInvoices,
-    deleteInvoice,
+    cancelInvoice,
     setFilters,
     selectInvoices,
     selectInvoicesLoading,
@@ -65,12 +65,12 @@ const InvoiceListPage = () => {
         }));
     };
 
-    // Handle delete
-    const handleDelete = async () => {
+    // Handle cancel (was delete)
+    const handleCancel = async () => {
         if (!deleteModal.invoice) return;
 
         try {
-            await dispatch(deleteInvoice(deleteModal.invoice.id)).unwrap();
+            await dispatch(cancelInvoice(deleteModal.invoice.id)).unwrap();
             setDeleteModal({ open: false, invoice: null });
         } catch (error) {
             alert('Lỗi: ' + error);
@@ -261,8 +261,8 @@ const InvoiceListPage = () => {
                     {/* Toggle Advanced Filters */}
                     <button
                         className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters
-                                ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
-                                : 'border-gray-300 hover:bg-gray-50'
+                            ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
+                            : 'border-gray-300 hover:bg-gray-50'
                             }`}
                         onClick={() => setShowFilters(!showFilters)}
                     >
@@ -312,22 +312,22 @@ const InvoiceListPage = () => {
                 />
             </div>
 
-            {/* Delete Confirmation Modal */}
+            {/* Cancel Confirmation Modal */}
             <ConfirmModal
                 isOpen={deleteModal.open}
                 onClose={() => setDeleteModal({ open: false, invoice: null })}
-                onConfirm={handleDelete}
-                title="Xóa hóa đơn"
+                onConfirm={handleCancel}
+                title="Hủy hóa đơn"
                 message={
                     deleteModal.invoice && (
                         <p>
-                            Bạn có chắc chắn muốn xóa hóa đơn <strong>{deleteModal.invoice.id}</strong>?
+                            Bạn có chắc chắn muốn hủy hóa đơn <strong>{deleteModal.invoice.id}</strong>?
                             <br />
-                            <span className="text-gray-500">Hành động này không thể hoàn tác.</span>
+                            <span className="text-gray-500">Hành động này sẽ chuyển trạng thái sang Đã hủy.</span>
                         </p>
                     )
                 }
-                confirmText="Xóa"
+                confirmText="Hủy bỏ"
                 variant="danger"
             />
 
