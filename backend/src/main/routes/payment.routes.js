@@ -16,15 +16,17 @@ import { createPaymentSchema, reversePaymentSchema } from '../../presentation/va
 import { sequelize } from "../config/database.js";
 
 import initInvoiceModel from "../../infrastructure/database/models/invoice.model.js";
+import initInvoiceItemModel from "../../infrastructure/database/models/invoice-item.model.js";
 import initPaymentModel from "../../infrastructure/database/models/payment.model.js";
 
 const router = express.Router();
 
 const InvoiceModel = initInvoiceModel(sequelize);
+const InvoiceItemModel = initInvoiceItemModel(sequelize);
 const PaymentModel = initPaymentModel(sequelize);
 
-const invoiceRepository = new InvoiceRepository({InvoiceModel});
-const paymentRepository = new PaymentRepository({PaymentModel});
+const invoiceRepository = new InvoiceRepository({ InvoiceModel, InvoiceItemModel });
+const paymentRepository = new PaymentRepository({ PaymentModel });
 
 const paymentController = new PaymentController(paymentRepository, invoiceRepository);
 
@@ -35,9 +37,9 @@ router.use(authMiddleware);
  * List all payments with filtering and pagination
  */
 router.get(
-    "/",
-    permissionMiddleware(PAYMENT_PERMISSIONS.READ),
-    paymentController.getAllPayments
+  "/",
+  permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+  paymentController.getAllPayments
 );
 
 /**
@@ -45,9 +47,9 @@ router.get(
  * Get recent payments
  */
 router.get(
-    "/recent",
-    permissionMiddleware(PAYMENT_PERMISSIONS.READ),
-    paymentController.getRecentPayments
+  "/recent",
+  permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+  paymentController.getRecentPayments
 );
 
 /**
@@ -55,9 +57,9 @@ router.get(
  * Get payment statistics
  */
 router.get(
-    "/summary",
-    permissionMiddleware(PAYMENT_PERMISSIONS.READ),
-    paymentController.getPaymentSummary
+  "/summary",
+  permissionMiddleware(PAYMENT_PERMISSIONS.READ),
+  paymentController.getPaymentSummary
 );
 
 router.post(
