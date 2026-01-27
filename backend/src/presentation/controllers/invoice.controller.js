@@ -102,9 +102,9 @@ class InvoiceController {
         try {
             const { invoiceId } = req.params;
 
-            if ("paidAmount" in req.body || "status" in req.body) {
+            if ("paidAmount" in req.body) {
                 return res.status(400).json({
-                    error: "paidAmount and status cannot be updated directly",
+                    error: "paidAmount or cannot be updated directly",
                 });
             }
 

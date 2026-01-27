@@ -25,6 +25,10 @@ const InvoiceModel = initInvoiceModel(sequelize);
 const InvoiceItemModel = initInvoiceItemModel(sequelize);
 const PaymentModel = initPaymentModel(sequelize);
 
+// Associations
+InvoiceModel.hasMany(InvoiceItemModel, { foreignKey: 'invoice_id', as: 'items' });
+InvoiceItemModel.belongsTo(InvoiceModel, { foreignKey: 'invoice_id' });
+
 const invoiceRepository = new InvoiceRepository({ InvoiceModel, InvoiceItemModel });
 const paymentRepository = new PaymentRepository({ PaymentModel });
 

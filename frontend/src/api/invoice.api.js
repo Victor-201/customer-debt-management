@@ -73,7 +73,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     cancel: async (id) => {
-        const response = await apiClient.patch(`/api/invoices/${id}`, { status: 'CANCELLED' });
+        const response = await apiClient.post(`/api/invoices/${id}/cancel`);
         return response.data;
     },
 
