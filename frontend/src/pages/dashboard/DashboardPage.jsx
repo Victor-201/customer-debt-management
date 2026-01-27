@@ -350,13 +350,13 @@ const DashboardPage = () => {
                   </thead>
                   <tbody>
                     {dashboardData.highRiskCustomers.slice(0, 5).map((customer, idx) => (
-                      <tr key={idx} className="border-b last:border-0 hover:bg-gray-50">
+                      <tr key={customer.id || idx} className="border-b last:border-0 hover:bg-gray-50">
                         <td className="py-3">
-                          <Link to={`/customers/${customer.customerId}`} className="text-blue-600 hover:underline">
-                            {customer.customerName}
+                          <Link to={`/customers/${customer.id}`} className="text-blue-600 hover:underline">
+                            {customer.name || customer.customerName || '-'}
                           </Link>
                         </td>
-                        <td className="py-3 font-medium">{formatCurrency(customer.totalDebt || 0)}</td>
+                        <td className="py-3 font-medium">{formatCurrency(customer.creditLimit || customer.totalDebt || 0)}</td>
                         <td className="py-3">
                           <span className="flex items-center gap-1">
                             <Clock size={14} className="text-red-400" />
