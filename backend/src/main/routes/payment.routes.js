@@ -16,7 +16,7 @@ import { createPaymentSchema, reversePaymentSchema } from '../../presentation/va
 import { sequelize } from "../config/database.js";
 
 import initInvoiceModel from "../../infrastructure/database/models/invoice.model.js";
-import initInvoiceItemModel from "../../infrastructure/database/models/invoice-item.model.js";
+import initInvoiceItemModel from "../../infrastructure/database/models/invoiceItem.model.js";
 import initPaymentModel from "../../infrastructure/database/models/payment.model.js";
 
 const router = express.Router();
