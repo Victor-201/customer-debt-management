@@ -1,4 +1,5 @@
 import { BusinessRuleError } from "../../../shared/errors/BusinessRuleError.js";
+import Invoice from "../../../domain/entities/Invoice.js";
 
 class CreateInvoiceUseCase {
     constructor(invoiceRepository) {
