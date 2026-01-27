@@ -21,7 +21,7 @@ export const paymentApi = {
      * @returns {Promise<Array>}
      */
     getByInvoiceId: async (invoiceId) => {
-        const response = await apiClient.get(`/api/payments/invoice/${invoiceId}`);
+        const response = await apiClient.get(`/api/payments/${invoiceId}`);
         return response.data;
     },
 

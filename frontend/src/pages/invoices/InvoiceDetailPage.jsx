@@ -244,7 +244,7 @@ const InvoiceDetailPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {invoice.items.map((item, index) => (
+                                    {(invoice.items || []).map((item, index) => (
                                         <tr key={item.id || index} className="border-b border-gray-100">
                                             <td className="px-4 py-3">{item.description}</td>
                                             <td className="px-4 py-3 text-right">{item.quantity}</td>
