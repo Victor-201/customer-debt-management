@@ -138,6 +138,6 @@ const customerSlice = createSlice({
 export const { clearSelectedCustomer } = customerSlice.actions;
 
 // Selectors
-export const selectCustomerOptions = (state) => state.customer.list;
+export const selectCustomerOptions = (state) => state.customers.list;
 
 export default customerSlice.reducer;
