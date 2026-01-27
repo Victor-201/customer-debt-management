@@ -79,20 +79,31 @@ const AgingReportPage = () => {
         fetchAgingReport();
     }, []);
 
-    // Transform data for chart
-    const chartData = agingData
-        ? Object.entries(agingData)
-            .filter(([key]) => key !== 'total')
-            .map(([key, value]) => ({
-                key,
-                name: AGING_LABELS[key] || key,
-                amount: value?.total || 0,
-                count: value?.count || 0,
-                fill: AGING_COLORS[key] || '#CBD5E1'
-            }))
-        : [];
+    // Transform data for chart - API returns { data: { summary, buckets } }
+    const buckets = agingData?.data?.buckets || agingData?.buckets || [];
+    const summary = agingData?.data?.summary || agingData?.summary || {};
 
-    const totalAmount = chartData.reduce((sum, item) => sum + item.amount, 0);
+    // Map bucket labels to our keys
+    const LABEL_TO_KEY = {
+        'Current': 'current',
+        '1-30 Days': 'overdue_1_30',
+        '31-60 Days': 'overdue_31_60',
+        '61-90 Days': 'overdue_61_90',
+        '90+ Days': 'overdue_90_plus'
+    };
+
+    const chartData = buckets.map((bucket, index) => {
+        const key = LABEL_TO_KEY[bucket.label] || `bucket_${index}`;
+        return {
+            key,
+            name: AGING_LABELS[key] || bucket.label || `Bucket ${index + 1}`,
+            amount: bucket.amount || 0,
+            count: Math.round((bucket.percent || 0) * (summary.totalOutstanding || 100) / 100), // estimate count
+            fill: AGING_COLORS[key] || ['#10B981', '#3B82F6', '#F59E0B', '#EF4444', '#7C3AED'][index] || '#CBD5E1'
+        };
+    });
+
+    const totalAmount = summary.totalOutstanding || chartData.reduce((sum, item) => sum + item.amount, 0);
     const totalCount = chartData.reduce((sum, item) => sum + item.count, 0);
 
     // Calculate percentages
