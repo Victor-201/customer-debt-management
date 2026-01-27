@@ -13,6 +13,11 @@ import {
     selectInvoicesSaving
 } from '../../store/invoice.slice.js';
 
+import {
+    fetchCustomerOptions,
+    selectCustomerOptions
+} from '../../store/customer.slice.js';
+
 import PageHeader from '../../components/PageHeader.jsx';
 import Loading from '../../components/Loading.jsx';
 
