@@ -8,13 +8,33 @@
 export const formatCurrency = (amount, locale = 'vi-VN', currency = 'VND') => {
     if (amount === null || amount === undefined) return '0 ₫';
 
+    // Handle Money object from backend { amount, formatted }
+    const numericAmount = extractAmount(amount);
+
     return new Intl.NumberFormat(locale, {
         style: 'currency',
         currency: currency,
         minimumFractionDigits: 0,
         maximumFractionDigits: 0
-    }).format(amount);
+    }).format(numericAmount);
 };
+
+/**
+ * Extract numeric amount from backend Money object
+ * Backend may return: { amount: number, formatted: string } or just a number
+ * @param {number|object} value - The value to extract amount from
+ * @returns {number} Numeric amount
+ */
+export const extractAmount = (value) => {
+    if (value === null || value === undefined) return 0;
+    if (typeof value === 'number') return value;
+    if (typeof value === 'object' && value.amount !== undefined) {
+        return value.amount;
+    }
+    // Try to parse as number
+    return parseFloat(value) || 0;
+};
+
 
 /**
  * Format a number with thousand separators

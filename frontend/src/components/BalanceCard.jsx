@@ -1,4 +1,4 @@
-import { formatCurrency, getAmountColorClass } from '../utils/money.util.js';
+import { formatCurrency, getAmountColorClass, extractAmount } from '../utils/money.util.js';
 
 /**
  * BalanceCard Component
@@ -13,8 +13,9 @@ export const BalanceCard = ({
     className = ''
 }) => {
     // Auto-determine variant based on amount if not specified
+    const numericAmount = extractAmount(amount);
     const colorClass = variant === 'default'
-        ? getAmountColorClass(amount)
+        ? getAmountColorClass(numericAmount)
         : variant;
 
     const colorStyles = {
@@ -70,6 +71,7 @@ export const BalanceCardGroup = ({ children, columns = 3 }) => {
  * Displays invoice total, paid, and balance
  */
 export const InvoiceBalanceSummary = ({ total, paidAmount, balance }) => {
+    const balanceNum = extractAmount(balance);
     return (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <BalanceCard
@@ -85,7 +87,7 @@ export const InvoiceBalanceSummary = ({ total, paidAmount, balance }) => {
             <BalanceCard
                 label="Còn lại"
                 amount={balance}
-                variant={balance > 0 ? 'negative' : 'positive'}
+                variant={balanceNum > 0 ? 'negative' : 'positive'}
             />
         </div>
     );

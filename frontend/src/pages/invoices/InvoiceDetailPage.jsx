@@ -23,7 +23,7 @@ import ConfirmModal from '../../components/ConfirmModal.jsx';
 import PaymentModal from '../../components/PaymentModal.jsx';
 import { InvoiceBalanceSummary } from '../../components/BalanceCard.jsx';
 
-import { formatCurrency } from '../../utils/money.util.js';
+import { formatCurrency, extractAmount } from '../../utils/money.util.js';
 import { formatDate } from '../../utils/date.util.js';
 import { getAgingInfo } from '../../utils/aging.util.js';
 import { INVOICE_STATUS } from '../../constants/invoiceStatus.js';
@@ -180,9 +180,9 @@ const InvoiceDetailPage = () => {
 
             {/* Balance Summary */}
             <InvoiceBalanceSummary
-                total={invoice.total}
+                total={invoice.totalAmount}
                 paidAmount={invoice.paidAmount}
-                balance={invoice.balance}
+                balance={invoice.balanceAmount}
             />
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
@@ -329,11 +329,11 @@ const InvoiceDetailPage = () => {
                             </span>
                         </div>
 
-                        {invoice.balance > 0 && (
+                        {extractAmount(invoice.balanceAmount) > 0 && (
                             <div className="flex justify-between mt-2">
                                 <span className="font-semibold">Còn lại:</span>
                                 <span className="font-mono font-bold text-[var(--color-error)]">
-                                    {formatCurrency(invoice.balance)}
+                                    {formatCurrency(invoice.balanceAmount)}
                                 </span>
                             </div>
                         )}

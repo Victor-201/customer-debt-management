@@ -32,11 +32,22 @@ export const PaymentModal = ({
 
     const [formErrors, setFormErrors] = useState({});
 
+    // Get balance amount safely (handle backend Money object structure)
+    const getBalance = () => {
+        if (!invoice) return 0;
+        // Backend returns balanceAmount as { amount, formatted } or just a number
+        if (typeof invoice.balanceAmount === 'object') {
+            return invoice.balanceAmount?.amount ?? 0;
+        }
+        return invoice.balanceAmount ?? invoice.balance ?? 0;
+    };
+
     // Reset form when modal opens
     useEffect(() => {
         if (isOpen && invoice) {
+            const balance = getBalance();
             setFormData({
-                amount: invoice.balance.toString(),
+                amount: balance.toString(),
                 paymentMethod: 'BANK_TRANSFER',
                 paymentDate: today(),
                 reference: '',
@@ -81,9 +92,10 @@ export const PaymentModal = ({
         const errors = {};
         const amount = parseFloat(formData.amount);
 
+        const balance = getBalance();
         if (!formData.amount || isNaN(amount) || amount <= 0) {
             errors.amount = 'Số tiền phải lớn hơn 0';
-        } else if (amount > invoice.balance) {
+        } else if (amount > balance) {
             errors.amount = 'Số tiền không được lớn hơn số dư còn lại';
         }
 
@@ -128,7 +140,8 @@ export const PaymentModal = ({
 
     // Quick fill buttons
     const handleQuickFill = (percentage) => {
-        const amount = (invoice.balance * percentage / 100).toFixed(0);
+        const balance = getBalance();
+        const amount = (balance * percentage / 100).toFixed(0);
         setFormData(prev => ({ ...prev, amount }));
     };
 
@@ -169,7 +182,7 @@ export const PaymentModal = ({
                             </div>
                             <div className="flex justify-between">
                                 <span className="text-gray-500">Số dư còn lại:</span>
-                                <span className="font-bold text-[var(--color-error)]">{formatCurrency(invoice.balance)}</span>
+                                <span className="font-bold text-[var(--color-error)]">{formatCurrency(getBalance())}</span>
                             </div>
                         </div>
 
@@ -192,7 +205,7 @@ export const PaymentModal = ({
                                 onChange={handleChange}
                                 placeholder="Nhập số tiền"
                                 min="0"
-                                max={invoice.balance}
+                                max={getBalance()}
                                 step="1000"
                             />
                             {formErrors.amount && <p className="text-red-500 text-sm mt-1">{formErrors.amount}</p>}

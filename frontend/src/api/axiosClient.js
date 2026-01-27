@@ -12,6 +12,9 @@ const apiClient = axios.create({
   },
 });
 
+// Flag to prevent multiple refresh attempts
+let isRefreshing = false;
+
 /* ================= REQUEST ================= */
 apiClient.interceptors.request.use((config) => {
   const token = localStorage.getItem("accessToken");
@@ -32,8 +35,13 @@ apiClient.interceptors.request.use((config) => {
 apiClient.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    const isRefreshRequest = error.config?.url?.includes('/auth/refresh-token');
+
+    if (error.response?.status === 401 && !isRefreshRequest && !isRefreshing) {
+      isRefreshing = true;
       window.dispatchEvent(new Event("auth:unauthorized"));
+      // Reset flag after a delay to allow retry
+      setTimeout(() => { isRefreshing = false; }, 3000);
     }
 
     return Promise.reject(error);
@@ -41,3 +49,4 @@ apiClient.interceptors.response.use(
 );
 
 export default apiClient;
+
