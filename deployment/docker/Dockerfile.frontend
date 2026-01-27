@@ -12,15 +12,18 @@ COPY frontend/package*.json frontend/yarn.lock* ./
 # Install dependencies (use npm install since no lock file)
 RUN npm install
 
-# Copy source code
+# Copy source code (excluding node_modules via .dockerignore)
 COPY frontend/ .
+
+# Remove any node_modules that might have been copied and reinstall to fix symlinks
+RUN rm -rf node_modules && npm install
 
 # Build arguments for environment
 ARG VITE_API_URL=""
 ENV VITE_API_URL=$VITE_API_URL
 
-# Build the application
-RUN npm run build
+# Build the application using explicit path to vite
+RUN ./node_modules/.bin/vite build || npx vite build
 
 # Production stage with Nginx
 FROM nginx:alpine AS production
