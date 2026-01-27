@@ -219,16 +219,10 @@ const InvoiceFormPage = () => {
 
         const invoiceData = {
             customerId: formData.customerId,
-            customerName: formData.customerName,
             issueDate: formData.issueDate,
-            paymentTerm: formData.paymentTerm,
             dueDate: formData.dueDate,
-            items: formData.items,
-            subtotal: calculations.subtotal,
-            taxRate: formData.taxRate,
-            taxAmount: calculations.taxAmount,
-            total: calculations.total,
-            notes: formData.notes,
+            totalAmount: calculations.total,
+            paidAmount: 0,
             status: asDraft ? INVOICE_STATUS.DRAFT : INVOICE_STATUS.PENDING
         };
 
@@ -254,16 +248,9 @@ const InvoiceFormPage = () => {
         if (isEdit && currentInvoice?.status === INVOICE_STATUS.DRAFT) {
             const invoiceData = {
                 customerId: formData.customerId,
-                customerName: formData.customerName,
                 issueDate: formData.issueDate,
-                paymentTerm: formData.paymentTerm,
                 dueDate: formData.dueDate,
-                items: formData.items,
-                subtotal: calculations.subtotal,
-                taxRate: formData.taxRate,
-                taxAmount: calculations.taxAmount,
-                total: calculations.total,
-                notes: formData.notes
+                totalAmount: calculations.total
             };
 
             try {

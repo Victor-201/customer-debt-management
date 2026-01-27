@@ -5,6 +5,7 @@ import { formatDateForInput, today } from '../utils/date.util.js';
 import { PAYMENT_METHOD_OPTIONS } from '../constants/paymentTerms.js';
 import { createPayment, selectPaymentsSaving, selectPaymentsError, clearError } from '../store/payment.slice.js';
 import { updateInvoiceInList } from '../store/invoice.slice.js';
+import { selectUser } from '../store/auth.slice.js';
 
 /**
  * PaymentModal Component
@@ -19,6 +20,7 @@ export const PaymentModal = ({
     const dispatch = useDispatch();
     const saving = useSelector(selectPaymentsSaving);
     const error = useSelector(selectPaymentsError);
+    const currentUser = useSelector(selectUser);
 
     const [formData, setFormData] = useState({
         amount: '',
@@ -107,10 +109,10 @@ export const PaymentModal = ({
             const result = await dispatch(createPayment({
                 invoiceId: invoice.id,
                 amount: parseFloat(formData.amount),
-                paymentMethod: formData.paymentMethod,
+                method: formData.paymentMethod,
                 paymentDate: formData.paymentDate,
-                reference: formData.reference,
-                note: formData.note
+                reference: formData.reference || undefined,
+                recordedBy: currentUser?.id
             })).unwrap();
 
             if (result.invoice) {

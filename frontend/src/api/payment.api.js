@@ -50,8 +50,8 @@ export const paymentApi = {
      * @param {string} id - Payment ID
      * @returns {Promise<{success: boolean, invoice: Object}>}
      */
-    delete: async (id) => {
-        const response = await apiClient.delete(`/api/payments/${id}`);
+    reverse: async (id, reason = '') => {
+        const response = await apiClient.post(`/api/payments/${id}/reverse`, { reason });
         return response.data;
     },
 

@@ -138,10 +138,6 @@ const customerSlice = createSlice({
 export const { clearSelectedCustomer } = customerSlice.actions;
 
 // Selectors
-export const selectCustomerOptions = (state) =>
-  state.customer.list.map((customer) => ({
-    value: customer.id,
-    label: `${customer.name} - ${customer.code || customer.id}`,
-  }));
+export const selectCustomerOptions = (state) => state.customer.list;
 
 export default customerSlice.reducer;

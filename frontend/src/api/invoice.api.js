@@ -47,16 +47,6 @@ export const invoiceApi = {
     },
 
     /**
-     * Delete an invoice
-     * @param {string} id - Invoice ID
-     * @returns {Promise<{success: boolean}>}
-     */
-    delete: async (id) => {
-        const response = await apiClient.delete(`/api/invoices/${id}`);
-        return response.data;
-    },
-
-    /**
      * Update invoice status
      * @param {string} id - Invoice ID
      * @param {string} status - New status

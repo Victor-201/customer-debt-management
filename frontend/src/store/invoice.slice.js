@@ -64,21 +64,6 @@ export const updateInvoice = createAsyncThunk(
 );
 
 /**
- * Delete an invoice
- */
-export const deleteInvoice = createAsyncThunk(
-    'invoices/delete',
-    async (id, { rejectWithValue }) => {
-        try {
-            await invoiceApi.delete(id);
-            return id;
-        } catch (error) {
-            return rejectWithValue(error.message);
-        }
-    }
-);
-
-/**
  * Update invoice status
  */
 export const updateInvoiceStatus = createAsyncThunk(
@@ -282,20 +267,6 @@ const invoiceSlice = createSlice({
             })
             .addCase(updateInvoice.rejected, (state, action) => {
                 state.saving = false;
-                state.error = action.payload;
-            })
-
-            // -------- Delete --------
-            .addCase(deleteInvoice.pending, (state) => {
-                state.loading = true;
-            })
-            .addCase(deleteInvoice.fulfilled, (state, action) => {
-                state.loading = false;
-                state.list = state.list.filter(inv => inv.id !== action.payload);
-                state.total -= 1;
-            })
-            .addCase(deleteInvoice.rejected, (state, action) => {
-                state.loading = false;
                 state.error = action.payload;
             })
 

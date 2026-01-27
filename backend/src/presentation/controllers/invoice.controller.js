@@ -57,8 +57,12 @@ class InvoiceController {
      */
     createInvoice = async (req, res) => {
         try {
+            // Auto-generate invoiceNumber if not provided
+            const invoiceNumber = req.body.invoiceNumber || this.#generateInvoiceNumber();
+
             const payload = {
                 ...req.body,
+                invoiceNumber,
                 createdBy: req.user?.userId ?? null,
             };
 
@@ -75,6 +79,18 @@ class InvoiceController {
             this.#handleError(res, error);
         }
     };
+
+    /**
+     * Generate unique invoice number: INV-YYYYMMDD-XXXX
+     */
+    #generateInvoiceNumber() {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const random = Math.random().toString(36).substring(2, 6).toUpperCase();
+        return `INV-${year}${month}${day}-${random}`;
+    }
 
     /**
      * PUT /invoices/:invoiceId

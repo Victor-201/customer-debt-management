@@ -6,7 +6,7 @@ const createInvoiceSchema = Joi.object({
 
     customerId: uuid.required(),
 
-    invoiceNumber: Joi.string().min(1).max(50).required(),
+    invoiceNumber: Joi.string().min(1).max(50).optional(),
 
     issueDate: Joi.date().iso().required(),
     dueDate: Joi.date().iso().required(),

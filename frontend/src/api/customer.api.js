@@ -26,11 +26,6 @@ export const customerApi = {
     return apiClient.delete(`/api/customers/${id}`);
   },
 
-  // Lấy danh sách khách hàng active
-  getActiveCustomers() {
-    return apiClient.get("/api/customers/active");
-  },
-
   // Cập nhật trạng thái khách hàng
   updateStatus(id, status) {
     return apiClient.patch(`/api/customers/${id}/status`, { status });

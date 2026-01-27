@@ -70,7 +70,7 @@ export const deletePayment = createAsyncThunk(
     'payments/delete',
     async (id, { rejectWithValue }) => {
         try {
-            const response = await paymentApi.delete(id);
+            const response = await paymentApi.reverse(id);
             return { id, ...response };
         } catch (error) {
             return rejectWithValue(error.message);

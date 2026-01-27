@@ -98,7 +98,7 @@ const CustomerListPage = () => {
 
   const handleQuickStatusChange = (id, newStatus, oldStatus) => {
     if (newStatus === oldStatus) return;
-    
+
     setConfirmData({
       type: 'status',
       id: id,
@@ -278,12 +278,12 @@ const CustomerListPage = () => {
                       </select>
                     ) : (
                       customer.paymentTerm ===
-                      "NET_7"
+                        "NET_7"
                         ? "7 ngày"
                         : customer.paymentTerm ===
                           "NET_15"
-                        ? "15 ngày"
-                        : "30 ngày"
+                          ? "15 ngày"
+                          : "30 ngày"
                     )}
                   </td>
 
@@ -322,24 +322,24 @@ const CustomerListPage = () => {
                           })
                         }
                       >
-                        <option value="LOW">
-                          Thấp
-                        </option>
                         <option value="NORMAL">
-                          Trung bình
+                          Bình thường
                         </option>
-                        <option value="HIGH">
-                          Cao
+                        <option value="WARNING">
+                          Cảnh báo
+                        </option>
+                        <option value="HIGH_RISK">
+                          Rủi ro cao
                         </option>
                       </select>
                     ) : customer.riskLevel ===
-                      "LOW" ? (
-                      "Thấp"
+                      "WARNING" ? (
+                      "Cảnh báo"
                     ) : customer.riskLevel ===
-                      "HIGH" ? (
-                      "Cao"
+                      "HIGH_RISK" ? (
+                      "Rủi ro cao"
                     ) : (
-                      "Trung bình"
+                      "Bình thường"
                     )}
                   </td>
 
@@ -447,23 +447,22 @@ const CustomerListPage = () => {
 
       {/* ===== CONFIRM POPUP - IMPROVED ===== */}
       {showConfirm && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
           onClick={handleCancelConfirm}
         >
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-2xl p-8 w-[450px] transform transition-all animate-slideIn"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Icon & Title */}
             <div className="flex flex-col items-center mb-6">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                confirmData?.type === 'delete' 
-                  ? 'bg-red-100' 
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${confirmData?.type === 'delete'
+                  ? 'bg-red-100'
                   : confirmData?.type === 'status'
-                  ? 'bg-blue-100'
-                  : 'bg-green-100'
-              }`}>
+                    ? 'bg-blue-100'
+                    : 'bg-green-100'
+                }`}>
                 {confirmData?.type === 'delete' ? (
                   <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
@@ -478,23 +477,23 @@ const CustomerListPage = () => {
                   </svg>
                 )}
               </div>
-              
+
               <h3 className="text-2xl font-bold text-gray-800">
-                {confirmData?.type === 'delete' 
-                  ? 'Xác nhận xóa' 
+                {confirmData?.type === 'delete'
+                  ? 'Xác nhận xóa'
                   : confirmData?.type === 'status'
-                  ? 'Xác nhận thay đổi trạng thái'
-                  : 'Xác nhận cập nhật'}
+                    ? 'Xác nhận thay đổi trạng thái'
+                    : 'Xác nhận cập nhật'}
               </h3>
             </div>
 
             {/* Message */}
             <p className="text-gray-600 text-center mb-8 leading-relaxed">
-              {confirmData?.type === 'delete' 
+              {confirmData?.type === 'delete'
                 ? 'Bạn có chắc chắn muốn xóa khách hàng này không? Hành động này không thể hoàn tác.'
                 : confirmData?.type === 'status'
-                ? `Bạn có chắc chắn muốn ${confirmData.newStatus === 'ACTIVE' ? 'kích hoạt' : 'ngừng hoạt động'} khách hàng này không?`
-                : 'Bạn có chắc chắn muốn lưu thay đổi thông tin khách hàng không?'}
+                  ? `Bạn có chắc chắn muốn ${confirmData.newStatus === 'ACTIVE' ? 'kích hoạt' : 'ngừng hoạt động'} khách hàng này không?`
+                  : 'Bạn có chắc chắn muốn lưu thay đổi thông tin khách hàng không?'}
             </p>
 
             {/* Buttons */}
@@ -506,13 +505,12 @@ const CustomerListPage = () => {
                 Hủy
               </button>
               <button
-                className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-colors ${
-                  confirmData?.type === 'delete'
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-colors ${confirmData?.type === 'delete'
                     ? 'bg-red-600 hover:bg-red-700'
                     : confirmData?.type === 'status'
-                    ? 'bg-blue-600 hover:bg-blue-700'
-                    : 'bg-green-600 hover:bg-green-700'
-                }`}
+                      ? 'bg-blue-600 hover:bg-blue-700'
+                      : 'bg-green-600 hover:bg-green-700'
+                  }`}
                 onClick={() => {
                   if (confirmData?.type === 'delete') {
                     handleConfirmDelete();
@@ -523,8 +521,8 @@ const CustomerListPage = () => {
                   }
                 }}
               >
-                {confirmData?.type === 'delete' 
-                  ? 'Xóa' 
+                {confirmData?.type === 'delete'
+                  ? 'Xóa'
                   : 'Xác nhận'}
               </button>
             </div>
