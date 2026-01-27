@@ -1,5 +1,6 @@
 import CreateInvoiceUseCase from "../../application/use-cases/invoice/createInvoice.usecase.js";
 import UpdateInvoiceUseCase from "../../application/use-cases/invoice/updateInvoice.usecase.js";
+import CancelInvoiceUseCase from "../../application/use-cases/invoice/cancelInvoice.usecase.js";
 import RecalcInvoiceBalanceUseCase from "../../application/use-cases/invoice/recalcInvoiceBalance.usecase.js";
 import MarkInvoicePaidUseCase from "../../application/use-cases/invoice/markInvoicePaid.usecase.js";
 import UpdateOverdueInvoicesUseCase from "../../application/use-cases/invoice/updateOverdueInvoices.usecase.js";
@@ -13,6 +14,7 @@ class InvoiceController {
     constructor(invoiceRepository, paymentRepository, customerRepository) {
         this.createInvoiceUseCase = new CreateInvoiceUseCase(invoiceRepository);
         this.updateInvoiceUseCase = new UpdateInvoiceUseCase(invoiceRepository);
+        this.cancelInvoiceUseCase = new CancelInvoiceUseCase(invoiceRepository);
 
         this.recalcInvoiceBalanceUseCase = new RecalcInvoiceBalanceUseCase(invoiceRepository, paymentRepository);
 
@@ -139,6 +141,22 @@ class InvoiceController {
                 invoiceId,
                 req.user?.userId ?? null
             );
+
+            res.json(invoice);
+        } catch (error) {
+            this.#handleError(res, error);
+        }
+    };
+
+    /**
+     * POST /invoices/:invoiceId/cancel
+     * Cancel an invoice (only if no payments made)
+     */
+    cancelInvoice = async (req, res) => {
+        try {
+            const { invoiceId } = req.params;
+
+            const invoice = await this.cancelInvoiceUseCase.execute(invoiceId);
 
             res.json(invoice);
         } catch (error) {

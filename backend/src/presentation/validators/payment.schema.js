@@ -23,8 +23,6 @@ const createPaymentSchema = Joi.object({
     .required(),
 
   reference: Joi.string().max(255).optional(),
-
-  recordedBy: uuid.required(),
 });
 
 const reversePaymentSchema = Joi.object({
@@ -32,6 +30,6 @@ const reversePaymentSchema = Joi.object({
 });
 
 export {
-    createPaymentSchema,
-    reversePaymentSchema
+  createPaymentSchema,
+  reversePaymentSchema
 };

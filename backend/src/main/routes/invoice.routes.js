@@ -94,6 +94,15 @@ router.post(
 );
 
 /**
+ * POST /invoices/:invoiceId/cancel
+ */
+router.post(
+    "/:invoiceId/cancel",
+    permissionMiddleware(INVOICE_PERMISSIONS.UPDATE),
+    invoiceController.cancelInvoice
+);
+
+/**
  * POST /invoices/update-overdue
  */
 router.post(
