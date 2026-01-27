@@ -12,7 +12,6 @@ class Invoice {
     paid_amount = 0,
     status,
     created_by,
-    created_by,
     created_at,
     updated_at,
     items = []
@@ -49,7 +48,6 @@ class Invoice {
       invoice_number,
       issue_date,
       due_date,
-      total_amount,
       total_amount,
       status: InvoiceStatus.PENDING,
       created_by,
