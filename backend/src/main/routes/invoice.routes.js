@@ -17,23 +17,29 @@ import { createInvoiceSchema, updateInvoiceSchema } from "../../presentation/val
 import { sequelize } from "../config/database.js";
 
 import initInvoiceModel from "../../infrastructure/database/models/invoice.model.js";
+import initInvoiceItemModel from "../../infrastructure/database/models/invoiceItem.model.js";
 import initCustomerModel from "../../infrastructure/database/models/customer.model.js";
 import initPaymentModel from "../../infrastructure/database/models/payment.model.js";
 
 const router = express.Router();
 
 const InvoiceModel = initInvoiceModel(sequelize);
+const InvoiceItemModel = initInvoiceItemModel(sequelize);
 const CustomerModel = initCustomerModel(sequelize);
 const PaymentModel = initPaymentModel(sequelize);
 
-const invoiceRepository = new InvoiceRepository({ InvoiceModel });
+// Associations
+InvoiceModel.hasMany(InvoiceItemModel, { foreignKey: 'invoice_id', as: 'items' });
+InvoiceItemModel.belongsTo(InvoiceModel, { foreignKey: 'invoice_id' });
+
+const invoiceRepository = new InvoiceRepository({ InvoiceModel, InvoiceItemModel });
 const customerRepository = new CustomerRepository({ CustomerModel, InvoiceModel });
 const paymentRepository = new PaymentRepository({ PaymentModel });
 
 const invoiceController = new InvoiceController(
-   invoiceRepository,
-   paymentRepository,
-   customerRepository
+    invoiceRepository,
+    paymentRepository,
+    customerRepository
 );
 
 router.use(authMiddleware);
@@ -109,18 +115,18 @@ router.post(
  * GET /invoices/:invoiceId
  */
 router.get(
-  "/:invoiceId",
-  permissionMiddleware(INVOICE_PERMISSIONS.READ),
-  invoiceController.getInvoice
+    "/:invoiceId",
+    permissionMiddleware(INVOICE_PERMISSIONS.READ),
+    invoiceController.getInvoice
 );
 
 /**
  * GET /invoices/customer/:customerId
  */
 router.get(
-  "/customer/:customerId",
-  permissionMiddleware(INVOICE_PERMISSIONS.READ),
-  invoiceController.getInvoicesByCustomer
+    "/customer/:customerId",
+    permissionMiddleware(INVOICE_PERMISSIONS.READ),
+    invoiceController.getInvoicesByCustomer
 );
 
 

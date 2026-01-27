@@ -1,12 +1,14 @@
 import { Op } from "sequelize";
 import Invoice from "../../../domain/entities/Invoice.js";
+import InvoiceItem from "../../../domain/entities/InvoiceItem.js";
 import { InvoiceStatus } from "../../../domain/value-objects/InvoiceStatus.js";
 import InvoiceRepositoryInterface from "../../../application/interfaces/repositories/invoice.repository.interface.js";
 
 export default class InvoiceRepository extends InvoiceRepositoryInterface {
-    constructor( {InvoiceModel} ) {
+    constructor({ InvoiceModel, InvoiceItemModel }) {
         super();
         this.InvoiceModel = InvoiceModel;
+        this.InvoiceItemModel = InvoiceItemModel;
     }
 
     async save(invoice, tx = null) {
@@ -23,11 +25,27 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
             created_by: invoice.created_by ?? null,
         };
 
+        const itemValues = invoice.items.map(item => ({
+            id: item.id ?? undefined,
+            invoice_id: invoice.id, // Will be set after invoice creation if new
+            description: item.description,
+            quantity: item.quantity,
+            unit_price: item.unitPrice.amount,
+            total_price: item.totalPrice.amount,
+        }));
+
         let row;
 
         if (!invoice.id) {
+            // New Invoice
             row = await this.InvoiceModel.create(values, { transaction: tx });
+
+            // Assign new invoice ID to items
+            const newItemValues = itemValues.map(iv => ({ ...iv, invoice_id: row.id }));
+            await this.InvoiceItemModel.bulkCreate(newItemValues, { transaction: tx });
+
         } else {
+            // Update Invoice
             await this.InvoiceModel.update(
                 {
                     ...values,
@@ -36,14 +54,23 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
                 { where: { id: invoice.id }, transaction: tx }
             );
 
-            row = await this.InvoiceModel.findByPk(invoice.id);
+            // Replace items (Simplest strategy for document-like edit)
+            await this.InvoiceItemModel.destroy({ where: { invoice_id: invoice.id }, transaction: tx });
+            const newItemValues = itemValues.map(iv => ({ ...iv, id: undefined, invoice_id: invoice.id })); // Reset item IDs to gen new ones
+            await this.InvoiceItemModel.bulkCreate(newItemValues, { transaction: tx });
+
+            row = await this.InvoiceModel.findByPk(invoice.id, {
+                include: [{ model: this.InvoiceItemModel, as: 'items' }]
+            });
         }
 
         return row ? this._mapRowToEntity(row) : null;
     }
 
     async findById(id) {
-        const row = await this.InvoiceModel.findByPk(id);
+        const row = await this.InvoiceModel.findByPk(id, {
+            include: [{ model: this.InvoiceItemModel, as: 'items' }]
+        });
         return row ? this._mapRowToEntity(row) : null;
     }
 
@@ -308,6 +335,17 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
     }
 
     _mapRowToEntity(row) {
+        const items = row.items ? row.items.map(i => ({
+            id: i.id,
+            invoiceId: i.invoice_id,
+            description: i.description,
+            quantity: i.quantity,
+            unitPrice: Number(i.unit_price),
+            totalPrice: Number(i.total_price),
+            createdAt: i.created_at,
+            updatedAt: i.updated_at
+        })) : [];
+
         return new Invoice({
             id: row.id,
             customer_id: row.customer_id,
@@ -320,6 +358,7 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
             created_by: row.created_by,
             created_at: row.created_at,
             updated_at: row.updated_at,
+            items: items.map(i => new InvoiceItem(i))
         });
     }
 }

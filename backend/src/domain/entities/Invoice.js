@@ -12,8 +12,10 @@ class Invoice {
     paid_amount = 0,
     status,
     created_by,
+    created_by,
     created_at,
     updated_at,
+    items = []
   }) {
     this.id = id ?? null;
 
@@ -38,17 +40,20 @@ class Invoice {
     this.created_by = created_by ?? null;
     this.created_at = created_at ?? null;
     this.updated_at = updated_at ?? null;
+    this.items = items;
   }
 
-  static create({ customer_id, invoice_number, issue_date, due_date, total_amount, created_by }) {
+  static create({ customer_id, invoice_number, issue_date, due_date, total_amount, created_by, items }) {
     return new Invoice({
       customer_id,
       invoice_number,
       issue_date,
       due_date,
       total_amount,
+      total_amount,
       status: InvoiceStatus.PENDING,
       created_by,
+      items: items || []
     });
   }
 
@@ -129,6 +134,7 @@ class Invoice {
       createdBy: this.created_by,
       createdAt: this.created_at,
       updatedAt: this.updated_at,
+      items: this.items ? this.items.map(i => i.toJSON ? i.toJSON() : i) : []
     };
   }
 
