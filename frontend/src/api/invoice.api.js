@@ -63,7 +63,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     updateStatus: async (id, status) => {
-        const response = await apiClient.patch(`/api/invoices/${id}/status`, { status });
+        const response = await apiClient.patch(`/api/invoices/${id}`, { status });
         return response.data;
     },
 
@@ -73,7 +73,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     send: async (id) => {
-        const response = await apiClient.post(`/api/invoices/${id}/send`);
+        const response = await apiClient.patch(`/api/invoices/${id}`, { status: 'PENDING' });
         return response.data;
     },
 
@@ -83,7 +83,7 @@ export const invoiceApi = {
      * @returns {Promise<Object>}
      */
     cancel: async (id) => {
-        const response = await apiClient.post(`/api/invoices/${id}/cancel`);
+        const response = await apiClient.patch(`/api/invoices/${id}`, { status: 'CANCELLED' });
         return response.data;
     },
 
