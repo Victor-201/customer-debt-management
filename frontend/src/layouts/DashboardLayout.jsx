@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Outlet, NavLink, useNavigate } from "react-router-dom";
+import { Outlet, NavLink, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import {
   FiFileText,
@@ -11,31 +11,69 @@ import {
   FiMenu,
   FiX,
   FiHome,
+  FiChevronDown,
+  FiChevronRight,
+  FiBriefcase,
+  FiAlertTriangle,
+  FiClock,
+  FiMail,
+  FiBarChart2,
+  FiUser,
 } from "react-icons/fi";
 import {
   logoutAsync,
   selectUser,
   selectAccessToken,
 } from "../store/auth.slice";
+import "./DashboardLayout.css";
 
 const DashboardLayout = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const user = useSelector(selectUser);
-
   const accessToken = useSelector(selectAccessToken);
 
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [reportsExpanded, setReportsExpanded] = useState(
+    location.pathname.startsWith("/reports")
+  );
 
-  const navItems = [
-    { to: "/dashboard", icon: <FiHome />, label: "Dashboard" },
-    { to: "/users", icon: <FiUsers />, label: "Nhân viên" },
-    { to: "/invoices", icon: <FiFileText />, label: "Hóa đơn" },
-    { to: "/payments", icon: <FiDollarSign />, label: "Thanh toán" },
-    { to: "/customers", icon: <FiUsers />, label: "Khách hàng" },
-    { to: "/reports/aging", icon: <FiPieChart />, label: "Báo cáo tuổi nợ" },
-    { to: "/settings", icon: <FiSettings />, label: "Tự động hóa" },
+  // Navigation items grouped by section
+  const navSections = [
+    {
+      title: "TỔNG QUAN",
+      items: [
+        { to: "/dashboard", icon: <FiHome />, label: "Dashboard" },
+      ],
+    },
+    {
+      title: "QUẢN LÝ",
+      items: [
+        { to: "/customers", icon: <FiBriefcase />, label: "Khách hàng" },
+        { to: "/invoices", icon: <FiFileText />, label: "Hóa đơn" },
+        { to: "/payments", icon: <FiDollarSign />, label: "Thanh toán" },
+        { to: "/users", icon: <FiUser />, label: "Nhân viên" },
+      ],
+    },
+    {
+      title: "BÁO CÁO",
+      expandable: true,
+      expanded: reportsExpanded,
+      onToggle: () => setReportsExpanded(!reportsExpanded),
+      items: [
+        { to: "/reports/aging", icon: <FiBarChart2 />, label: "Tuổi nợ" },
+        { to: "/reports/high-risk", icon: <FiAlertTriangle />, label: "Rủi ro cao" },
+        { to: "/reports/overdue", icon: <FiClock />, label: "Quá hạn" },
+      ],
+    },
+    {
+      title: "CÀI ĐẶT",
+      items: [
+        { to: "/settings", icon: <FiMail />, label: "Tự động hóa" },
+      ],
+    },
   ];
 
   const handleLogout = async () => {
@@ -49,162 +87,101 @@ const DashboardLayout = () => {
   }
 
   return (
-    <div style={{ display: "flex", minHeight: "100vh" }}>
-      <aside
-        style={{
-          width: sidebarOpen ? "260px" : "70px",
-          backgroundColor: "var(--color-neutral-900)",
-          color: "var(--color-text-inverse)",
-          display: "flex",
-          flexDirection: "column",
-          transition: "width var(--transition-normal)",
-          position: "fixed",
-          top: 0,
-          left: 0,
-          bottom: 0,
-          zIndex: 100,
-        }}
-      >
-        <div
-          style={{
-            padding: "var(--spacing-4)",
-            borderBottom: "1px solid rgba(255,255,255,0.1)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: sidebarOpen ? "space-between" : "center",
-          }}
-        >
+    <div className="dashboard-container">
+      <aside className={`sidebar ${sidebarOpen ? "sidebar--open" : "sidebar--collapsed"}`}>
+        {/* Logo Section */}
+        <div className="sidebar__header">
           {sidebarOpen && (
-            <span style={{ fontWeight: 700, fontSize: "var(--font-size-lg)" }}>
-              ARMS
-            </span>
+            <div className="sidebar__logo">
+              <div className="sidebar__logo-icon">
+                <FiPieChart />
+              </div>
+              <div className="sidebar__logo-text">
+                <span className="sidebar__logo-name">ARMS</span>
+                <span className="sidebar__logo-subtitle">Quản lý công nợ</span>
+              </div>
+            </div>
           )}
           <button
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            style={{
-              background: "none",
-              border: "none",
-              color: "var(--color-text-inverse)",
-              cursor: "pointer",
-              padding: "var(--spacing-2)",
-            }}
+            className="sidebar__toggle"
+            aria-label={sidebarOpen ? "Thu gọn" : "Mở rộng"}
           >
             {sidebarOpen ? <FiX /> : <FiMenu />}
           </button>
         </div>
 
-        <nav style={{ flex: 1, padding: "var(--spacing-4) 0" }}>
-          {navItems.map((item) => (
-            <NavLink
-              key={item.to}
-              to={item.to}
-              style={({ isActive }) => ({
-                display: "flex",
-                alignItems: "center",
-                gap: "var(--spacing-3)",
-                padding: sidebarOpen
-                  ? "var(--spacing-3) var(--spacing-4)"
-                  : "var(--spacing-3)",
-                justifyContent: sidebarOpen ? "flex-start" : "center",
-                color: isActive
-                  ? "var(--color-primary-light)"
-                  : "rgba(255,255,255,0.7)",
-                backgroundColor: isActive
-                  ? "rgba(59, 130, 246, 0.2)"
-                  : "transparent",
-                textDecoration: "none",
-                transition: "all var(--transition-fast)",
-                borderLeft: isActive
-                  ? "3px solid var(--color-primary)"
-                  : "3px solid transparent",
-                fontSize: "var(--font-size-sm)",
-              })}
-            >
-              <span style={{ fontSize: "18px" }}>{item.icon}</span>
-              {sidebarOpen && <span>{item.label}</span>}
-            </NavLink>
+        {/* Navigation */}
+        <nav className="sidebar__nav">
+          {navSections.map((section, sectionIndex) => (
+            <div key={sectionIndex} className="nav-section">
+              {sidebarOpen && (
+                <div
+                  className={`nav-section__title ${section.expandable ? "nav-section__title--clickable" : ""}`}
+                  onClick={section.expandable ? section.onToggle : undefined}
+                >
+                  <span>{section.title}</span>
+                  {section.expandable && (
+                    <span className="nav-section__chevron">
+                      {section.expanded ? <FiChevronDown /> : <FiChevronRight />}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {(!section.expandable || section.expanded || !sidebarOpen) && (
+                <div className="nav-section__items">
+                  {section.items.map((item) => (
+                    <NavLink
+                      key={item.to}
+                      to={item.to}
+                      className={({ isActive }) =>
+                        `nav-item ${isActive ? "nav-item--active" : ""} ${!sidebarOpen ? "nav-item--collapsed" : ""}`
+                      }
+                      title={!sidebarOpen ? item.label : undefined}
+                    >
+                      <span className="nav-item__icon">{item.icon}</span>
+                      {sidebarOpen && <span className="nav-item__label">{item.label}</span>}
+                    </NavLink>
+                  ))}
+                </div>
+              )}
+            </div>
           ))}
         </nav>
 
-        <div
-          style={{
-            padding: "var(--spacing-4)",
-            borderTop: "1px solid rgba(255,255,255,0.1)",
-          }}
-        >
+        {/* User Section */}
+        <div className="sidebar__footer">
           {sidebarOpen && user && (
-            <div style={{ marginBottom: "var(--spacing-3)" }}>
-              <p style={{ fontWeight: 500, fontSize: "var(--font-size-sm)" }}>
-                {user.name}
-              </p>
-              <p style={{ fontSize: "var(--font-size-xs)", opacity: 0.7 }}>
-                {user.email}
-              </p>
+            <div className="user-info">
+              <div className="user-info__avatar">
+                {user.name?.charAt(0)?.toUpperCase() || "U"}
+              </div>
+              <div className="user-info__details">
+                <p className="user-info__name">{user.name}</p>
+                <p className="user-info__email">{user.email}</p>
+              </div>
             </div>
           )}
 
-          <button
-            onClick={handleLogout}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "var(--spacing-2)",
-              justifyContent: sidebarOpen ? "flex-start" : "center",
-              width: "100%",
-              padding: "var(--spacing-2) var(--spacing-3)",
-              backgroundColor: "rgba(255,255,255,0.1)",
-              border: "none",
-              borderRadius: "var(--radius-md)",
-              color: "var(--color-text-inverse)",
-              cursor: "pointer",
-              fontSize: "var(--font-size-sm)",
-              transition: "background-color var(--transition-fast)",
-            }}
-          >
+          <button onClick={handleLogout} className="logout-btn" title="Đăng xuất">
             <FiLogOut />
             {sidebarOpen && <span>Đăng xuất</span>}
           </button>
         </div>
       </aside>
 
-      <main
-        style={{
-          flex: 1,
-          marginLeft: sidebarOpen ? "260px" : "70px",
-          transition: "margin-left var(--transition-normal)",
-          backgroundColor: "var(--color-background)",
-          minHeight: "100vh",
-        }}
-      >
-        <header
-          style={{
-            height: "60px",
-            backgroundColor: "var(--color-surface)",
-            borderBottom: "1px solid var(--color-border-light)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            padding: "0 var(--spacing-6)",
-            position: "sticky",
-            top: 0,
-            zIndex: 50,
-          }}
-        >
-          <span
-            style={{
-              fontSize: "var(--font-size-sm)",
-              color: "var(--color-text-secondary)",
-            }}
-          >
+      <main className={`main-content ${sidebarOpen ? "main-content--sidebar-open" : "main-content--sidebar-collapsed"}`}>
+        <header className="main-header">
+          <span className="main-header__breadcrumb">
             Quản lý Công nợ Khách hàng
           </span>
-
           <button className="btn btn-ghost btn-icon">
             <FiSettings />
           </button>
         </header>
 
-        <div style={{ padding: "var(--spacing-6)" }}>
+        <div className="main-body">
           <Outlet />
         </div>
       </main>
