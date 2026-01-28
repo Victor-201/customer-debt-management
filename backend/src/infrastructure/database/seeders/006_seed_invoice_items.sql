@@ -57,22 +57,8 @@ SELECT
 FROM invoice_items_data
 WHERE item_rank <= 4;  -- Limit to max 4 items per invoice
 
--- Update invoice totals based on items
--- Only update non-PAID invoices to avoid balance constraint issues
--- PAID invoices keep their original amounts from seed files 003/004
-UPDATE invoices i
-SET 
-  total_amount = COALESCE(items_total.total, 0),
-  balance_amount = GREATEST(0, COALESCE(items_total.total, 0) - COALESCE(i.paid_amount, 0)),
-  updated_at = NOW()
-FROM (
-  SELECT 
-    invoice_id,
-    SUM(total_price) as total
-  FROM invoice_items
-  GROUP BY invoice_id
-) items_total
-WHERE i.id = items_total.invoice_id
-  AND i.status != 'PAID';
+-- Note: Invoice totals are already set correctly in 003_seed_invoices.sql
+-- We don't update totals here to avoid constraint violations
 
 COMMIT;
+
