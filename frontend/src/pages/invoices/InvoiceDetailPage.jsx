@@ -294,13 +294,13 @@ const InvoiceDetailPage = () => {
                                     <tr className="border-b border-gray-100">
                                         <td colSpan={3} className="px-4 py-3 text-right font-medium">Tạm tính:</td>
                                         <td className="px-4 py-3 text-right font-mono">
-                                            {formatCurrency(invoice.subtotal)}
+                                            {formatCurrency(subtotal)}
                                         </td>
                                     </tr>
                                     <tr className="border-b border-gray-100">
-                                        <td colSpan={3} className="px-4 py-3 text-right font-medium">Thuế ({invoice.taxRate}%):</td>
+                                        <td colSpan={3} className="px-4 py-3 text-right font-medium">Thuế ({taxRate}%):</td>
                                         <td className="px-4 py-3 text-right font-mono">
-                                            {formatCurrency(invoice.taxAmount)}
+                                            {formatCurrency(taxAmount)}
                                         </td>
                                     </tr>
                                     <tr className="bg-gray-50">
@@ -308,7 +308,7 @@ const InvoiceDetailPage = () => {
                                             Tổng cộng:
                                         </td>
                                         <td className="px-4 py-3 text-right font-mono font-bold text-lg text-[var(--color-primary)]">
-                                            {formatCurrency(invoice.total)}
+                                            {formatCurrency(total)}
                                         </td>
                                     </tr>
                                 </tfoot>
