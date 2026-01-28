@@ -141,7 +141,10 @@ export const PaymentModal = ({
     // Quick fill buttons
     const handleQuickFill = (percentage) => {
         const balance = getBalance();
-        const amount = (balance * percentage / 100).toFixed(0);
+        // Keep full precision for 100%, round to 2 decimals for partial payments
+        const amount = percentage === 100
+            ? balance.toString()
+            : (balance * percentage / 100).toFixed(2);
         setFormData(prev => ({ ...prev, amount }));
     };
 
@@ -206,7 +209,7 @@ export const PaymentModal = ({
                                 placeholder="Nhập số tiền"
                                 min="0"
                                 max={getBalance()}
-                                step="1000"
+                                step="any"
                             />
                             {formErrors.amount && <p className="text-red-500 text-sm mt-1">{formErrors.amount}</p>}
 
