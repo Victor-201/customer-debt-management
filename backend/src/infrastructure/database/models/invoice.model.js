@@ -38,7 +38,7 @@ export default (sequelize) =>
         allowNull: false,
       },
       status: {
-        type: DataTypes.ENUM("PENDING", "OVERDUE", "PAID"),
+        type: DataTypes.ENUM("PENDING", "OVERDUE", "PAID", "CANCELLED"),
         allowNull: false,
       },
       created_by: DataTypes.UUID,
