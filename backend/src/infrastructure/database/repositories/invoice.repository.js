@@ -93,6 +93,35 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
         return row ? this._mapRowToEntity(row) : null;
     }
 
+    /**
+     * Update an invoice
+     */
+    async update(id, data) {
+        const row = await this.InvoiceModel.findByPk(id);
+        if (!row) {
+            return null;
+        }
+        
+        // Map camelCase to snake_case for database
+        const dbData = {};
+        if (data.status !== undefined) dbData.status = data.status;
+        if (data.paidAmount !== undefined) dbData.paid_amount = data.paidAmount;
+        if (data.balanceAmount !== undefined) dbData.balance_amount = data.balanceAmount;
+        if (data.dueDate !== undefined) dbData.due_date = data.dueDate;
+        if (data.issueDate !== undefined) dbData.issue_date = data.issueDate;
+        if (data.totalAmount !== undefined) dbData.total_amount = data.totalAmount;
+        
+        await row.update(dbData);
+        
+        // Refetch with items to return complete entity
+        const updatedRow = await this.InvoiceModel.findByPk(id, {
+            include: [{ model: this.InvoiceItemModel, as: 'items' }]
+        });
+        
+        return updatedRow ? this._mapRowToEntity(updatedRow) : null;
+    }
+
+
     async findOutstandingByCustomer(customerId) {
         const rows = await this.InvoiceModel.findAll({
             where: {
