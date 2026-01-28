@@ -1,7 +1,7 @@
 class InvoiceStatus {
-    static ALLOWED = ["PENDING", "OVERDUE", "PAID"];
+  static ALLOWED = ["PENDING", "OVERDUE", "PAID", "CANCELLED"];
 
-    constructor(value) {
+  constructor(value) {
     if (!InvoiceStatus.ALLOWED.includes(value)) {
       throw new Error(`Invalid invoice status: ${value}`);
     }
@@ -11,6 +11,7 @@ class InvoiceStatus {
   static PENDING = new InvoiceStatus("PENDING");
   static OVERDUE = new InvoiceStatus("OVERDUE");
   static PAID = new InvoiceStatus("PAID");
+  static CANCELLED = new InvoiceStatus("CANCELLED");
 
 
   static fromString(value) {
@@ -21,6 +22,8 @@ class InvoiceStatus {
         return InvoiceStatus.OVERDUE;
       case "PAID":
         return InvoiceStatus.PAID;
+      case "CANCELLED":
+        return InvoiceStatus.CANCELLED;
       default:
         throw new Error(`Invalid invoice status: ${value}`);
     }
@@ -38,8 +41,12 @@ class InvoiceStatus {
     return this.value === "PAID";
   }
 
+  isCancelled() {
+    return this.value === "CANCELLED";
+  }
+
   canApplyPayment() {
-    return !this.isPaid();
+    return !this.isPaid() && !this.isCancelled();
   }
 
   equals(other) {
