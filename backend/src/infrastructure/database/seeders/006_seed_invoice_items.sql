@@ -58,10 +58,19 @@ FROM invoice_items_data
 WHERE item_rank <= 4;  -- Limit to max 4 items per invoice
 
 -- Update invoice totals based on items
+-- For PAID invoices, set paid_amount = total_amount and balance = 0
+-- For others, ensure balance is not negative
 UPDATE invoices i
 SET 
   total_amount = COALESCE(items_total.total, 0),
-  balance_amount = COALESCE(items_total.total, 0) - COALESCE(i.paid_amount, 0),
+  paid_amount = CASE 
+    WHEN i.status = 'PAID' THEN COALESCE(items_total.total, 0)
+    ELSE LEAST(COALESCE(i.paid_amount, 0), COALESCE(items_total.total, 0))
+  END,
+  balance_amount = CASE 
+    WHEN i.status = 'PAID' THEN 0
+    ELSE GREATEST(0, COALESCE(items_total.total, 0) - COALESCE(i.paid_amount, 0))
+  END,
   updated_at = NOW()
 FROM (
   SELECT 
