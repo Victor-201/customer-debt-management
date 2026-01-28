@@ -32,7 +32,11 @@ const PaymentModel = initPaymentModel(sequelize);
 InvoiceModel.hasMany(InvoiceItemModel, { foreignKey: 'invoice_id', as: 'items' });
 InvoiceItemModel.belongsTo(InvoiceModel, { foreignKey: 'invoice_id' });
 
-const invoiceRepository = new InvoiceRepository({ InvoiceModel, InvoiceItemModel });
+// Add Customer-Invoice association for including customer data in invoice queries
+InvoiceModel.belongsTo(CustomerModel, { foreignKey: 'customer_id', as: 'customer' });
+CustomerModel.hasMany(InvoiceModel, { foreignKey: 'customer_id', as: 'invoices' });
+
+const invoiceRepository = new InvoiceRepository({ InvoiceModel, InvoiceItemModel, CustomerModel });
 const customerRepository = new CustomerRepository({ CustomerModel, InvoiceModel });
 const paymentRepository = new PaymentRepository({ PaymentModel });
 

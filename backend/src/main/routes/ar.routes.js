@@ -42,7 +42,8 @@ const sendReminderEmailUseCase = new SendReminderEmailUseCase({
     invoiceRepository,
     customerRepository,
     emailService,
-    logHistoryEmailUseCase
+    logHistoryEmailUseCase,
+    emailLogRepository
 });
 const generateAgingReportUseCase = new GenerateAgingReportUseCase({ invoiceRepository });
 

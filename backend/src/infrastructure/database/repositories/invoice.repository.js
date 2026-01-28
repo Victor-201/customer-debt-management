@@ -5,10 +5,11 @@ import { InvoiceStatus } from "../../../domain/value-objects/InvoiceStatus.js";
 import InvoiceRepositoryInterface from "../../../application/interfaces/repositories/invoice.repository.interface.js";
 
 export default class InvoiceRepository extends InvoiceRepositoryInterface {
-    constructor({ InvoiceModel, InvoiceItemModel }) {
+    constructor({ InvoiceModel, InvoiceItemModel, CustomerModel }) {
         super();
         this.InvoiceModel = InvoiceModel;
         this.InvoiceItemModel = InvoiceItemModel;
+        this.CustomerModel = CustomerModel;
     }
 
     async save(invoice, tx = null) {
@@ -282,21 +283,33 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
 
         const offset = (page - 1) * limit;
 
+        // Build include array conditionally based on CustomerModel availability
+        const include = [];
+        if (this.CustomerModel) {
+            include.push({
+                model: this.CustomerModel,
+                as: 'customer',
+                attributes: ['id', 'name', 'email', 'phone']
+            });
+        }
+
         const { count, rows } = await this.InvoiceModel.findAndCountAll({
             where,
+            include,
             order: [[orderField, orderDirection]],
             limit,
             offset,
         });
 
         return {
-            data: rows.map(row => this._mapRowToEntity(row)),
+            data: rows.map(row => this._mapRowToEntityWithCustomer(row)),
             total: count,
             page,
             limit,
             totalPages: Math.ceil(count / limit),
         };
     }
+
 
     /**
      * Get invoice summary statistics
@@ -361,4 +374,23 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
             items: items.map(i => new InvoiceItem(i))
         });
     }
+
+    /**
+     * Map row to entity with customer data included
+     * Used for list views where customer name needs to be displayed
+     */
+    _mapRowToEntityWithCustomer(row) {
+        const invoice = this._mapRowToEntity(row);
+        const json = invoice.toJSON();
+
+        // Add customer data if available from the join
+        if (row.customer) {
+            json.customerName = row.customer.name;
+            json.customerEmail = row.customer.email;
+            json.customerPhone = row.customer.phone;
+        }
+
+        return json;
+    }
 }
+
