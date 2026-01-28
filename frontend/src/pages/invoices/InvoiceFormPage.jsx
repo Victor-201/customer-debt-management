@@ -234,10 +234,8 @@ const InvoiceFormPage = () => {
                 // or ensure backend ignores it if not provided.
                 await dispatch(updateInvoice({ id, data: invoiceData })).unwrap();
             } else {
-                const result = await dispatch(createInvoice(invoiceData)).unwrap();
-                if (!asDraft) {
-                    await dispatch(sendInvoice(result.id)).unwrap();
-                }
+                await dispatch(createInvoice(invoiceData)).unwrap();
+                // No need to call sendInvoice - status is already set to PENDING if !asDraft
             }
             navigate('/invoices');
         } catch (error) {
