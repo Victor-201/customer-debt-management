@@ -106,8 +106,19 @@ const customerSlice = createSlice({
       })
 
       // FETCH BY ID
+      .addCase(fetchCustomerById.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.selectedCustomer = null;
+      })
       .addCase(fetchCustomerById.fulfilled, (state, action) => {
+        state.loading = false;
         state.selectedCustomer = action.payload;
+      })
+      .addCase(fetchCustomerById.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload?.error || action.payload || 'Không tìm thấy khách hàng';
+        state.selectedCustomer = null;
       })
 
       // CREATE

@@ -69,10 +69,20 @@ export default class InvoiceRepository extends InvoiceRepositoryInterface {
     }
 
     async findById(id) {
-        const row = await this.InvoiceModel.findByPk(id, {
-            include: [{ model: this.InvoiceItemModel, as: 'items' }]
-        });
-        return row ? this._mapRowToEntity(row) : null;
+        // Build include array
+        const include = [{ model: this.InvoiceItemModel, as: 'items' }];
+        
+        // Include customer if available
+        if (this.CustomerModel) {
+            include.push({ 
+                model: this.CustomerModel, 
+                as: 'customer',
+                attributes: ['id', 'name', 'email', 'phone']
+            });
+        }
+        
+        const row = await this.InvoiceModel.findByPk(id, { include });
+        return row ? this._mapRowToEntityWithCustomer(row) : null;
     }
 
     async findByInvoiceNumber(invoiceNumber) {
