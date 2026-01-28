@@ -19,7 +19,7 @@ const CustomerDetailPage = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -112,17 +112,40 @@ const CustomerDetailPage = () => {
     );
   }
 
-  if (error) {
+  if (error || !selectedCustomer) {
     return (
-      <div className="flex justify-center items-center h-64">
-        <p className="text-red-600">
-          {error}
-        </p>
+      <div className="max-w-lg mx-auto px-4 py-12">
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-800 mb-2">
+            Không tìm thấy khách hàng
+          </h3>
+          <p className="text-gray-500 mb-6">
+            {error || 'Khách hàng không tồn tại hoặc đã bị xóa.'}
+          </p>
+          <div className="flex gap-3 justify-center">
+            <button
+              onClick={() => navigate(-1)}
+              className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+            >
+              ← Quay lại
+            </button>
+            <button
+              onClick={() => navigate('/customers')}
+              className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            >
+              Danh sách khách hàng
+            </button>
+          </div>
+        </div>
       </div>
     );
   }
 
-  if (!selectedCustomer) return null;
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
@@ -134,11 +157,10 @@ const CustomerDetailPage = () => {
           </h2>
 
           <span
-            className={`px-4 py-2 rounded-full font-semibold ${
-              selectedCustomer.status === "ACTIVE"
+            className={`px-4 py-2 rounded-full font-semibold ${selectedCustomer.status === "ACTIVE"
                 ? "bg-green-100 text-green-700"
                 : "bg-red-100 text-red-700"
-            }`}
+              }`}
           >
             {selectedCustomer.status === "ACTIVE" ? "Đang hoạt động" : "Ngừng hoạt động"}
           </span>
@@ -272,21 +294,20 @@ const CustomerDetailPage = () => {
 
       {/* ===== CONFIRM POPUP - IMPROVED ===== */}
       {showConfirm && (
-        <div 
+        <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
           onClick={handleCancelConfirm}
         >
-          <div 
+          <div
             className="bg-white rounded-2xl shadow-2xl p-8 w-[450px] transform transition-all animate-slideIn"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Icon & Title */}
             <div className="flex flex-col items-center mb-6">
-              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${
-                confirmData?.type === 'deactivate' 
-                  ? 'bg-red-100' 
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${confirmData?.type === 'deactivate'
+                  ? 'bg-red-100'
                   : 'bg-green-100'
-              }`}>
+                }`}>
                 {confirmData?.type === 'deactivate' ? (
                   <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
@@ -297,17 +318,17 @@ const CustomerDetailPage = () => {
                   </svg>
                 )}
               </div>
-              
+
               <h3 className="text-2xl font-bold text-gray-800">
-                {confirmData?.type === 'deactivate' 
-                  ? 'Xác nhận dừng hoạt động' 
+                {confirmData?.type === 'deactivate'
+                  ? 'Xác nhận dừng hoạt động'
                   : 'Xác nhận cập nhật'}
               </h3>
             </div>
 
             {/* Message */}
             <p className="text-gray-600 text-center mb-8 leading-relaxed">
-              {confirmData?.type === 'deactivate' 
+              {confirmData?.type === 'deactivate'
                 ? 'Bạn có chắc chắn muốn dừng hoạt động khách hàng này không? Khách hàng sẽ không thể thực hiện giao dịch mới.'
                 : 'Bạn có chắc chắn muốn lưu thay đổi thông tin khách hàng không?'}
             </p>
@@ -321,11 +342,10 @@ const CustomerDetailPage = () => {
                 Hủy
               </button>
               <button
-                className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-colors ${
-                  confirmData?.type === 'deactivate'
+                className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-colors ${confirmData?.type === 'deactivate'
                     ? 'bg-red-600 hover:bg-red-700'
                     : 'bg-green-600 hover:bg-green-700'
-                }`}
+                  }`}
                 onClick={() => {
                   if (confirmData?.type === 'deactivate') {
                     handleDeactivate();

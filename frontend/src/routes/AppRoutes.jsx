@@ -26,6 +26,8 @@ import HighRiskCustomerPage from "../pages/reports/HighRiskCustomerPage";
 import OverdueARPage from "../pages/reports/OverdueARPage";
 /* ================= SETTINGS ================= */
 import AutomationSettingsPage from "../pages/settings/AutomationSettingsPage";
+/* ================= ERRORS ================= */
+import NotFoundPage from "../pages/NotFoundPage";
 
 const AppRoutes = () => {
   return (
@@ -77,10 +79,13 @@ const AppRoutes = () => {
         {/* ================= SETTINGS ================= */}
         <Route path="/settings" element={<AutomationSettingsPage />} />
         <Route path="/settings/automation" element={<AutomationSettingsPage />} />
+
+        {/* ================= 404 INSIDE DASHBOARD ================= */}
+        <Route path="*" element={<NotFoundPage />} />
       </Route>
 
-      {/* ================= FALLBACK ================= */}
-      <Route path="*" element={<Navigate to="/login" replace />} />
+      {/* ================= FALLBACK - 404 PAGE ================= */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };
