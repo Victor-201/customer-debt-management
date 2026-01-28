@@ -1,5 +1,4 @@
 import { Outlet } from "react-router-dom";
-import { FiPieChart } from "react-icons/fi";
 import "./AuthLayout.css";
 
 const AuthLayout = () => {
@@ -10,10 +9,12 @@ const AuthLayout = () => {
         <div className="auth-branding__content">
           {/* Logo */}
           <div className="auth-logo">
-            <div className="auth-logo__icon">
-              <FiPieChart />
-            </div>
-            <span className="auth-logo__text">ARMS</span>
+            <img
+              src="/fa-credit-logo.png"
+              alt="FA Credit Logo"
+              className="auth-logo__image"
+            />
+            <span className="auth-logo__text">FA Credit</span>
           </div>
 
           {/* Hero Text */}
@@ -24,9 +25,9 @@ const AuthLayout = () => {
               <span className="auth-hero__gradient">Vận hành tối ưu.</span>
             </h1>
             <p className="auth-hero__subtitle">
-              Hệ thống Quản lý Tài nguyên Doanh nghiệp giúp
-              bạn kiểm soát mọi khía cạnh của quy trình kinh
-              doanh từ một nền tảng duy nhất.
+              Hệ thống Quản lý Công nợ Khách hàng giúp
+              bạn theo dõi, kiểm soát và thu hồi nợ
+              một cách hiệu quả và chuyên nghiệp.
             </p>
           </div>
 
@@ -37,7 +38,7 @@ const AuthLayout = () => {
 
           {/* Footer */}
           <div className="auth-branding__footer">
-            <p>Tin cậy bởi hơn 500 doanh nghiệp.</p>
+            <p>Giải pháp quản lý công nợ hàng đầu.</p>
           </div>
         </div>
       </div>
@@ -49,7 +50,7 @@ const AuthLayout = () => {
 
           {/* Footer */}
           <div className="auth-footer">
-            <p>© 2026 ARMS – Internal Use Only</p>
+            <p>© 2026 FA Credit – Internal Use Only</p>
           </div>
         </div>
       </div>

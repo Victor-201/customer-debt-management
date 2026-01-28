@@ -93,11 +93,14 @@ const DashboardLayout = () => {
         <div className="sidebar__header">
           {sidebarOpen && (
             <div className="sidebar__logo">
-              <div className="sidebar__logo-icon">
-                <FiPieChart />
-              </div>
+              <img
+                src="/fa-credit-logo.png"
+                alt="FA Credit"
+                className="sidebar__logo-icon"
+                style={{ width: 40, height: 40, borderRadius: 10, objectFit: 'cover' }}
+              />
               <div className="sidebar__logo-text">
-                <span className="sidebar__logo-name">ARMS</span>
+                <span className="sidebar__logo-name">FA Credit</span>
                 <span className="sidebar__logo-subtitle">Quản lý công nợ</span>
               </div>
             </div>
