@@ -1,30 +1,56 @@
 import { Outlet } from "react-router-dom";
+import { FiPieChart } from "react-icons/fi";
+import "./AuthLayout.css";
 
 const AuthLayout = () => {
   return (
-    <div className="min-h-screen w-full bg-slate-100 flex items-center justify-center px-4">
-      <div className="w-full max-w-md bg-white border border-slate-200 rounded-lg shadow-sm p-6">
-        {/* SYSTEM HEADER */}
-        <div className="mb-6">
-          <h1 className="text-xl font-bold tracking-wide text-slate-800">
-            ARMS
-          </h1>
-          <p className="text-sm text-slate-500">
-            Accounts Receivable Management System
-          </p>
+    <div className="auth-container">
+      {/* Left Panel - Branding */}
+      <div className="auth-branding">
+        <div className="auth-branding__content">
+          {/* Logo */}
+          <div className="auth-logo">
+            <div className="auth-logo__icon">
+              <FiPieChart />
+            </div>
+            <span className="auth-logo__text">ARMS</span>
+          </div>
+
+          {/* Hero Text */}
+          <div className="auth-hero">
+            <h1 className="auth-hero__title">
+              Quản lý hiệu quả,
+              <br />
+              <span className="auth-hero__gradient">Vận hành tối ưu.</span>
+            </h1>
+            <p className="auth-hero__subtitle">
+              Hệ thống Quản lý Tài nguyên Doanh nghiệp giúp
+              bạn kiểm soát mọi khía cạnh của quy trình kinh
+              doanh từ một nền tảng duy nhất.
+            </p>
+          </div>
+
+          {/* Decorative Pattern */}
+          <div className="auth-pattern">
+            <div className="auth-pattern__grid"></div>
+          </div>
+
+          {/* Footer */}
+          <div className="auth-branding__footer">
+            <p>Tin cậy bởi hơn 500 doanh nghiệp.</p>
+          </div>
         </div>
+      </div>
 
-        {/* CONTENT */}
-        <Outlet />
+      {/* Right Panel - Form */}
+      <div className="auth-form-panel">
+        <div className="auth-form-wrapper">
+          <Outlet />
 
-        {/* FOOTER */}
-        <div className="mt-8 pt-4 border-t border-slate-200 text-center">
-          <p className="text-xs text-slate-500">
-            Hệ thống quản lý công nợ nội bộ doanh nghiệp
-          </p>
-          <p className="text-xs text-slate-400">
-            © 2026 ARMS – Internal Use Only
-          </p>
+          {/* Footer */}
+          <div className="auth-footer">
+            <p>© 2026 ARMS – Internal Use Only</p>
+          </div>
         </div>
       </div>
     </div>

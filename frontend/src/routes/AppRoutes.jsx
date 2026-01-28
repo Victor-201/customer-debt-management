@@ -4,6 +4,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import PrivateRoute from "./PrivateRoute";
 /* ================= AUTH ================= */
 import LoginPage from "../pages/auth/LoginPage";
+import ForgotPasswordPage from "../pages/auth/ForgotPasswordPage";
 /* ================= DASHBOARD ================= */
 import DashboardPage from "../pages/dashboard/DashboardPage";
 /* ================= USERS ================= */
@@ -38,6 +39,7 @@ const AppRoutes = () => {
       {/* ================= AUTH ================= */}
       <Route element={<AuthLayout />}>
         <Route path="/login" element={<LoginPage />} />
+        <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
 
       {/* ================= PRIVATE ================= */}
