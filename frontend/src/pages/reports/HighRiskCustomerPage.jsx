@@ -48,7 +48,7 @@ const CustomerCard = ({ customer, onSendReminder }) => {
     const handleSendReminder = async () => {
         setSending(true);
         try {
-            await onSendReminder(customer.customerId);
+            await onSendReminder(customer.id);
             alert('Đã gửi email nhắc nợ thành công');
         } catch (err) {
             alert('Gửi email thất bại: ' + (err.message || 'Lỗi không xác định'));
@@ -66,7 +66,7 @@ const CustomerCard = ({ customer, onSendReminder }) => {
                     </div>
                     <div>
                         <Link
-                            to={`/customers/${customer.customerId}`}
+                            to={`/customers/${customer.id}`}
                             className="font-semibold text-gray-800 hover:text-blue-600 transition-colors"
                         >
                             {customer.customerName}
@@ -112,7 +112,7 @@ const CustomerCard = ({ customer, onSendReminder }) => {
 
             <div className="flex gap-2 mt-4">
                 <Link
-                    to={`/customers/${customer.customerId}`}
+                    to={`/customers/${customer.id}`}
                     className="flex-1 flex items-center justify-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors text-sm font-medium"
                 >
                     Xem chi tiết
@@ -291,7 +291,7 @@ const HighRiskCustomerPage = () => {
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                         {filteredCustomers.map((customer, idx) => (
                             <CustomerCard
-                                key={customer.customerId || idx}
+                                key={customer.id || idx}
                                 customer={customer}
                                 onSendReminder={handleSendReminder}
                             />

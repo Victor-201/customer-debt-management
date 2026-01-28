@@ -111,3 +111,5 @@ Thumbs.db
 *.pem
 *.key
 *.crt
+
+.agent/
