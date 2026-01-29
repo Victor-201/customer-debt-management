@@ -176,7 +176,7 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
             SELECT 
                 COALESCE(SUM(total_amount - paid_amount), 0) as expected_this_month
             FROM invoices
-            WHERE status IN ('PENDING', 'OVERDUE', 'PARTIAL')
+            WHERE status IN ('PENDING', 'OVERDUE')
               AND due_date >= date_trunc('month', CURRENT_DATE)
               AND due_date < date_trunc('month', CURRENT_DATE) + interval '1 month'
         `;

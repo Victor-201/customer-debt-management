@@ -111,7 +111,7 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
         COALESCE(MAX(EXTRACT(DAY FROM (NOW() - i.due_date))), 0) as oldest_overdue_days
       FROM customers c
       LEFT JOIN invoices i ON c.id = i.customer_id 
-        AND i.status IN ('PENDING', 'OVERDUE', 'PARTIAL')
+        AND i.status IN ('PENDING', 'OVERDUE')
         AND i.due_date < NOW()
       WHERE c.risk_level IN ('HIGH_RISK', 'WARNING')
       GROUP BY c.id, c.name, c.email, c.phone, c.address, c.payment_term, c.credit_limit, c.risk_level, c.status
