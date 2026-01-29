@@ -6,6 +6,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { store } from './store/index.js';
 import './styles/global.css';
+import './styles/stitch-theme.css';
 
 /**
  * Application Entry Point
