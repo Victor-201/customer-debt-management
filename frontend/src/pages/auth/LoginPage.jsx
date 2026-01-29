@@ -56,13 +56,11 @@ const LoginPage = () => {
           <div className="login-form-section">
             {/* Logo */}
             <div className="login-logo">
-              <div className="login-logo__icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M12 2L2 7l10 5 10-5-10-5z" />
-                  <path d="M2 17l10 5 10-5" />
-                  <path d="M2 12l10 5 10-5" />
-                </svg>
-              </div>
+              <img
+                src="/fa-credit-logo.png"
+                alt="FA Credit Logo"
+                className="login-logo__icon"
+              />
               <div className="login-logo__text">
                 <span className="login-logo__name">FA Credit</span>
                 <span className="login-logo__tagline">Enterprise</span>
@@ -162,7 +160,7 @@ const LoginPage = () => {
 
               {/* Footer */}
               <p className="login-footer">
-                © 2026 FA Credit – Internal System
+                © 2026 FA Credit by Group 6 XDHTTTQL
               </p>
             </form>
           </div>
