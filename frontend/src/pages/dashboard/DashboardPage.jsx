@@ -203,11 +203,11 @@ const DashboardPage = () => {
 
   // Aging bar data with real API amounts (no mock fallbacks)
   const agingBarData = [
-    { label: 'Current', amount: agingBuckets[0]?.totalAmount || 0, color: '#34d399' },
-    { label: '1-30 Days', amount: agingBuckets[1]?.totalAmount || 0, color: '#3b82f6' },
-    { label: '31-60 Days', amount: agingBuckets[2]?.totalAmount || 0, color: '#f59e0b' },
-    { label: '61-90 Days', amount: agingBuckets[3]?.totalAmount || 0, color: '#ef4444' },
-    { label: '90+ Days', amount: agingBuckets[4]?.totalAmount || 0, color: '#7c3aed' }
+    { label: 'Current', amount: agingBuckets[0]?.amount || 0, color: '#34d399' },
+    { label: '1-30 Days', amount: agingBuckets[1]?.amount || 0, color: '#3b82f6' },
+    { label: '31-60 Days', amount: agingBuckets[2]?.amount || 0, color: '#f59e0b' },
+    { label: '61-90 Days', amount: agingBuckets[3]?.amount || 0, color: '#ef4444' },
+    { label: '90+ Days', amount: agingBuckets[4]?.amount || 0, color: '#7c3aed' }
   ];
   const maxAmount = Math.max(...agingBarData.map(d => d.amount), 1); // Avoid division by zero
 
