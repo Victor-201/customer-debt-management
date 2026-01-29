@@ -147,43 +147,71 @@ const PaymentPage = () => {
 
     return (
         <div className="space-y-6">
-            <PageHeader
-                title="Lịch sử thanh toán"
-                subtitle={`Tổng cộng ${pagination.total} phiếu thu`}
-                actions={
-                    <div className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg font-semibold flex items-center gap-2">
+            {/* Page Header */}
+            <div className="fc-page-header">
+                <div className="fc-page-header__breadcrumb">Quản lý / Thanh toán</div>
+                <div className="flex justify-between items-end flex-wrap gap-4">
+                    <div>
+                        <h1 className="fc-page-header__title">Lịch sử thanh toán</h1>
+                        <p className="fc-page-header__subtitle">Tổng cộng {pagination.total} phiếu thu</p>
+                    </div>
+                    <div className="px-5 py-3 bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg">
                         <FiDollarSign />
                         Tổng thu: {formatCurrency(totalAmount)}
                     </div>
-                }
-            />
+                </div>
+            </div>
 
             {/* Summary Cards */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                {PAYMENT_METHOD_OPTIONS.map(method => {
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Total Card - Emerald Highlight */}
+                <div className="bg-emerald-500 text-white rounded-2xl p-5 shadow-lg flex flex-col justify-between">
+                    <div className="flex items-start justify-between">
+                        <div className="text-sm font-semibold opacity-90">Tổng thu</div>
+                        <div className="p-1.5 bg-white/20 rounded-lg">
+                            <FiDollarSign className="w-5 h-5" />
+                        </div>
+                    </div>
+                    <div className="mt-4">
+                        <div className="text-2xl font-bold tracking-tight">{formatCurrency(totalAmount)}</div>
+                        <div className="text-xs font-medium mt-1 text-emerald-50">{pagination.total} phiếu thu</div>
+                    </div>
+                </div>
+
+                {/* Method Cards */}
+                {PAYMENT_METHOD_OPTIONS.slice(0, 3).map(method => {
                     const methodPayments = payments.filter(p => p.method === method.value);
                     const methodTotal = methodPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
 
                     return (
-                        <div key={method.value} className="card">
-                            <p className="text-sm text-gray-500 mb-1">{method.label}</p>
-                            <p className="text-xl font-bold font-mono">
-                                {formatCurrency(methodTotal)}
-                            </p>
-                            <p className="text-sm text-gray-400">{methodPayments.length} phiếu thu</p>
+                        <div key={method.value} className="glass-card p-5">
+                            <div className="text-sm font-medium text-gray-500">{method.label}</div>
+                            <div className="mt-4">
+                                <div className="text-2xl font-bold text-gray-800">
+                                    {formatCurrency(methodTotal)}
+                                </div>
+                                <div className="text-xs font-medium mt-1 text-gray-400">
+                                    {methodPayments.length} phiếu thu
+                                </div>
+                            </div>
                         </div>
                     );
                 })}
             </div>
 
             {/* Filter Bar */}
-            <div className="card">
-                <div className="flex flex-wrap items-center gap-4">
+            <div className="glass-card p-4">
+                <div className="flex flex-col md:flex-row items-center gap-3">
                     {/* Search */}
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="relative flex-1 w-full">
+                        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+                            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
                         <input
                             type="text"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                            className="fc-input pl-10"
                             placeholder="Tìm kiếm theo mã phiếu, mã HĐ, khách hàng..."
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -191,25 +219,24 @@ const PaymentPage = () => {
                     </div>
 
                     {/* Payment Method Filter */}
-                    <select
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] min-w-[160px]"
-                        value={filters.paymentMethod || ''}
-                        onChange={(e) => handleFilterChange('paymentMethod', e.target.value || null)}
-                    >
-                        <option value="">Tất cả phương thức</option>
-                        {PAYMENT_METHOD_OPTIONS.map(option => (
-                            <option key={option.value} value={option.value}>
-                                {option.label}
-                            </option>
-                        ))}
-                    </select>
+                    <div className="w-full md:w-48">
+                        <select
+                            className="fc-input"
+                            value={filters.paymentMethod || ''}
+                            onChange={(e) => handleFilterChange('paymentMethod', e.target.value || null)}
+                        >
+                            <option value="">Tất cả phương thức</option>
+                            {PAYMENT_METHOD_OPTIONS.map(option => (
+                                <option key={option.value} value={option.value}>
+                                    {option.label}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
 
                     {/* Toggle Advanced Filters */}
                     <button
-                        className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters
-                                ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
-                                : 'border-gray-300 hover:bg-gray-50'
-                            }`}
+                        className={`fc-btn ${showFilters ? 'fc-btn--primary' : 'fc-btn--secondary'}`}
                         onClick={() => setShowFilters(!showFilters)}
                     >
                         <FiFilter /> Bộ lọc
@@ -218,12 +245,12 @@ const PaymentPage = () => {
 
                 {/* Advanced Filters */}
                 {showFilters && (
-                    <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100">
                         <div className="flex items-center gap-2">
                             <label className="text-sm font-medium text-gray-600">Từ ngày:</label>
                             <input
                                 type="date"
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                className="fc-input"
                                 value={filters.startDate || ''}
                                 onChange={(e) => handleFilterChange('startDate', e.target.value || null)}
                             />
@@ -232,7 +259,7 @@ const PaymentPage = () => {
                             <label className="text-sm font-medium text-gray-600">Đến ngày:</label>
                             <input
                                 type="date"
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                className="fc-input"
                                 value={filters.endDate || ''}
                                 onChange={(e) => handleFilterChange('endDate', e.target.value || null)}
                             />
@@ -242,7 +269,7 @@ const PaymentPage = () => {
             </div>
 
             {/* Data Table */}
-            <div className="card !p-0 overflow-hidden">
+            <div className="glass-card overflow-hidden" style={{ padding: 0 }}>
                 <DataTable
                     columns={columns}
                     data={payments}
