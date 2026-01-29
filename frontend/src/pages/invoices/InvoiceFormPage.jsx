@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, useParams } from 'react-router-dom';
-import { FiSave, FiSend, FiX, FiPlus, FiTrash2 } from 'react-icons/fi';
+import { useNavigate, useParams, Link } from 'react-router-dom';
+import { FiSave, FiSend, FiX, FiPlus, FiTrash2, FiSettings, FiBell } from 'react-icons/fi';
 
 import {
     fetchInvoiceById,
@@ -18,7 +18,6 @@ import {
     selectCustomerOptions
 } from '../../store/customer.slice.js';
 
-import PageHeader from '../../components/PageHeader.jsx';
 import Loading from '../../components/Loading.jsx';
 
 import { formatCurrency, calculateTotal, calculateTax } from '../../utils/money.util.js';
@@ -27,8 +26,8 @@ import { PAYMENT_TERMS_OPTIONS, getPaymentTermDays } from '../../constants/payme
 import { INVOICE_STATUS } from '../../constants/invoiceStatus.js';
 
 /**
- * InvoiceFormPage
- * Create or edit an invoice
+ * InvoiceFormPage - ARMS Design
+ * Create or edit an invoice with glassmorphism styling
  */
 const InvoiceFormPage = () => {
     const { id } = useParams();
@@ -219,23 +218,20 @@ const InvoiceFormPage = () => {
 
         const invoiceData = {
             customerId: formData.customerId,
-            invoiceNumber: formData.invoiceNumber ?? undefined, // Ensure optional
+            invoiceNumber: formData.invoiceNumber ?? undefined,
             issueDate: formData.issueDate,
             dueDate: formData.dueDate,
             totalAmount: calculations.total,
             paidAmount: 0,
             status: asDraft ? INVOICE_STATUS.DRAFT : INVOICE_STATUS.PENDING,
-            items: formData.items // Include items
+            items: formData.items
         };
 
         try {
             if (isEdit) {
-                // For update, we might want to exclude invoiceNumber if it shouldn't change, 
-                // or ensure backend ignores it if not provided.
                 await dispatch(updateInvoice({ id, data: invoiceData })).unwrap();
             } else {
                 await dispatch(createInvoice(invoiceData)).unwrap();
-                // No need to call sendInvoice - status is already set to PENDING if !asDraft
             }
             navigate('/invoices');
         } catch (error) {
@@ -253,7 +249,7 @@ const InvoiceFormPage = () => {
                 issueDate: formData.issueDate,
                 dueDate: formData.dueDate,
                 totalAmount: calculations.total,
-                items: formData.items // Include items
+                items: formData.items
             };
 
             try {
@@ -273,245 +269,275 @@ const InvoiceFormPage = () => {
     }
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                title={isEdit ? `Chỉnh sửa: ${id}` : 'Tạo hóa đơn mới'}
-                breadcrumbs={[
-                    { label: 'Hóa đơn', to: '/invoices' },
-                    { label: isEdit ? id : 'Tạo mới' }
-                ]}
-            />
+        <div className="relative min-h-screen">
+            {/* Background gradient blobs */}
+            <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+                <div className="absolute top-[-10%] left-[5%] w-[40vw] h-[40vw] rounded-full bg-blue-300/20 blur-[100px] opacity-70"></div>
+                <div className="absolute bottom-[-10%] right-[5%] w-[35vw] h-[35vw] rounded-full bg-indigo-300/20 blur-[80px] opacity-60"></div>
+            </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
-                {/* Main Form */}
-                <div className="card">
-                    {/* Customer & Dates */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div className="md:col-span-2">
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Khách hàng *</label>
-                            <select
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${errors.customerId ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                value={formData.customerId}
-                                onChange={handleCustomerChange}
-                                disabled={isEdit && currentInvoice?.paidAmount > 0}
-                            >
-                                <option value="">-- Chọn khách hàng --</option>
-                                {customerOptions.filter(c => c.status === 'ACTIVE').map(c => (
-                                    <option key={c.id} value={c.id}>{c.name}</option>
-                                ))}
-                            </select>
-                            {errors.customerId && <p className="text-red-500 text-sm mt-1">{errors.customerId}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Ngày tạo *</label>
-                            <input
-                                type="date"
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${errors.issueDate ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                value={formData.issueDate}
-                                onChange={handleIssueDateChange}
-                            />
-                            {errors.issueDate && <p className="text-red-500 text-sm mt-1">{errors.issueDate}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Điều khoản thanh toán</label>
-                            <select
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                value={formData.paymentTerm}
-                                onChange={handlePaymentTermChange}
-                            >
-                                {PAYMENT_TERMS_OPTIONS.map(opt => (
-                                    <option key={opt.value} value={opt.value}>{opt.label}</option>
-                                ))}
-                            </select>
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Hạn thanh toán *</label>
-                            <input
-                                type="date"
-                                className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] ${errors.dueDate ? 'border-red-500' : 'border-gray-300'
-                                    }`}
-                                value={formData.dueDate}
-                                onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
-                            />
-                            {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>}
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Thuế suất (%)</label>
-                            <input
-                                type="number"
-                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                                value={formData.taxRate}
-                                onChange={(e) => setFormData(prev => ({ ...prev, taxRate: parseFloat(e.target.value) || 0 }))}
-                                min="0"
-                                max="100"
-                            />
-                        </div>
-                    </div>
-
-                    {/* Items */}
-                    <div className="mb-6">
-                        <div className="flex justify-between items-center mb-3">
-                            <h3 className="text-lg font-semibold">Chi tiết hóa đơn</h3>
-                            <button
-                                type="button"
-                                className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-1"
-                                onClick={addItem}
-                            >
-                                <FiPlus className="w-4 h-4" /> Thêm dòng
-                            </button>
-                        </div>
-
-                        <div className="overflow-x-auto">
-                            <table className="w-full border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[40%]">Mô tả</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[15%]">Số lượng</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[20%]">Đơn giá</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[20%]">Thành tiền</th>
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600 w-[5%]"></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {formData.items.map((item, index) => {
-                                        const itemErrors = errors.items?.[index];
-                                        const amount = (item.quantity || 0) * (item.unitPrice || 0);
-
-                                        return (
-                                            <tr key={item.id || index} className="border-b border-gray-100">
-                                                <td className="px-4 py-2">
-                                                    <input
-                                                        type="text"
-                                                        className={`w-full px-3 py-2 border rounded-lg text-sm ${itemErrors?.description ? 'border-red-500' : 'border-gray-300'
-                                                            }`}
-                                                        value={item.description}
-                                                        onChange={(e) => handleItemChange(index, 'description', e.target.value)}
-                                                        placeholder="Nhập mô tả sản phẩm/dịch vụ"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-2">
-                                                    <input
-                                                        type="number"
-                                                        className={`w-full px-3 py-2 border rounded-lg text-sm ${itemErrors?.quantity ? 'border-red-500' : 'border-gray-300'
-                                                            }`}
-                                                        value={item.quantity}
-                                                        onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
-                                                        min="0"
-                                                        step="1"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-2">
-                                                    <input
-                                                        type="number"
-                                                        className={`w-full px-3 py-2 border rounded-lg text-sm ${itemErrors?.unitPrice ? 'border-red-500' : 'border-gray-300'
-                                                            }`}
-                                                        value={item.unitPrice}
-                                                        onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
-                                                        min="0"
-                                                        step="1000"
-                                                    />
-                                                </td>
-                                                <td className="px-4 py-2 font-mono font-medium">
-                                                    {formatCurrency(amount)}
-                                                </td>
-                                                <td className="px-4 py-2">
-                                                    {formData.items.length > 1 && (
-                                                        <button
-                                                            type="button"
-                                                            className="p-2 rounded-lg hover:bg-red-50 text-[var(--color-error)] transition-colors"
-                                                            onClick={() => removeItem(index)}
-                                                        >
-                                                            <FiTrash2 className="w-4 h-4" />
-                                                        </button>
-                                                    )}
-                                                </td>
-                                            </tr>
-                                        );
-                                    })}
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-
-                    {/* Notes */}
+            <div className="relative z-10 space-y-6">
+                {/* Header */}
+                <div className="flex flex-col md:flex-row md:items-start justify-between gap-4">
                     <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Ghi chú</label>
-                        <textarea
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
-                            value={formData.notes}
-                            onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-                            placeholder="Ghi chú thêm cho hóa đơn..."
-                            rows={3}
-                        />
+                        <div className="text-xs font-bold text-blue-500 mb-1 uppercase tracking-wider flex items-center gap-2">
+                            <Link to="/invoices" className="hover:underline">Hóa đơn</Link>
+                            <span className="text-slate-400">/</span>
+                            <span className="text-slate-600">{isEdit ? id.slice(0, 12).toUpperCase() + '...' : 'Tạo mới'}</span>
+                        </div>
+                        <h1 className="text-3xl font-bold text-slate-900 tracking-tight">
+                            {isEdit ? 'Chỉnh sửa hóa đơn' : 'Tạo Hóa đơn'}
+                        </h1>
+                        <p className="text-slate-500 mt-2 font-medium">
+                            {isEdit ? `Cập nhật thông tin chi tiết cho hóa đơn #${id.slice(0, 8)}...` : 'Tạo hóa đơn mới cho khách hàng'}
+                        </p>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <button className="p-2 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 transition-colors shadow-sm">
+                            <FiSettings size={20} />
+                        </button>
+                        <button className="p-2 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 transition-colors shadow-sm relative">
+                            <FiBell size={20} />
+                        </button>
                     </div>
                 </div>
 
-                {/* Summary & Actions */}
-                <div>
-                    <div className="card sticky top-4">
-                        <h3 className="text-lg font-semibold mb-4">Tổng kết</h3>
+                <div className="grid grid-cols-1 lg:grid-cols-[1fr_320px] gap-6">
+                    {/* Main Form - Glass Card */}
+                    <div className="glass-card p-6 space-y-8">
+                        {/* Customer & Dates */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <div className="md:col-span-2">
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Khách hàng *</label>
+                                <select
+                                    className={`fc-input w-full ${errors.customerId ? 'border-red-400 focus:border-red-400' : ''}`}
+                                    value={formData.customerId}
+                                    onChange={handleCustomerChange}
+                                    disabled={isEdit && currentInvoice?.paidAmount > 0}
+                                >
+                                    <option value="">-- Chọn khách hàng --</option>
+                                    {customerOptions.filter(c => c.status === 'ACTIVE').map(c => (
+                                        <option key={c.id} value={c.id}>{c.name}</option>
+                                    ))}
+                                </select>
+                                {errors.customerId && <p className="text-red-500 text-sm mt-1">{errors.customerId}</p>}
+                            </div>
 
-                        <div className="mb-4 space-y-2">
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Tạm tính:</span>
-                                <span className="font-mono">{formatCurrency(calculations.subtotal)}</span>
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Ngày tạo *</label>
+                                <input
+                                    type="date"
+                                    className={`fc-input w-full ${errors.issueDate ? 'border-red-400' : ''}`}
+                                    value={formData.issueDate}
+                                    onChange={handleIssueDateChange}
+                                />
+                                {errors.issueDate && <p className="text-red-500 text-sm mt-1">{errors.issueDate}</p>}
                             </div>
-                            <div className="flex justify-between">
-                                <span className="text-gray-500">Thuế ({formData.taxRate}%):</span>
-                                <span className="font-mono">{formatCurrency(calculations.taxAmount)}</span>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Điều khoản thanh toán</label>
+                                <select
+                                    className="fc-input w-full"
+                                    value={formData.paymentTerm}
+                                    onChange={handlePaymentTermChange}
+                                >
+                                    {PAYMENT_TERMS_OPTIONS.map(opt => (
+                                        <option key={opt.value} value={opt.value}>{opt.label}</option>
+                                    ))}
+                                </select>
                             </div>
-                            <div className="flex justify-between pt-3 border-t-2 border-gray-200 text-lg font-semibold">
-                                <span>Tổng cộng:</span>
-                                <span className="font-mono text-[var(--color-primary)]">
-                                    {formatCurrency(calculations.total)}
-                                </span>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Hạn thanh toán *</label>
+                                <input
+                                    type="date"
+                                    className={`fc-input w-full ${errors.dueDate ? 'border-red-400' : ''}`}
+                                    value={formData.dueDate}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                                />
+                                {errors.dueDate && <p className="text-red-500 text-sm mt-1">{errors.dueDate}</p>}
+                            </div>
+
+                            <div>
+                                <label className="block text-sm font-bold text-slate-700 mb-2">Thuế suất (%)</label>
+                                <input
+                                    type="number"
+                                    className="fc-input w-full"
+                                    value={formData.taxRate}
+                                    onChange={(e) => setFormData(prev => ({ ...prev, taxRate: parseFloat(e.target.value) || 0 }))}
+                                    min="0"
+                                    max="100"
+                                />
                             </div>
                         </div>
 
-                        <div className="flex flex-col gap-3">
-                            <button
-                                type="button"
-                                className="btn w-full flex items-center justify-center gap-2 py-3"
-                                onClick={handleSend}
-                                disabled={saving}
-                            >
-                                {saving ? (
-                                    <>
-                                        <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <FiSend /> Lưu & Gửi
-                                    </>
-                                )}
-                            </button>
+                        <hr className="border-slate-100" />
 
-                            <button
-                                type="button"
-                                className="w-full px-4 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center justify-center gap-2 transition-colors"
-                                onClick={() => handleSave(true)}
-                                disabled={saving}
-                            >
-                                <FiSave /> Lưu nháp
-                            </button>
+                        {/* Items Section */}
+                        <div>
+                            <div className="flex justify-between items-center mb-4">
+                                <h3 className="text-lg font-bold text-slate-900">Chi tiết hóa đơn</h3>
+                                <button
+                                    type="button"
+                                    className="px-4 py-2 text-sm border border-slate-200 rounded-xl hover:bg-slate-50 flex items-center gap-2 font-medium text-slate-600 transition-colors"
+                                    onClick={addItem}
+                                >
+                                    <FiPlus className="w-4 h-4" /> Thêm dòng
+                                </button>
+                            </div>
 
-                            <button
-                                type="button"
-                                className="w-full px-4 py-3 text-gray-600 hover:bg-gray-50 rounded-lg flex items-center justify-center gap-2 transition-colors"
-                                onClick={() => navigate('/invoices')}
-                                disabled={saving}
-                            >
-                                <FiX /> Hủy
-                            </button>
+                            <div className="overflow-x-auto">
+                                <table className="w-full">
+                                    <thead>
+                                        <tr className="border-b border-slate-100">
+                                            <th className="pb-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[40%]">Mô tả</th>
+                                            <th className="pb-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[12%]">Số lượng</th>
+                                            <th className="pb-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[18%]">Đơn giá</th>
+                                            <th className="pb-3 text-left text-xs font-bold text-slate-500 uppercase tracking-wider w-[20%]">Thành tiền</th>
+                                            <th className="pb-3 w-[10%]"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {formData.items.map((item, index) => {
+                                            const itemErrors = errors.items?.[index];
+                                            const amount = (item.quantity || 0) * (item.unitPrice || 0);
+
+                                            return (
+                                                <tr key={item.id || index} className="border-b border-slate-50">
+                                                    <td className="py-3 pr-3">
+                                                        <input
+                                                            type="text"
+                                                            className={`fc-input w-full ${itemErrors?.description ? 'border-red-400' : ''}`}
+                                                            value={item.description}
+                                                            onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                                                            placeholder="Mô tả sản phẩm/dịch vụ"
+                                                        />
+                                                    </td>
+                                                    <td className="py-3 pr-3">
+                                                        <input
+                                                            type="number"
+                                                            className={`fc-input w-full text-center ${itemErrors?.quantity ? 'border-red-400' : ''}`}
+                                                            value={item.quantity}
+                                                            onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                                                            min="0"
+                                                            step="1"
+                                                        />
+                                                    </td>
+                                                    <td className="py-3 pr-3">
+                                                        <input
+                                                            type="number"
+                                                            className={`fc-input w-full ${itemErrors?.unitPrice ? 'border-red-400' : ''}`}
+                                                            value={item.unitPrice}
+                                                            onChange={(e) => handleItemChange(index, 'unitPrice', e.target.value)}
+                                                            min="0"
+                                                            step="1000"
+                                                        />
+                                                    </td>
+                                                    <td className="py-3 pr-3">
+                                                        <span className="font-bold text-slate-800">
+                                                            {formatCurrency(amount)}
+                                                        </span>
+                                                    </td>
+                                                    <td className="py-3">
+                                                        {formData.items.length > 1 && (
+                                                            <button
+                                                                type="button"
+                                                                className="p-2 rounded-lg hover:bg-red-50 text-slate-400 hover:text-red-500 transition-colors"
+                                                                onClick={() => removeItem(index)}
+                                                            >
+                                                                <FiTrash2 className="w-4 h-4" />
+                                                            </button>
+                                                        )}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <hr className="border-slate-100" />
+
+                        {/* Notes */}
+                        <div>
+                            <label className="block text-sm font-bold text-slate-700 mb-2">Ghi chú</label>
+                            <textarea
+                                className="fc-input w-full resize-none"
+                                value={formData.notes}
+                                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                                placeholder="Ghi chú thêm cho hóa đơn..."
+                                rows={4}
+                            />
                         </div>
                     </div>
+
+                    {/* Summary & Actions - Sticky Glass Card */}
+                    <div className="lg:sticky lg:top-4 h-fit">
+                        <div className="glass-card p-6">
+                            <h3 className="text-lg font-bold text-slate-900 mb-6">Tổng kết</h3>
+
+                            <div className="space-y-4 mb-6">
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Tạm tính:</span>
+                                    <span className="font-semibold text-slate-800">{formatCurrency(calculations.subtotal)}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span className="text-slate-500 font-medium">Thuế ({formData.taxRate}%):</span>
+                                    <span className="font-semibold text-slate-800">{formatCurrency(calculations.taxAmount)}</span>
+                                </div>
+                                <div className="flex justify-between items-center pt-4 border-t-2 border-slate-200">
+                                    <span className="text-slate-700 font-bold">Tổng cộng:</span>
+                                    <span className="text-2xl font-bold text-blue-600">
+                                        {formatCurrency(calculations.total)}
+                                    </span>
+                                </div>
+                            </div>
+
+                            <div className="space-y-3">
+                                <button
+                                    type="button"
+                                    className="w-full py-3.5 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-xl font-semibold flex items-center justify-center gap-2 transition-colors shadow-lg shadow-blue-500/25"
+                                    onClick={handleSend}
+                                    disabled={saving}
+                                >
+                                    {saving ? (
+                                        <>
+                                            <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                                            Đang xử lý...
+                                        </>
+                                    ) : (
+                                        <>
+                                            <FiSend /> Lưu & Gửi
+                                        </>
+                                    )}
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="w-full py-3 px-4 border border-slate-200 bg-white hover:bg-slate-50 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors text-slate-700"
+                                    onClick={() => handleSave(true)}
+                                    disabled={saving}
+                                >
+                                    <FiSave /> Lưu nháp
+                                </button>
+
+                                <button
+                                    type="button"
+                                    className="w-full py-3 px-4 text-slate-500 hover:text-red-500 hover:bg-red-50 rounded-xl font-medium flex items-center justify-center gap-2 transition-colors"
+                                    onClick={() => navigate('/invoices')}
+                                    disabled={saving}
+                                >
+                                    <FiX /> Hủy bỏ
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {/* Footer */}
+                <div className="text-center text-xs text-slate-400 py-6 font-medium">
+                    © 2026 ARMS – Internal System
                 </div>
             </div>
         </div>
