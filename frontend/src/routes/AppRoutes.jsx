@@ -37,8 +37,11 @@ const AppRoutes = () => {
       <Route path="/" element={<Navigate to="/login" replace />} />
 
       {/* ================= AUTH ================= */}
+      {/* LoginPage renders directly with its own full-page design */}
+      <Route path="/login" element={<LoginPage />} />
+
+      {/* Other auth pages still use AuthLayout */}
       <Route element={<AuthLayout />}>
-        <Route path="/login" element={<LoginPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
       </Route>
 
