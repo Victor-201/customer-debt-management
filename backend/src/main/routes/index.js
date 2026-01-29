@@ -8,6 +8,7 @@ import paymentRoutes from './payment.routes.js';
 import arRoutes from './ar.routes.js';
 import emailTemplateRoutes from './emailTemplate.routes.js';
 import settingsRoutes from './settings.routes.js';
+import emailLogRoutes from './emailLog.routes.js';
 
 const router = express.Router();
 
@@ -20,5 +21,6 @@ router.use('/payments', paymentRoutes);
 router.use('/ar', arRoutes);
 router.use('/email-templates', emailTemplateRoutes);
 router.use('/settings', settingsRoutes);
+router.use('/email-logs', emailLogRoutes);
 
 export default router;

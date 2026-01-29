@@ -13,4 +13,8 @@ export default class EmailLogRepositoryInterFace {
   save(emailLog) {
     throw new Error("EmailLogRepositoryInterface.save() must be implemented");
   }
+
+  findAll() {
+    throw new Error("EmailLogRepositoryInterface.findAll() must be implemented");
+  }
 }

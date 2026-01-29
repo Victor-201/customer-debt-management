@@ -48,4 +48,12 @@ export default class EmailLogRepository extends EmailLogRepositoryInterface {
     const created = await this.EmailLogModel.create(payload);
     return created.get({ plain: true });
   }
+
+  async findAll() {
+    const logs = await this.EmailLogModel.findAll({
+      order: [["sent_at", "DESC"]],
+      include: ["Customer", "Invoice"], // Ensuring these associations exist in the model
+    });
+    return logs.map((log) => log.get({ plain: true }));
+  }
 }
