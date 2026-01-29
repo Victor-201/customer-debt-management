@@ -84,10 +84,10 @@ export default function UserFormPage() {
 
   return (
     <div className="flex min-h-[80vh] items-center justify-center px-4">
-      <div className="w-full max-w-xl rounded-xl border border-gray-300 bg-white shadow-sm">
+      <div className="w-full max-w-xl glass-card" style={{ padding: 0 }}>
         {/* HEADER */}
-        <div className="border-b border-gray-200 px-6 py-4">
-          <h1 className="text-lg font-semibold text-gray-800">
+        <div className="border-b border-gray-100 px-6 py-5 bg-gradient-to-r from-blue-50 to-indigo-50">
+          <h1 className="text-xl font-bold text-gray-800">
             {isEdit ? "Cập nhật nhân viên" : "Thêm nhân viên"}
           </h1>
           <p className="mt-1 text-sm text-gray-500">
@@ -104,11 +104,11 @@ export default function UserFormPage() {
         >
           {/* NAME */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Tên nhân viên
             </label>
             <input
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="fc-input"
               placeholder="Nhập tên"
               value={form.name}
               onChange={(e) =>
@@ -120,12 +120,12 @@ export default function UserFormPage() {
 
           {/* EMAIL */}
           <div>
-            <label className="mb-1 block text-sm font-medium">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Email
             </label>
             <input
               type="email"
-              className="w-full rounded-lg border px-3 py-2"
+              className="fc-input"
               value={form.email}
               onChange={(e) =>
                 setForm({ ...form, email: e.target.value })
@@ -137,12 +137,12 @@ export default function UserFormPage() {
           {/* PASSWORD */}
           {!isEdit && (
             <div>
-              <label className="mb-1 block text-sm font-medium text-gray-700">
+              <label className="mb-1.5 block text-sm font-medium text-gray-700">
                 {isEdit ? "Đổi mật khẩu" : "Mật khẩu"}
               </label>
               <input
                 type="password"
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+                className="fc-input"
                 placeholder="Nhập mật khẩu"
                 value={form.password}
                 onChange={(e) =>
@@ -155,11 +155,11 @@ export default function UserFormPage() {
 
           {/* ROLE */}
           <div>
-            <label className="mb-1 block text-sm font-medium text-gray-700">
+            <label className="mb-1.5 block text-sm font-medium text-gray-700">
               Quyền
             </label>
             <select
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 focus:border-blue-500 focus:outline-none"
+              className="fc-input"
               value={form.role}
               onChange={(e) =>
                 setForm({ ...form, role: e.target.value })
@@ -191,7 +191,7 @@ export default function UserFormPage() {
             <button
               type="button"
               onClick={() => navigate("/users")}
-              className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
+              className="fc-btn fc-btn--secondary"
             >
               Hủy
             </button>
@@ -199,7 +199,7 @@ export default function UserFormPage() {
             <button
               type="submit"
               disabled={loading}
-              className="rounded-lg bg-blue-600 px-5 py-2 text-sm font-medium text-white hover:bg-blue-700 disabled:opacity-50"
+              className="fc-btn fc-btn--primary"
             >
               {isEdit ? "Lưu thay đổi" : "Tạo nhân viên"}
             </button>

@@ -52,42 +52,35 @@ export default function DeletedUserPage() {
   };
 
   return (
-    <div className="px-6 py-6 space-y-6">
+    <div className="space-y-6">
       {/* ===== HEADER ===== */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-xl font-semibold text-gray-800">
-            Thùng rác – Nhân viên
-          </h1>
-          <p className="text-sm text-gray-500">
-            Các nhân viên đã bị xóa (có thể khôi phục hoặc xóa vĩnh viễn)
-          </p>
+      <div className="fc-page-header">
+        <div className="fc-page-header__breadcrumb">Quản lý / Thùng rác</div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="fc-page-header__title">Thùng rác – Nhân viên</h1>
+            <p className="fc-page-header__subtitle">
+              Các nhân viên đã bị xóa (có thể khôi phục hoặc xóa vĩnh viễn)
+            </p>
+          </div>
+          <button
+            onClick={() => navigate(-1)}
+            className="fc-btn fc-btn--secondary"
+          >
+            Quay lại
+          </button>
         </div>
-
-        {/* QUAY LẠI */}
-        <button
-          onClick={() => navigate(-1)}
-          className="rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
-        >
-          Quay lại
-        </button>
       </div>
 
       {/* ===== TABLE ===== */}
-      <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
-        <table className="w-full border-collapse text-sm">
+      <div className="glass-card overflow-hidden" style={{ padding: 0 }}>
+        <table className="fc-table">
           {/* HEADER */}
-          <thead className="bg-gray-50 text-gray-700">
-            <tr className="border-b border-gray-300">
-              <th className="px-6 py-3 text-left font-semibold border-r border-gray-200">
-                Nhân viên
-              </th>
-              <th className="px-6 py-3 text-center font-semibold border-r border-gray-200">
-                Email
-              </th>
-              <th className="px-6 py-3 text-right font-semibold">
-                Hành động
-              </th>
+          <thead>
+            <tr>
+              <th className="table-header text-left pl-6">Nhân viên</th>
+              <th className="table-header text-center">Email</th>
+              <th className="table-header text-right pr-6">Hành động</th>
             </tr>
           </thead>
 
@@ -96,27 +89,25 @@ export default function DeletedUserPage() {
             {users.map((u) => (
               <tr
                 key={u.id}
-                className="border-b border-gray-200 last:border-b-0 hover:bg-gray-50"
+                className="group hover:bg-blue-50/50 transition-colors border-b border-gray-100 last:border-b-0"
               >
                 {/* NAME */}
-                <td className="px-6 py-4 border-r border-gray-200">
-                  <div className="font-medium text-gray-800">
-                    {u.name}
-                  </div>
+                <td className="table-cell pl-6">
+                  <div className="font-bold text-gray-800">{u.name}</div>
                 </td>
 
                 {/* EMAIL */}
-                <td className="px-6 py-4 text-center border-r border-gray-200 text-gray-600">
+                <td className="table-cell text-center text-gray-600">
                   {u.email}
                 </td>
 
                 {/* ACTIONS */}
-                <td className="px-6 py-4">
-                  <div className="flex justify-end gap-2">
+                <td className="table-cell pr-6">
+                  <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     {/* RESTORE */}
                     <button
                       onClick={() => handleRestoreUser(u.id)}
-                      className="rounded-md bg-green-600 p-2 text-white hover:bg-green-700"
+                      className="action-btn text-green-500 hover:bg-green-50"
                       title="Khôi phục"
                     >
                       <FiRotateCcw />
@@ -125,7 +116,7 @@ export default function DeletedUserPage() {
                     {/* HARD DELETE */}
                     <button
                       onClick={() => handleHardDeleteUser(u.id)}
-                      className="rounded-md bg-red-600 p-2 text-white hover:bg-red-700"
+                      className="action-btn action-btn--delete"
                       title="Xóa vĩnh viễn"
                     >
                       <FiTrash2 />
