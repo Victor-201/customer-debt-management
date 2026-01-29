@@ -57,11 +57,17 @@ const KPICard = ({ title, value, unit, icon: Icon, iconBg, iconColor, trend, tre
   </div>
 );
 
-// Simple horizontal bar for aging chart (matching Stitch)
-const AgingBar = ({ label, percent, color, maxValue }) => {
-  const width = maxValue > 0 ? Math.min((percent / maxValue) * 100, 100) : 0;
+// Simple horizontal bar for aging chart with amount display
+const AgingBar = ({ label, amount, color, maxValue }) => {
+  const width = maxValue > 0 ? Math.min((amount / maxValue) * 100, 100) : 0;
+  const formatAmount = (val) => {
+    if (val >= 1e9) return `${(val / 1e9).toFixed(1)} tỷ`;
+    if (val >= 1e6) return `${(val / 1e6).toFixed(1)} tr`;
+    return new Intl.NumberFormat('vi-VN').format(val);
+  };
+
   return (
-    <div className="grid grid-cols-[100px_1fr] gap-4 items-center">
+    <div className="grid grid-cols-[100px_1fr_80px] gap-4 items-center">
       <div className="text-sm font-bold text-slate-500 text-right">{label}</div>
       <div className="h-8 bg-slate-100 rounded-lg relative overflow-hidden w-full">
         <div
@@ -69,6 +75,7 @@ const AgingBar = ({ label, percent, color, maxValue }) => {
           style={{ width: `${width}%`, backgroundColor: color }}
         />
       </div>
+      <div className="text-sm font-semibold text-slate-700 text-right">{formatAmount(amount)}</div>
     </div>
   );
 };
@@ -194,15 +201,15 @@ const DashboardPage = () => {
   const formattedTotal = formatCurrency(totalOutstanding);
   const formattedPaid = formatCurrency(paidThisMonth);
 
-  // Aging bar data with labels matching Stitch
+  // Aging bar data with real API amounts (no mock fallbacks)
   const agingBarData = [
-    { label: 'Current', percent: agingBuckets[0]?.percent || 35, color: '#34d399' },
-    { label: '1-30 Days', percent: agingBuckets[1]?.percent || 85, color: '#3b82f6' },
-    { label: '31-60 Days', percent: agingBuckets[2]?.percent || 15, color: '#3b82f6' },
-    { label: '61-90 Days', percent: agingBuckets[3]?.percent || 8, color: '#3b82f6' },
-    { label: '90+ Days', percent: agingBuckets[4]?.percent || 25, color: '#3b82f6' }
+    { label: 'Current', amount: agingBuckets[0]?.totalAmount || 0, color: '#34d399' },
+    { label: '1-30 Days', amount: agingBuckets[1]?.totalAmount || 0, color: '#3b82f6' },
+    { label: '31-60 Days', amount: agingBuckets[2]?.totalAmount || 0, color: '#f59e0b' },
+    { label: '61-90 Days', amount: agingBuckets[3]?.totalAmount || 0, color: '#ef4444' },
+    { label: '90+ Days', amount: agingBuckets[4]?.totalAmount || 0, color: '#7c3aed' }
   ];
-  const maxPercent = Math.max(...agingBarData.map(d => d.percent));
+  const maxAmount = Math.max(...agingBarData.map(d => d.amount), 1); // Avoid division by zero
 
   return (
     <div className="relative min-h-screen">
@@ -309,20 +316,16 @@ const DashboardPage = () => {
                   <AgingBar
                     key={idx}
                     label={bar.label}
-                    percent={bar.percent}
+                    amount={bar.amount}
                     color={bar.color}
-                    maxValue={maxPercent}
+                    maxValue={maxAmount}
                   />
                 ))}
-                <div className="grid grid-cols-[100px_1fr] gap-4">
-                  <div></div>
-                  <div className="flex justify-between text-xs text-slate-400 font-medium px-1">
-                    <span>0 đ</span>
-                    <span>80 tr</span>
-                    <span>160 tr</span>
-                    <span>320 tr</span>
+                {agingBarData.every(b => b.amount === 0) && (
+                  <div className="text-center py-8 text-slate-400">
+                    <p>Chưa có dữ liệu phân tích tuổi nợ</p>
                   </div>
-                </div>
+                )}
               </div>
             )}
           </div>
