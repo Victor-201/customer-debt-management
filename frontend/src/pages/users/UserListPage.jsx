@@ -73,63 +73,72 @@ export default function UserListPage() {
     }
   };
 
+  // Get user initials and color
+  const getAvatarColor = (name) => {
+    const colors = ['blue', 'emerald', 'amber', 'purple', 'red', 'orange'];
+    const index = name.charCodeAt(0) % colors.length;
+    return colors[index];
+  };
+
+  const getInitials = (name) => {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+  };
+
   return (
-    <div className="px-6 py-6 space-y-6">
+    <div className="space-y-6">
       {/* ===== HEADER ===== */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-4xl font-medium bold text-gray-800 py-2">
-            Quản lý nhân viên
-          </h1>
-          <p className="text-sm text-gray-500">
-            Thêm, chỉnh sửa, khóa hoặc xóa nhân viên hệ thống
-          </p>
-        </div>
+      <div className="fc-page-header">
+        <div className="fc-page-header__breadcrumb">Quản lý / Nhân viên</div>
+        <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+          <div>
+            <h1 className="fc-page-header__title">Quản lý nhân viên</h1>
+            <p className="fc-page-header__subtitle">
+              Thêm, chỉnh sửa, khóa hoặc xóa nhân viên hệ thống
+            </p>
+          </div>
 
-        <div className="flex gap-2">
-          <button
-            onClick={() => navigate("/users/create")}
-            className="flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm text-white hover:bg-blue-700"
-          >
-            <FiPlus /> Thêm nhân viên
-          </button>
+          <div className="fc-page-actions">
+            <button
+              onClick={() => navigate("/users/create")}
+              className="fc-btn fc-btn--primary-glow"
+            >
+              <FiPlus /> Thêm nhân viên
+            </button>
 
-          <button
-            onClick={() => navigate("/users/deleted")}
-            className="flex items-center gap-2 rounded-lg border border-gray-300 px-4 py-2 text-sm hover:bg-gray-50"
-          >
-            <FiArchive /> Thùng rác
-          </button>
+            <button
+              onClick={() => navigate("/users/deleted")}
+              className="fc-btn--icon"
+            >
+              <FiArchive />
+            </button>
+          </div>
         </div>
       </div>
 
       {/* ===== SEARCH ===== */}
-      <div className="max-w-sm">
+      <div className="relative max-w-md">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400">
+          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+        </span>
         <input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Tìm theo tên hoặc email..."
-          className="w-full rounded-lg border border-gray-300 px-4 py-2 text-sm focus:border-blue-500 focus:outline-none"
+          className="fc-input pl-10"
         />
       </div>
 
       {/* ===== TABLE ===== */}
-      <div className="overflow-hidden rounded-xl border border-gray-300 bg-white shadow-sm">
-        <table className="w-full border-collapse text-sm">
-          <thead className="bg-gray-50 text-gray-700">
-            <tr className="border-b border-gray-300">
-              <th className="px-6 py-3 text-center font-medium border-r border-gray-200">
-                Nhân viên
-              </th>
-              <th className="px-6 py-3 text-center font-medium border-r border-gray-200">
-                Quyền
-              </th>
-              <th className="px-6 py-3 text-center font-medium border-r border-gray-200">
-                Trạng thái
-              </th>
-              <th className="px-6 py-3 text-center font-medium">
-                Hành động
-              </th>
+      <div className="glass-card overflow-hidden" style={{ padding: 0 }}>
+        <table className="fc-table">
+          <thead>
+            <tr>
+              <th className="table-header text-left pl-6">Nhân viên</th>
+              <th className="table-header text-center w-48">Quyền</th>
+              <th className="table-header text-center w-48">Trạng thái</th>
+              <th className="table-header text-center w-48 pr-6">Hành động</th>
             </tr>
           </thead>
 
@@ -137,46 +146,47 @@ export default function UserListPage() {
             {filteredUsers.map((u) => (
               <tr
                 key={u.id}
-                className="border-b border-gray-200 hover:bg-gray-50"
+                className="group hover:bg-blue-50/50 transition-colors"
               >
                 {/* USER */}
-                <td className="px-6 py-4 border-r border-gray-200 text-center">
-                  <div className="flex flex-col items-center">
-                    <div className="font-medium text-gray-800">
-                      {u.name}
+                <td className="table-cell pl-6">
+                  <div className="flex items-center gap-4">
+                    <div className={`customer-avatar customer-avatar--${getAvatarColor(u.name)}`}>
+                      {getInitials(u.name)}
                     </div>
-                    <div className="text-xs text-gray-500">
-                      {u.email}
+                    <div>
+                      <div className="font-bold text-gray-800">{u.name}</div>
+                      <div className="text-xs text-gray-500 font-medium">{u.email}</div>
                     </div>
                   </div>
                 </td>
 
                 {/* ROLE */}
-                <td className="px-6 py-4 text-center border-r border-gray-200">
-                  <span className="rounded-full bg-gray-100 px-3 py-1 text-xs font-medium">
-                    ACCOUNTANT
+                <td className="table-cell text-center">
+                  <span className="status-badge status-badge--info">
+                    Kế toán
                   </span>
                 </td>
 
                 {/* STATUS */}
-                <td className="px-6 py-4 text-center border-r border-gray-200">
+                <td className="table-cell text-center">
                   {u.isActive ? (
-                    <span className="rounded-full bg-green-100 px-3 py-1 text-xs font-medium text-green-700">
-                      ACTIVE
+                    <span className="status-badge status-badge--success">
+                      Hoạt động
                     </span>
                   ) : (
-                    <span className="rounded-full bg-red-100 px-3 py-1 text-xs font-medium text-red-700">
-                      LOCKED
+                    <span className="status-badge status-badge--danger">
+                      Bị khóa
                     </span>
                   )}
                 </td>
 
                 {/* ACTIONS */}
-                <td className="px-6 py-4 text-center">
-                  <div className="flex justify-center gap-2">
+                <td className="table-cell text-center pr-6">
+                  <div className="flex justify-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                     <button
                       onClick={() => navigate(`/users/${u.id}/edit`)}
-                      className="rounded-md border border-gray-300 p-2 hover:bg-gray-100"
+                      className="action-btn action-btn--edit"
                       title="Sửa"
                     >
                       <FiEdit />
@@ -185,11 +195,11 @@ export default function UserListPage() {
                     <button
                       onClick={() => toggleLock(u)}
                       disabled={u.id === currentUser?.id}
-                      className={`rounded-md p-2 text-white ${u.id === currentUser?.id
-                        ? "bg-gray-300 cursor-not-allowed"
+                      className={`action-btn ${u.id === currentUser?.id
+                        ? "opacity-30 cursor-not-allowed"
                         : u.isActive
-                          ? "bg-yellow-500 hover:bg-yellow-600"
-                          : "bg-green-600 hover:bg-green-700"
+                          ? "text-amber-500 hover:bg-amber-50"
+                          : "text-emerald-500 hover:bg-emerald-50"
                         }`}
                       title={
                         u.id === currentUser?.id
@@ -204,7 +214,7 @@ export default function UserListPage() {
 
                     <button
                       onClick={() => handleSoftDelete(u.id)}
-                      className="rounded-md bg-red-600 p-2 text-white hover:bg-red-700"
+                      className="action-btn action-btn--delete"
                       title="Xóa (vào thùng rác)"
                     >
                       <FiTrash2 />
@@ -218,7 +228,7 @@ export default function UserListPage() {
               <tr>
                 <td
                   colSpan={4}
-                  className="px-6 py-10 text-center text-gray-500"
+                  className="table-cell text-center py-10 text-gray-500"
                 >
                   Không tìm thấy nhân viên nào
                 </td>
