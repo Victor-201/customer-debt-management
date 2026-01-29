@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useNavigate } from 'react-router-dom';
-import { FiPlus, FiEye, FiEdit2, FiXCircle, FiDollarSign, FiFilter } from 'react-icons/fi';
+import { FiPlus, FiEye, FiEdit2, FiXCircle, FiDollarSign, FiFilter, FiSearch } from 'react-icons/fi';
 
 import {
     fetchInvoices,
@@ -13,7 +13,6 @@ import {
     selectInvoicesPagination
 } from '../../store/invoice.slice.js';
 
-import PageHeader from '../../components/PageHeader.jsx';
 import DataTable from '../../components/DataTable.jsx';
 import StatusTag from '../../components/StatusTag.jsx';
 import ConfirmModal from '../../components/ConfirmModal.jsx';
@@ -97,7 +96,7 @@ const InvoiceListPage = () => {
             render: (value, row) => (
                 <Link
                     to={`/invoices/${row.id}`}
-                    className="font-semibold text-[var(--color-primary)] hover:underline"
+                    className="font-semibold text-blue-600 hover:underline"
                 >
                     {value || row.id}
                 </Link>
@@ -158,7 +157,7 @@ const InvoiceListPage = () => {
             sortable: true,
             width: '130px',
             render: (value) => (
-                <span className={`font-mono font-semibold ${value > 0 ? 'text-[var(--color-error)]' : 'text-[var(--color-success)]'}`}>
+                <span className={`font-mono font-semibold ${value > 0 ? 'text-red-600' : 'text-green-600'}`}>
                     {formatCurrency(value)}
                 </span>
             )
@@ -175,9 +174,9 @@ const InvoiceListPage = () => {
             header: 'Thao tác',
             width: '150px',
             render: (_, row) => (
-                <div className="flex gap-1">
+                <div className="flex gap-1 justify-center">
                     <button
-                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                        className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-gray-600"
                         onClick={(e) => { e.stopPropagation(); navigate(`/invoices/${row.id}`); }}
                         title="Xem chi tiết"
                     >
@@ -187,7 +186,7 @@ const InvoiceListPage = () => {
                     {row.status !== INVOICE_STATUS.PAID && row.status !== INVOICE_STATUS.CANCELLED && (
                         <>
                             <button
-                                className="p-2 rounded-lg hover:bg-gray-100 transition-colors"
+                                className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-blue-600"
                                 onClick={(e) => { e.stopPropagation(); navigate(`/invoices/${row.id}/edit`); }}
                                 title="Chỉnh sửa"
                             >
@@ -195,7 +194,7 @@ const InvoiceListPage = () => {
                             </button>
 
                             <button
-                                className="p-2 rounded-lg hover:bg-green-50 transition-colors text-[var(--color-success)]"
+                                className="p-2 rounded-lg hover:bg-green-50 transition-colors text-green-600"
                                 onClick={(e) => { e.stopPropagation(); setPaymentModal({ open: true, invoice: row }); }}
                                 title="Ghi nhận thanh toán"
                             >
@@ -219,25 +218,30 @@ const InvoiceListPage = () => {
     ];
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                title="Danh sách Hóa đơn"
-                subtitle={`Tổng cộng ${pagination.total} hóa đơn`}
-                actions={
-                    <Link to="/invoices/new" className="btn flex items-center gap-2">
+        <div>
+            {/* Page Header */}
+            <div className="fc-page-header">
+                <div className="fc-page-header__breadcrumb">Quản lý / Hóa đơn</div>
+                <div className="flex justify-between items-end">
+                    <div>
+                        <h1 className="fc-page-header__title">Danh sách Hóa đơn</h1>
+                        <p className="fc-page-header__subtitle">Tổng cộng {pagination.total} hóa đơn</p>
+                    </div>
+                    <Link to="/invoices/new" className="fc-btn fc-btn--primary">
                         <FiPlus /> Tạo hóa đơn
                     </Link>
-                }
-            />
+                </div>
+            </div>
 
             {/* Filter Bar */}
-            <div className="card">
+            <div className="fc-card mb-6">
                 <div className="flex flex-wrap items-center gap-4">
                     {/* Search */}
-                    <div className="flex-1 min-w-[200px]">
+                    <div className="fc-search-bar flex-1 min-w-[200px]">
+                        <FiSearch className="fc-search-bar__icon" />
                         <input
                             type="text"
-                            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:border-transparent"
+                            className="fc-search-bar__input"
                             placeholder="Tìm kiếm theo mã HĐ, khách hàng..."
                             value={filters.search}
                             onChange={(e) => handleFilterChange('search', e.target.value)}
@@ -246,7 +250,7 @@ const InvoiceListPage = () => {
 
                     {/* Status Filter */}
                     <select
-                        className="px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] min-w-[160px]"
+                        className="fc-input w-auto min-w-[180px]"
                         value={filters.status}
                         onChange={(e) => handleFilterChange('status', e.target.value)}
                     >
@@ -260,10 +264,7 @@ const InvoiceListPage = () => {
 
                     {/* Toggle Advanced Filters */}
                     <button
-                        className={`px-4 py-2 border rounded-lg flex items-center gap-2 transition-colors ${showFilters
-                            ? 'bg-[var(--color-primary)] text-white border-[var(--color-primary)]'
-                            : 'border-gray-300 hover:bg-gray-50'
-                            }`}
+                        className={`fc-btn ${showFilters ? 'fc-btn--primary' : 'fc-btn--secondary'}`}
                         onClick={() => setShowFilters(!showFilters)}
                     >
                         <FiFilter /> Bộ lọc
@@ -272,12 +273,12 @@ const InvoiceListPage = () => {
 
                 {/* Advanced Filters */}
                 {showFilters && (
-                    <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-200">
+                    <div className="flex flex-wrap gap-4 mt-4 pt-4 border-t border-gray-100">
                         <div className="flex items-center gap-2">
                             <label className="text-sm font-medium text-gray-600">Từ ngày:</label>
                             <input
                                 type="date"
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                className="fc-input w-auto"
                                 value={filters.startDate || ''}
                                 onChange={(e) => handleFilterChange('startDate', e.target.value || null)}
                             />
@@ -286,7 +287,7 @@ const InvoiceListPage = () => {
                             <label className="text-sm font-medium text-gray-600">Đến ngày:</label>
                             <input
                                 type="date"
-                                className="px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)]"
+                                className="fc-input w-auto"
                                 value={filters.endDate || ''}
                                 onChange={(e) => handleFilterChange('endDate', e.target.value || null)}
                             />
@@ -296,7 +297,7 @@ const InvoiceListPage = () => {
             </div>
 
             {/* Data Table */}
-            <div className="card !p-0 overflow-hidden">
+            <div className="fc-card !p-0 overflow-hidden">
                 <DataTable
                     columns={columns}
                     data={invoices}

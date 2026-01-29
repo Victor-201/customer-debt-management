@@ -137,16 +137,22 @@ const CustomerListPage = () => {
     );
 
   return (
-    <div className="p-6">
-      <div className="card">
+    <div>
+      <div className="fc-page-header">
+        <div className="fc-page-header__breadcrumb">Quản lý / Khách hàng</div>
+        <h1 className="fc-page-header__title">Danh sách khách hàng</h1>
+        <p className="fc-page-header__subtitle">Quản lý thông tin và công nợ khách hàng</p>
+      </div>
+
+      <div className="fc-card">
         {/* HEADER */}
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">
-            Danh sách khách hàng
+        <div className="fc-card__header">
+          <h2 className="fc-card__title">
+            Tất cả khách hàng
           </h2>
 
           <button
-            className="btn"
+            className="fc-btn fc-btn--primary"
             onClick={() => navigate("/customers/new")}
           >
             + Thêm khách hàng
@@ -155,29 +161,17 @@ const CustomerListPage = () => {
 
         {/* TABLE */}
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className="fc-table">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="p-2 border">Tên</th>
-                <th className="p-2 border">Email</th>
-                <th className="p-2 border">
-                  Số điện thoại
-                </th>
-                <th className="p-2 border">
-                  Hình thức thanh toán
-                </th>
-                <th className="p-2 border">
-                  Hạn mức tín dụng
-                </th>
-                <th className="p-2 border">
-                  Mức độ rủi ro
-                </th>
-                <th className="p-2 border">
-                  Trạng thái
-                </th>
-                <th className="p-2 border text-center">
-                  Hành động
-                </th>
+              <tr>
+                <th>Tên</th>
+                <th>Email</th>
+                <th>Số điện thoại</th>
+                <th>Hình thức thanh toán</th>
+                <th>Hạn mức tín dụng</th>
+                <th>Mức độ rủi ro</th>
+                <th>Trạng thái</th>
+                <th className="text-center">Hành động</th>
               </tr>
             </thead>
 
@@ -194,15 +188,12 @@ const CustomerListPage = () => {
               )}
 
               {list.map((customer) => (
-                <tr
-                  key={customer.id}
-                  className="hover:bg-gray-50"
-                >
+                <tr key={customer.id}>
                   {/* NAME */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <input
-                        className="input"
+                        className="fc-input"
                         value={formData.name}
                         onChange={(e) =>
                           setFormData({
@@ -217,10 +208,10 @@ const CustomerListPage = () => {
                   </td>
 
                   {/* EMAIL */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <input
-                        className="input"
+                        className="fc-input"
                         value={formData.email}
                         onChange={(e) =>
                           setFormData({
@@ -235,10 +226,10 @@ const CustomerListPage = () => {
                   </td>
 
                   {/* PHONE */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <input
-                        className="input"
+                        className="fc-input"
                         value={formData.phone}
                         onChange={(e) =>
                           setFormData({
@@ -253,10 +244,10 @@ const CustomerListPage = () => {
                   </td>
 
                   {/* PAYMENT */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <select
-                        className="input"
+                        className="fc-input"
                         value={formData.paymentTerm}
                         onChange={(e) =>
                           setFormData({
@@ -266,33 +257,22 @@ const CustomerListPage = () => {
                           })
                         }
                       >
-                        <option value="NET_7">
-                          Thanh toán sau 7 ngày
-                        </option>
-                        <option value="NET_15">
-                          Thanh toán sau 15 ngày
-                        </option>
-                        <option value="NET_30">
-                          Thanh toán sau 30 ngày
-                        </option>
+                        <option value="NET_7">Thanh toán sau 7 ngày</option>
+                        <option value="NET_15">Thanh toán sau 15 ngày</option>
+                        <option value="NET_30">Thanh toán sau 30 ngày</option>
                       </select>
                     ) : (
-                      customer.paymentTerm ===
-                        "NET_7"
-                        ? "7 ngày"
-                        : customer.paymentTerm ===
-                          "NET_15"
-                          ? "15 ngày"
-                          : "30 ngày"
+                      customer.paymentTerm === "NET_7" ? "7 ngày" :
+                        customer.paymentTerm === "NET_15" ? "15 ngày" : "30 ngày"
                     )}
                   </td>
 
                   {/* CREDIT */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <input
                         type="number"
-                        className="input"
+                        className="fc-input"
                         value={formData.creditLimit}
                         onChange={(e) =>
                           setFormData({
@@ -303,16 +283,15 @@ const CustomerListPage = () => {
                         }
                       />
                     ) : (
-                      customer.creditLimit?.toLocaleString() +
-                      " đ"
+                      customer.creditLimit?.toLocaleString() + " đ"
                     )}
                   </td>
 
                   {/* RISK */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <select
-                        className="input"
+                        className="fc-input"
                         value={formData.riskLevel}
                         onChange={(e) =>
                           setFormData({
@@ -322,32 +301,24 @@ const CustomerListPage = () => {
                           })
                         }
                       >
-                        <option value="NORMAL">
-                          Bình thường
-                        </option>
-                        <option value="WARNING">
-                          Cảnh báo
-                        </option>
-                        <option value="HIGH_RISK">
-                          Rủi ro cao
-                        </option>
+                        <option value="NORMAL">Bình thường</option>
+                        <option value="WARNING">Cảnh báo</option>
+                        <option value="HIGH_RISK">Rủi ro cao</option>
                       </select>
-                    ) : customer.riskLevel ===
-                      "WARNING" ? (
-                      "Cảnh báo"
-                    ) : customer.riskLevel ===
-                      "HIGH_RISK" ? (
-                      "Rủi ro cao"
                     ) : (
-                      "Bình thường"
+                      <span className={`fc-badge ${customer.riskLevel === 'HIGH_RISK' ? 'fc-badge--danger' :
+                        customer.riskLevel === 'WARNING' ? 'fc-badge--warning' : 'fc-badge--success'}`}>
+                        {customer.riskLevel === "WARNING" ? "Cảnh báo" :
+                          customer.riskLevel === "HIGH_RISK" ? "Rủi ro cao" : "Bình thường"}
+                      </span>
                     )}
                   </td>
 
                   {/* STATUS */}
-                  <td className="p-2 border">
+                  <td>
                     {editingId === customer.id ? (
                       <select
-                        className="input"
+                        className="fc-input"
                         value={formData.status}
                         onChange={(e) =>
                           setFormData({
@@ -357,16 +328,12 @@ const CustomerListPage = () => {
                           })
                         }
                       >
-                        <option value="ACTIVE">
-                          Đang hoạt động
-                        </option>
-                        <option value="INACTIVE">
-                          Ngừng hoạt động
-                        </option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     ) : (
                       <select
-                        className="input"
+                        className="fc-input"
                         value={customer.status}
                         onChange={(e) =>
                           handleQuickStatusChange(
@@ -376,67 +343,65 @@ const CustomerListPage = () => {
                           )
                         }
                       >
-                        <option value="ACTIVE">
-                          Đang hoạt động
-                        </option>
-                        <option value="INACTIVE">
-                          Ngừng hoạt động
-                        </option>
+                        <option value="ACTIVE">Đang hoạt động</option>
+                        <option value="INACTIVE">Ngừng hoạt động</option>
                       </select>
                     )}
                   </td>
 
                   {/* ACTION */}
-                  <td className="p-2 border text-center space-x-2">
-                    {editingId === customer.id ? (
-                      <>
-                        <button
-                          className="btn"
-                          onClick={handleSaveConfirm}
-                        >
-                          Lưu
-                        </button>
-                        <button
-                          className="px-3 py-2 rounded border"
-                          onClick={handleCancelEdit}
-                        >
-                          Hủy
-                        </button>
-                      </>
-                    ) : (
-                      <>
-                        <button
-                          className="btn"
-                          onClick={() =>
-                            navigate(
-                              `/customers/${customer.id}`
-                            )
-                          }
-                        >
-                          Xem
-                        </button>
+                  <td className="text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      {editingId === customer.id ? (
+                        <>
+                          <button
+                            className="fc-btn fc-btn--primary"
+                            onClick={handleSaveConfirm}
+                          >
+                            Lưu
+                          </button>
+                          <button
+                            className="fc-btn fc-btn--secondary"
+                            onClick={handleCancelEdit}
+                          >
+                            Hủy
+                          </button>
+                        </>
+                      ) : (
+                        <>
+                          <button
+                            className="fc-btn fc-btn--secondary"
+                            onClick={() =>
+                              navigate(
+                                `/customers/${customer.id}`
+                              )
+                            }
+                          >
+                            Xem
+                          </button>
 
-                        <button
-                          className="px-3 py-2 rounded bg-yellow-500 text-white hover:bg-yellow-600"
-                          onClick={() =>
-                            handleEdit(customer)
-                          }
-                        >
-                          Sửa
-                        </button>
+                          <button
+                            className="fc-btn fc-btn--secondary"
+                            onClick={() =>
+                              handleEdit(customer)
+                            }
+                          >
+                            Sửa
+                          </button>
 
-                        <button
-                          className="px-3 py-2 rounded bg-red-500 text-white hover:bg-red-600"
-                          onClick={() =>
-                            handleDelete(
-                              customer.id
-                            )
-                          }
-                        >
-                          Xóa
-                        </button>
-                      </>
-                    )}
+                          <button
+                            className="fc-btn fc-btn--danger"
+                            onClick={() =>
+                              handleDelete(
+                                customer.id
+                              )
+                            }
+                          >
+                            Xóa
+                          </button>
+                        </>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -458,10 +423,10 @@ const CustomerListPage = () => {
             {/* Icon & Title */}
             <div className="flex flex-col items-center mb-6">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${confirmData?.type === 'delete'
-                  ? 'bg-red-100'
-                  : confirmData?.type === 'status'
-                    ? 'bg-blue-100'
-                    : 'bg-green-100'
+                ? 'bg-red-100'
+                : confirmData?.type === 'status'
+                  ? 'bg-blue-100'
+                  : 'bg-green-100'
                 }`}>
                 {confirmData?.type === 'delete' ? (
                   <svg className="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -506,10 +471,10 @@ const CustomerListPage = () => {
               </button>
               <button
                 className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-colors ${confirmData?.type === 'delete'
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : confirmData?.type === 'status'
-                      ? 'bg-blue-600 hover:bg-blue-700'
-                      : 'bg-green-600 hover:bg-green-700'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : confirmData?.type === 'status'
+                    ? 'bg-blue-600 hover:bg-blue-700'
+                    : 'bg-green-600 hover:bg-green-700'
                   }`}
                 onClick={() => {
                   if (confirmData?.type === 'delete') {
@@ -531,13 +496,6 @@ const CustomerListPage = () => {
       )}
 
       <style jsx>{`
-        .input {
-          width: 100%;
-          padding: 6px;
-          border: 1px solid #ccc;
-          border-radius: 6px;
-        }
-
         @keyframes slideIn {
           from {
             opacity: 0;
