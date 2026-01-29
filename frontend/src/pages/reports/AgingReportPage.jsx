@@ -129,119 +129,124 @@ const AgingReportPage = () => {
     }
 
     return (
-        <div className="min-h-screen bg-slate-50 p-6">
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex justify-between items-start mb-8">
+        <div className="space-y-6">
+            {/* Header */}
+            <div className="fc-page-header">
+                <div className="fc-page-header__breadcrumb">Báo cáo / Tuổi nợ</div>
+                <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
                     <div>
-                        <span className="text-sm text-gray-400">Báo cáo</span>
-                        <h1 className="text-3xl font-bold text-gray-800 flex items-center gap-3">
-                            <FileText className="text-blue-500" />
-                            Phân tích tuổi nợ
-                        </h1>
-                        <p className="text-gray-500 mt-2">Phân bố công nợ theo thời gian quá hạn thanh toán</p>
+                        <div className="flex items-center gap-2">
+                            <FileText className="text-orange-500" size={28} />
+                            <h1 className="fc-page-header__title">Công nợ quá hạn</h1>
+                        </div>
+                        <p className="fc-page-header__subtitle">Phân bố công nợ theo thời gian quá hạn thanh toán</p>
                     </div>
-                    <div className="flex gap-3">
+                    <div className="fc-page-actions">
                         <button
                             onClick={handleExport}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
+                            className="fc-btn fc-btn--secondary"
                         >
                             <Download size={18} />
                             Xuất báo cáo
                         </button>
                     </div>
                 </div>
+            </div>
 
-                {/* Error Alert */}
-                {error && (
-                    <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
-                        <AlertCircle />
-                        <p>{error}</p>
-                    </div>
-                )}
+            {/* Error Alert */}
+            {error && (
+                <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6 flex items-center gap-3">
+                    <AlertCircle />
+                    <p>{error}</p>
+                </div>
+            )}
 
-                {/* Summary Stats */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-                    <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl p-5 text-white col-span-2 lg:col-span-1">
-                        <p className="text-blue-100 text-sm">Tổng công nợ</p>
-                        <p className="text-3xl font-bold mt-1">{formatCurrency(totalAmount)}</p>
-                        <p className="text-blue-200 text-sm mt-2">{totalCount} hóa đơn</p>
+            {/* Summary Stats */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Total - Orange gradient */}
+                <div className="p-6 flex flex-col justify-between h-40 rounded-2xl shadow-lg bg-gradient-to-br from-orange-500 to-red-500 text-white relative overflow-hidden">
+                    <div className="flex justify-between items-start">
+                        <span className="text-sm font-bold text-white/90">Tổng quá hạn</span>
                     </div>
-                    <div className="bg-white rounded-xl p-5 border border-gray-100">
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                            <TrendingUp size={16} className="text-green-500" />
-                            Trong hạn
-                        </div>
-                        <p className="text-2xl font-bold text-green-600 mt-1">
-                            {chartDataWithPercent.find(d => d.key === 'current')?.percent || 0}%
-                        </p>
-                    </div>
-                    <div className="bg-white rounded-xl p-5 border border-gray-100">
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                            <AlertCircle size={16} className="text-red-500" />
-                            Quá hạn 90+
-                        </div>
-                        <p className="text-2xl font-bold text-red-600 mt-1">
-                            {chartDataWithPercent.find(d => d.key === 'overdue_90_plus')?.percent || 0}%
-                        </p>
-                    </div>
-                    <div className="bg-white rounded-xl p-5 border border-gray-100">
-                        <div className="flex items-center gap-2 text-gray-500 text-sm">
-                            <Calendar size={16} className="text-gray-400" />
-                            Ngày báo cáo
-                        </div>
-                        <p className="text-lg font-semibold text-gray-700 mt-1">
-                            {new Date().toLocaleDateString('vi-VN')}
-                        </p>
+                    <div>
+                        <div className="text-3xl font-bold text-white mb-1">{formatCurrency(totalAmount)}</div>
+                        <div className="text-xs text-white/80 font-medium">{totalCount} hóa đơn</div>
                     </div>
                 </div>
-
-                {/* Chart */}
-                <div className="bg-white rounded-xl p-6 border border-gray-100 shadow-sm mb-8">
-                    <h2 className="text-lg font-semibold text-gray-800 mb-6">Biểu đồ phân bố tuổi nợ</h2>
-                    <ResponsiveContainer width="100%" height={350}>
-                        <BarChart data={chartDataWithPercent} layout="vertical">
-                            <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
-                            <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
-                            <YAxis type="category" dataKey="name" width={100} />
-                            <Tooltip
-                                content={({ active, payload }) => {
-                                    if (active && payload && payload.length) {
-                                        const data = payload[0].payload;
-                                        return (
-                                            <div className="bg-white p-3 rounded-lg shadow-lg border">
-                                                <p className="font-semibold">{data.name}</p>
-                                                <p className="text-sm text-gray-600">Số tiền: {formatCurrency(data.amount)}</p>
-                                                <p className="text-sm text-gray-600">Số HĐ: {data.count}</p>
-                                                <p className="text-sm text-gray-600">Tỉ lệ: {data.percent}%</p>
-                                            </div>
-                                        );
-                                    }
-                                    return null;
-                                }}
-                            />
-                            <Bar dataKey="amount" radius={[0, 6, 6, 0]}>
-                                {chartDataWithPercent.map((entry, index) => (
-                                    <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                            </Bar>
-                        </BarChart>
-                    </ResponsiveContainer>
+                <div className="glass-card p-5">
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                        <TrendingUp size={16} className="text-green-500" />
+                        Trong hạn
+                    </div>
+                    <p className="text-2xl font-bold text-green-600 mt-2">
+                        {chartDataWithPercent.find(d => d.key === 'current')?.percent || 0}%
+                    </p>
                 </div>
+                <div className="glass-card p-5">
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                        <AlertCircle size={16} className="text-red-500" />
+                        Quá hạn 90+
+                    </div>
+                    <p className="text-2xl font-bold text-red-600 mt-2">
+                        {chartDataWithPercent.find(d => d.key === 'overdue_90_plus')?.percent || 0}%
+                    </p>
+                </div>
+                <div className="glass-card p-5">
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                        <Calendar size={16} className="text-gray-400" />
+                        Ngày báo cáo
+                    </div>
+                    <p className="text-lg font-semibold text-gray-700 mt-2">
+                        {new Date().toLocaleDateString('vi-VN')}
+                    </p>
+                </div>
+            </div>
 
-                {/* Detail Cards */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {chartDataWithPercent.map((item) => (
-                        <SummaryCard
-                            key={item.key}
-                            label={item.name}
-                            count={item.count}
-                            amount={item.amount}
-                            color={item.fill}
-                            description={AGING_DESCRIPTIONS[item.key]}
+            {/* Chart */}
+            <div className="glass-card p-6">
+                <h2 className="text-lg font-semibold text-gray-800 mb-6">Biểu đồ phân bố tuổi nợ</h2>
+                <ResponsiveContainer width="100%" height={350}>
+                    <BarChart data={chartDataWithPercent} layout="vertical">
+                        <CartesianGrid strokeDasharray="3 3" horizontal={true} vertical={false} />
+                        <XAxis type="number" tickFormatter={(v) => formatCurrency(v)} />
+                        <YAxis type="category" dataKey="name" width={100} />
+                        <Tooltip
+                            content={({ active, payload }) => {
+                                if (active && payload && payload.length) {
+                                    const data = payload[0].payload;
+                                    return (
+                                        <div className="bg-white p-3 rounded-lg shadow-lg border">
+                                            <p className="font-semibold">{data.name}</p>
+                                            <p className="text-sm text-gray-600">Số tiền: {formatCurrency(data.amount)}</p>
+                                            <p className="text-sm text-gray-600">Số HĐ: {data.count}</p>
+                                            <p className="text-sm text-gray-600">Tỉ lệ: {data.percent}%</p>
+                                        </div>
+                                    );
+                                }
+                                return null;
+                            }}
                         />
-                    ))}
-                </div>
+                        <Bar dataKey="amount" radius={[0, 6, 6, 0]}>
+                            {chartDataWithPercent.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                            ))}
+                        </Bar>
+                    </BarChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Detail Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {chartDataWithPercent.map((item) => (
+                    <SummaryCard
+                        key={item.key}
+                        label={item.name}
+                        count={item.count}
+                        amount={item.amount}
+                        color={item.fill}
+                        description={AGING_DESCRIPTIONS[item.key]}
+                    />
+                ))}
             </div>
         </div>
     );
