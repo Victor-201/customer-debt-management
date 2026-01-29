@@ -47,34 +47,40 @@ const LoadingSkeleton = () => (
   </div>
 );
 
-const KPICard = ({ title, value, icon: Icon, colorClass, trend, loading }) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 hover:shadow-md transition-shadow">
-    <div className="flex items-center justify-between mb-2">
-      <h3 className="text-gray-500 font-medium text-sm">{title}</h3>
-      {Icon && <Icon size={20} className={colorClass} />}
+const KPICard = ({ title, value, icon: Icon, colorClass, iconBg, trend, loading }) => (
+  <div className="glass-card group hover:-translate-y-1 transition-transform duration-300 h-40 flex flex-col justify-between">
+    <div className="flex items-start justify-between">
+      <span className="text-sm font-bold text-slate-600">{title}</span>
+      {Icon && (
+        <span className={`p-2 rounded-xl ${iconBg || 'bg-blue-50'}`}>
+          <Icon size={20} className={colorClass} />
+        </span>
+      )}
     </div>
     {loading ? (
       <LoadingSkeleton />
     ) : (
-      <>
-        <p className={`text-2xl font-bold ${colorClass}`}>{value}</p>
+      <div>
+        <p className="text-3xl font-bold text-slate-900 mb-1">{value}</p>
         {trend && (
-          <span className={`text-xs flex items-center gap-1 mt-1 ${trend > 0 ? 'text-green-500' : 'text-red-500'}`}>
-            {trend > 0 ? <TrendingUp size={12} /> : <TrendingDown size={12} />}
-            {Math.abs(trend)}% so với tháng trước
-          </span>
+          <div className="text-xs text-slate-500 flex items-center gap-1 font-medium">
+            <span className={trend > 0 ? 'text-emerald-500 font-bold' : 'text-red-500 font-bold'}>
+              {trend > 0 ? '+' : ''}{trend}%
+            </span>
+            so với tháng trước
+          </div>
         )}
-      </>
+      </div>
     )}
   </div>
 );
 
 const ChartCard = ({ title, subtitle, children, loading, action }) => (
-  <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-    <div className="flex justify-between items-start mb-4">
+  <div className="glass-card">
+    <div className="flex justify-between items-start mb-6">
       <div>
-        <h3 className="text-lg font-semibold text-gray-800">{title}</h3>
-        {subtitle && <p className="text-sm text-gray-500">{subtitle}</p>}
+        <h3 className="text-lg font-bold text-slate-900">{title}</h3>
+        {subtitle && <p className="text-xs text-slate-500 mt-1 font-medium">{subtitle}</p>}
       </div>
       {action}
     </div>
@@ -196,48 +202,62 @@ const DashboardPage = () => {
   const collectionRate = (paidThisMonth / expectedThisMonth * 100) || 0;
 
   return (
-    <div className="bg-slate-50 min-h-screen p-6">
-      <div className="max-w-7xl mx-auto">
+    <div className="relative min-h-screen">
+      {/* Background gradient blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        <div className="absolute top-[-10%] left-[5%] w-[40vw] h-[40vw] rounded-full bg-blue-300/20 blur-[100px] opacity-70"></div>
+        <div className="absolute bottom-[-10%] right-[5%] w-[35vw] h-[35vw] rounded-full bg-indigo-300/20 blur-[80px] opacity-60"></div>
+        <div className="absolute top-[30%] right-[20%] w-[20vw] h-[20vw] rounded-full bg-sky-200/40 blur-[60px]"></div>
+      </div>
+
+      <div className="relative z-10 space-y-8">
         {/* Header */}
-        <header className="flex justify-between items-center mb-6">
-          <div>
-            <span className="text-sm text-gray-400">Quản lý Công nợ Khách hàng</span>
-            <h1 className="text-3xl font-bold text-gray-800">Tổng quan</h1>
-            <p className="text-gray-500 mt-1">Chào mừng trở lại, đây là tình hình tài chính hôm nay.</p>
+        <div className="fc-page-header">
+          <div className="fc-page-header__breadcrumb">Quản lý Công nợ Khách hàng</div>
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
+            <div>
+              <h1 className="fc-page-header__title">Tổng quan</h1>
+              <p className="fc-page-header__subtitle">Chào mừng trở lại, đây là tình hình tài chính hôm nay.</p>
+            </div>
+            <div className="flex items-center gap-3">
+              <button className="p-2 rounded-full bg-white hover:bg-slate-50 border border-slate-200 text-slate-500 transition-colors shadow-sm">
+                <Settings size={20} />
+              </button>
+            </div>
           </div>
-          <Link to="/settings">
-            <Settings size={24} className="text-gray-400 cursor-pointer hover:text-gray-600 transition-colors" />
-          </Link>
-        </header>
+        </div>
 
         {/* Error Alert */}
         {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg mb-6">
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
             <p>{error}</p>
           </div>
         )}
 
         {/* KPI Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
           <KPICard
             title="Tổng công nợ"
             value={formatCurrency(agingSummary.totalOutstanding || totalAR || 0)}
             icon={TrendingUp}
-            colorClass="text-blue-600"
+            colorClass="text-blue-500"
+            iconBg="bg-blue-50"
             loading={loading}
           />
           <KPICard
             title="Công nợ quá hạn"
             value={`${overduePercent.toFixed(1)}%`}
             icon={AlertTriangle}
-            colorClass="text-yellow-500"
+            colorClass="text-amber-500"
+            iconBg="bg-amber-50"
             loading={loading}
           />
           <KPICard
             title="Đã thu trong tháng"
-            value={`${collectionRate.toFixed(1)}%`}
+            value={formatCurrency(paidThisMonth)}
             icon={CheckCircle}
-            colorClass="text-emerald-500"
+            colorClass="text-emerald-400"
+            iconBg="bg-emerald-50"
             loading={loading}
           />
           <KPICard
@@ -245,6 +265,7 @@ const DashboardPage = () => {
             value={dashboardData.highRiskCustomers.length || 0}
             icon={AlertTriangle}
             colorClass="text-red-500"
+            iconBg="bg-red-50"
             loading={loading}
           />
         </div>
@@ -422,25 +443,30 @@ const DashboardPage = () => {
         </div>
 
         {/* Quick Actions */}
-        <div className="mt-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-          <Link to="/reports/aging" className="bg-blue-50 hover:bg-blue-100 p-4 rounded-xl flex items-center gap-4 transition-colors">
-            <div className="bg-blue-500 p-3 rounded-lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <Link to="/reports/aging" className="glass-card group hover:-translate-y-1 transition-transform duration-300 flex items-center gap-4">
+            <div className="bg-gradient-to-br from-blue-500 to-indigo-600 p-3 rounded-xl shadow-lg shadow-blue-500/30">
               <TrendingUp className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800">Báo cáo tuổi nợ</h4>
-              <p className="text-sm text-gray-500">Xem chi tiết tình hình công nợ theo từng bucket</p>
+              <h4 className="font-bold text-slate-800">Báo cáo tuổi nợ</h4>
+              <p className="text-sm text-slate-500 font-medium">Xem chi tiết tình hình công nợ theo từng bucket</p>
             </div>
           </Link>
-          <Link to="/settings/automation" className="bg-purple-50 hover:bg-purple-100 p-4 rounded-xl flex items-center gap-4 transition-colors">
-            <div className="bg-purple-500 p-3 rounded-lg">
+          <Link to="/settings/automation" className="glass-card group hover:-translate-y-1 transition-transform duration-300 flex items-center gap-4">
+            <div className="bg-gradient-to-br from-purple-500 to-violet-600 p-3 rounded-xl shadow-lg shadow-purple-500/30">
               <Settings className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h4 className="font-semibold text-gray-800">Nhắc nợ tự động</h4>
-              <p className="text-sm text-gray-500">Cấu hình gửi email nhắc nợ tự động</p>
+              <h4 className="font-bold text-slate-800">Nhắc nợ tự động</h4>
+              <p className="text-sm text-slate-500 font-medium">Cấu hình gửi email nhắc nợ tự động</p>
             </div>
           </Link>
+        </div>
+
+        {/* Footer */}
+        <div className="text-center text-xs text-slate-400 py-6 font-medium">
+          © 2026 FA Credit – Internal System
         </div>
       </div>
     </div>
