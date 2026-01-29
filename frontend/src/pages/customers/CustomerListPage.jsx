@@ -144,7 +144,7 @@ const CustomerListPage = () => {
         <p className="fc-page-header__subtitle">Quản lý thông tin và công nợ khách hàng</p>
       </div>
 
-      <div className="fc-card">
+      <div className="glass-card p-6">
         {/* HEADER */}
         <div className="fc-card__header">
           <h2 className="fc-card__title">

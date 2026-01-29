@@ -53,34 +53,103 @@ body {
 }
 
 /* ========================================
-   Sidebar Overrides
+   Sidebar Overrides (from Stitch)
+   Light background, blue active item
    ======================================== */
 .sidebar {
-    background: linear-gradient(180deg, var(--fc-primary) 0%, var(--fc-primary-dark) 100%) !important;
+    background: #f8fafc !important;
+    border-right: 1px solid #e2e8f0;
 }
 
 .sidebar__logo-name {
-    color: white !important;
-    font-weight: 600;
+    color: var(--fc-text) !important;
+    font-weight: 700;
 }
 
 .sidebar__logo-subtitle {
-    color: rgba(255, 255, 255, 0.7) !important;
+    color: var(--fc-text-secondary) !important;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.sidebar__nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fc-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    padding-left: 1rem;
 }
 
 .sidebar__nav-item {
-    color: rgba(255, 255, 255, 0.8) !important;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--fc-radius-lg);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--fc-text-secondary) !important;
     transition: all 0.2s ease;
 }
 
-.sidebar__nav-item:hover,
-.sidebar__nav-item.active {
-    background: rgba(255, 255, 255, 0.1) !important;
-    color: white !important;
+.sidebar__nav-item:hover {
+    background: #f1f5f9 !important;
+    color: var(--fc-text) !important;
 }
 
 .sidebar__nav-item.active {
-    border-left: 3px solid white;
+    background: var(--fc-accent) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
+}
+
+/* ========================================
+   Glass Card (Glassmorphism from Stitch)
+   ======================================== */
+.glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: var(--fc-radius-lg);
+    box-shadow: 0 4px 24px -2px rgba(148, 163, 184, 0.15);
+}
+
+/* Background blur effects for main content area */
+.fc-main-bg {
+    position: relative;
+    background: #f8fafc;
+}
+
+.fc-main-bg::before {
+    content: '';
+    position: fixed;
+    top: -10%;
+    left: 5%;
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    background: rgba(147, 197, 253, 0.2);
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.fc-main-bg::after {
+    content: '';
+    position: fixed;
+    bottom: -10%;
+    right: 5%;
+    width: 35vw;
+    height: 35vw;
+    border-radius: 50%;
+    background: rgba(165, 180, 252, 0.2);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
 }
 
 /* ========================================
@@ -484,4 +553,177 @@ body {
     padding: 1rem;
     font-size: 0.75rem;
     color: var(--fc-text-muted);
+}
+
+/* ========================================
+   Table Styles (from Stitch)
+   ======================================== */
+.table-header {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(248, 250, 252, 0.5);
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table-cell {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    color: var(--fc-text);
+    border-bottom: 1px solid #f8fafc;
+}
+
+/* ========================================
+   Action Buttons (from Stitch)
+   ======================================== */
+.action-btn {
+    padding: 0.5rem;
+    border-radius: var(--fc-radius);
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.action-btn:hover {
+    color: var(--fc-accent);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.action-btn--edit {
+    color: #3b82f6;
+}
+
+.action-btn--edit:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.action-btn--delete {
+    color: #f87171;
+}
+
+.action-btn--delete:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* ========================================
+   Customer Avatar (from Stitch)
+   ======================================== */
+.customer-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+
+.customer-avatar--blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.customer-avatar--emerald {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.customer-avatar--amber {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.customer-avatar--red {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.customer-avatar--purple {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.customer-avatar--orange {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+/* ========================================
+   Status Badges (from Stitch)
+   ======================================== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid;
+}
+
+.status-badge--success {
+    background: #d1fae5;
+    color: #166534;
+    border-color: #a7f3d0;
+}
+
+.status-badge--warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.status-badge--danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.status-badge--info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+/* ========================================
+   Page Header Actions (from Stitch)
+   ======================================== */
+.fc-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fc-btn--icon {
+    padding: 0.625rem;
+    border-radius: var(--fc-radius-md);
+    background: white;
+    border: 1px solid var(--fc-border);
+    color: var(--fc-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.fc-btn--icon:hover {
+    background: var(--fc-bg);
+    color: var(--fc-text);
+}
+
+.fc-btn--primary-glow {
+    background: var(--fc-accent);
+    color: white;
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
+    border: none;
+}
+
+.fc-btn--primary-glow:hover {
+    background: #2563eb;
 }
