@@ -1,0 +1,4 @@
+{
+  "subject": "[Nhắc nợ] Hóa đơn #{{invoice.invoice_number}} sắp đến hạn phải trả",
+  "html": "<div>Kính gửi {{customer.name}}, ...</div>"
+}

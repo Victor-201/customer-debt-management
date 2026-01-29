@@ -1,5 +1,4 @@
-import { EmailType } from "../../domain/value-objects/EmailType.js";
-import { buildEmailTemplate } from "../email/emailTemplate.factory.js";
+
 
 export default class SendReminderEmailJob {
   constructor({
