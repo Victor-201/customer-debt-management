@@ -148,7 +148,7 @@ const DashboardPage = () => {
           agingReport: agingRes.status === 'fulfilled' ? agingRes.value?.data : null,
           highRiskCustomers: highRiskRes.status === 'fulfilled' ? (highRiskRes.value?.data || []) : [],
           recentPayments: recentPaymentsRes.status === 'fulfilled' ? (recentPaymentsRes.value?.data || []) : [],
-          paymentSummary: paymentSummaryRes.status === 'fulfilled' ? paymentSummaryRes.value?.data : null,
+          paymentSummary: paymentSummaryRes.status === 'fulfilled' ? paymentSummaryRes.value : null,
           overdueReport: overdueRes.status === 'fulfilled' ? overdueRes.value?.data : null
         });
       } catch (err) {
