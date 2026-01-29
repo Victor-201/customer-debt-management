@@ -3,7 +3,7 @@ import PaymentRepositoryInterface from "../../../application/interfaces/reposito
 import { Op, Transaction } from "sequelize";
 
 export default class PaymentRepository extends PaymentRepositoryInterface {
-    constructor( {PaymentModel} ) {
+    constructor({ PaymentModel }) {
         super();
         this.PaymentModel = PaymentModel;
     }
@@ -53,11 +53,11 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
         return rows.map(row => this._mapRowToEntity(row));
     }
 
-   async sumByInvoiceId(invoiceId, tx) {
+    async sumByInvoiceId(invoiceId, tx) {
         const [result] = await this.PaymentModel.findAll({
             attributes: [
-            [
-                this.PaymentModel.sequelize.literal(`
+                [
+                    this.PaymentModel.sequelize.literal(`
                 COALESCE(
                     SUM(
                     CASE
@@ -68,8 +68,8 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
                     0
                 )
                 `),
-                'total_paid',
-            ],
+                    'total_paid',
+                ],
             ],
             where: { invoice_id: invoiceId },
             transaction: tx,
@@ -162,9 +162,33 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
             ${dateFilter}
         `;
 
+        // Query for this month's payments
+        const monthlyQuery = `
+            SELECT 
+                COALESCE(SUM(CASE WHEN method = 'REVERSAL' THEN -amount ELSE amount END), 0) as total_this_month
+            FROM payments
+            WHERE payment_date >= date_trunc('month', CURRENT_DATE)
+              AND payment_date < date_trunc('month', CURRENT_DATE) + interval '1 month'
+        `;
+
+        // Query for expected this month (sum of unpaid invoice amounts due this month)
+        const expectedQuery = `
+            SELECT 
+                COALESCE(SUM(total_amount - paid_amount), 0) as expected_this_month
+            FROM invoices
+            WHERE status IN ('PENDING', 'OVERDUE', 'PARTIAL')
+              AND due_date >= date_trunc('month', CURRENT_DATE)
+              AND due_date < date_trunc('month', CURRENT_DATE) + interval '1 month'
+        `;
+
         try {
             const [result] = await this.PaymentModel.sequelize.query(query);
+            const [monthlyResult] = await this.PaymentModel.sequelize.query(monthlyQuery);
+            const [expectedResult] = await this.PaymentModel.sequelize.query(expectedQuery);
+
             const summary = result[0] || {};
+            const monthly = monthlyResult[0] || {};
+            const expected = expectedResult[0] || {};
 
             return {
                 totalCount: parseInt(summary.total_count || 0, 10),
@@ -176,6 +200,9 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
                     cash: parseInt(summary.cash_count || 0, 10),
                     reversal: parseInt(summary.reversal_count || 0, 10),
                 },
+                // Dashboard stats
+                totalThisMonth: parseFloat(monthly.total_this_month || 0),
+                expectedThisMonth: parseFloat(expected.expected_this_month || 1), // Default 1 to avoid division by zero
             };
         } catch (error) {
             console.error('Payment summary query error:', error);
