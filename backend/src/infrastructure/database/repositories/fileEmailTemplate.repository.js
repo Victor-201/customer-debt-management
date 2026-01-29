@@ -1,6 +1,6 @@
 import fs from 'fs/promises';
 import path from 'path';
-import EmailTemplateRepositoryInterface from '../../../../application/interfaces/repositories/emailTemplate.repository.interface.js';
+import EmailTemplateRepositoryInterface from '../../../application/interfaces/repositories/emailTemplate.repository.interface.js';
 import { EmailTemplate } from '../../../../domain/entities/EmailTemplate.js';
 
 export default class FileEmailTemplateRepository extends EmailTemplateRepositoryInterface {

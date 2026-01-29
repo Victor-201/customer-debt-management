@@ -1,0 +1,5 @@
+{
+  "cron": {
+    "SEND_REMINDER": "* * * * *"
+  }
+}
