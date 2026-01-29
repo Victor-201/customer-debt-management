@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useParams, useNavigate, Link } from 'react-router-dom';
-import { FiEdit2, FiDollarSign, FiXCircle, FiPrinter, FiArrowLeft, FiMail } from 'react-icons/fi';
+import { FiEdit2, FiDollarSign, FiXCircle, FiPrinter, FiArrowLeft, FiMail, FiCheckCircle } from 'react-icons/fi';
 
 import {
     fetchInvoiceById,
@@ -16,7 +16,6 @@ import {
     selectInvoicePayments
 } from '../../store/payment.slice.js';
 
-import PageHeader from '../../components/PageHeader.jsx';
 import Loading from '../../components/Loading.jsx';
 import StatusTag from '../../components/StatusTag.jsx';
 import ConfirmModal from '../../components/ConfirmModal.jsx';
@@ -82,6 +81,7 @@ const InvoiceDetailPage = () => {
         setProcessing(true);
         try {
             await dispatch(sendInvoice(id)).unwrap();
+            alert('Đã gửi hóa đơn thành công!');
         } catch (error) {
             alert('Lỗi: ' + error);
         }
@@ -101,11 +101,9 @@ const InvoiceDetailPage = () => {
     if (!invoice) {
         return (
             <div className="max-w-lg mx-auto px-4 py-12">
-                <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-8 text-center">
-                    <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <svg className="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                        </svg>
+                <div className="fc-card text-center p-8">
+                    <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <FiXCircle className="w-8 h-8 text-red-500" />
                     </div>
                     <h3 className="text-xl font-semibold text-gray-800 mb-2">
                         Không tìm thấy hóa đơn
@@ -116,13 +114,13 @@ const InvoiceDetailPage = () => {
                     <div className="flex gap-3 justify-center">
                         <button
                             onClick={() => navigate(-1)}
-                            className="px-4 py-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors flex items-center gap-2"
+                            className="fc-btn fc-btn--secondary"
                         >
                             <FiArrowLeft /> Quay lại
                         </button>
                         <Link
                             to="/invoices"
-                            className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                            className="fc-btn fc-btn--primary"
                         >
                             Danh sách hóa đơn
                         </Link>
@@ -153,23 +151,22 @@ const InvoiceDetailPage = () => {
     const canSend = invoice.status === INVOICE_STATUS.DRAFT;
 
     return (
-        <div className="space-y-6">
-            <PageHeader
-                title={
-                    <div className="flex items-center gap-3">
-                        <span>{invoice.id}</span>
+        <div>
+            {/* Page Header */}
+            <div className="fc-page-header">
+                <div className="fc-page-header__breadcrumb">
+                    <Link to="/invoices">Hóa đơn</Link> / {invoice.id}
+                </div>
+                <div className="flex justify-between items-end flex-wrap gap-4">
+                    <div className="flex items-center gap-4">
+                        <h1 className="fc-page-header__title mb-0">{invoice.id}</h1>
                         <StatusTag status={invoice.status} />
                     </div>
-                }
-                breadcrumbs={[
-                    { label: 'Hóa đơn', to: '/invoices' },
-                    { label: invoice.id }
-                ]}
-                actions={
+
                     <div className="flex flex-wrap gap-2">
                         {canSend && (
                             <button
-                                className="btn flex items-center gap-2"
+                                className="fc-btn fc-btn--secondary"
                                 onClick={handleSend}
                                 disabled={processing}
                             >
@@ -179,7 +176,7 @@ const InvoiceDetailPage = () => {
 
                         {canRecordPayment && (
                             <button
-                                className="px-4 py-2 bg-[var(--color-success)] text-white rounded-lg hover:opacity-90 transition flex items-center gap-2"
+                                className="fc-btn fc-btn--success"
                                 onClick={() => setPaymentModal(true)}
                             >
                                 <FiDollarSign /> Ghi nhận thanh toán
@@ -189,7 +186,7 @@ const InvoiceDetailPage = () => {
                         {canEdit && (
                             <Link
                                 to={`/invoices/${id}/edit`}
-                                className="px-4 py-2 border border-gray-300 rounded-lg hover:bg-gray-50 flex items-center gap-2 transition"
+                                className="fc-btn fc-btn--secondary"
                             >
                                 <FiEdit2 /> Chỉnh sửa
                             </Link>
@@ -197,54 +194,58 @@ const InvoiceDetailPage = () => {
 
                         {canCancel && (
                             <button
-                                className="px-4 py-2 text-[var(--color-error)] hover:bg-red-50 rounded-lg flex items-center gap-2 transition"
+                                className="fc-btn fc-btn--danger"
                                 onClick={() => setCancelModal(true)}
                             >
                                 <FiXCircle /> Hủy
                             </button>
                         )}
 
-                        <button className="px-4 py-2 hover:bg-gray-50 rounded-lg flex items-center gap-2 transition">
+                        <button className="fc-btn fc-btn--secondary">
                             <FiPrinter /> In
                         </button>
                     </div>
-                }
-            />
+                </div>
+            </div>
 
             {/* Balance Summary */}
-            <InvoiceBalanceSummary
-                total={invoice.totalAmount}
-                paidAmount={invoice.paidAmount}
-                balance={invoice.balanceAmount}
-            />
+            <div className="mb-6">
+                <InvoiceBalanceSummary
+                    total={invoice.totalAmount}
+                    paidAmount={invoice.paidAmount}
+                    balance={invoice.balanceAmount}
+                />
+            </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-[1fr_350px] gap-6">
                 {/* Main Content */}
                 <div className="space-y-6">
                     {/* Invoice Details */}
-                    <div className="card">
-                        <h3 className="text-lg font-semibold mb-4">Thông tin hóa đơn</h3>
+                    <div className="fc-card">
+                        <div className="fc-card__header">
+                            <h3 className="fc-card__title">Thông tin hóa đơn</h3>
+                        </div>
 
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Khách hàng</p>
-                                <p className="font-semibold">{invoice.customerName}</p>
+                                <p className="text-sm text-gray-500 mb-1 uppercase tracking-wider font-semibold">Khách hàng</p>
+                                <p className="font-semibold text-lg text-gray-900">{invoice.customerName}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Mã hóa đơn</p>
-                                <p className="font-semibold">{invoice.id}</p>
+                                <p className="text-sm text-gray-500 mb-1 uppercase tracking-wider font-semibold">Mã hóa đơn</p>
+                                <p className="font-mono font-medium text-gray-900">{invoice.id}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Ngày tạo</p>
-                                <p>{formatDate(invoice.issueDate)}</p>
+                                <p className="text-sm text-gray-500 mb-1 uppercase tracking-wider font-semibold">Ngày tạo</p>
+                                <p className="text-gray-900">{formatDate(invoice.issueDate)}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500 mb-1">Hạn thanh toán</p>
+                                <p className="text-sm text-gray-500 mb-1 uppercase tracking-wider font-semibold">Hạn thanh toán</p>
                                 <p>
-                                    {formatDate(invoice.dueDate)}
+                                    <span className="text-gray-900">{formatDate(invoice.dueDate)}</span>
                                     {invoice.status !== INVOICE_STATUS.PAID && invoice.status !== INVOICE_STATUS.CANCELLED && (
                                         <span
-                                            className="ml-2 text-sm"
+                                            className="ml-2 text-sm font-medium"
                                             style={{ color: aging.bucket.color }}
                                         >
                                             ({aging.label})
@@ -255,59 +256,63 @@ const InvoiceDetailPage = () => {
                         </div>
 
                         {invoice.notes && (
-                            <div className="mt-4 pt-4 border-t border-gray-200">
-                                <p className="text-sm text-gray-500 mb-1">Ghi chú</p>
-                                <p>{invoice.notes}</p>
+                            <div className="mt-6 pt-6 border-t border-gray-100">
+                                <p className="text-sm text-gray-500 mb-2 uppercase tracking-wider font-semibold">Ghi chú</p>
+                                <div className="bg-gray-50 p-4 rounded-lg text-gray-700 italic border border-gray-100">
+                                    {invoice.notes}
+                                </div>
                             </div>
                         )}
                     </div>
 
                     {/* Line Items */}
-                    <div className="card">
-                        <h3 className="text-lg font-semibold mb-4">Chi tiết hóa đơn</h3>
+                    <div className="fc-card">
+                        <div className="fc-card__header">
+                            <h3 className="fc-card__title">Chi tiết mặt hàng</h3>
+                        </div>
 
                         <div className="overflow-x-auto">
-                            <table className="w-full">
+                            <table className="fc-table">
                                 <thead>
-                                    <tr className="bg-gray-50 border-b border-gray-200">
-                                        <th className="px-4 py-3 text-left text-sm font-medium text-gray-600">Mô tả</th>
-                                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 w-[100px]">SL</th>
-                                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 w-[150px]">Đơn giá</th>
-                                        <th className="px-4 py-3 text-right text-sm font-medium text-gray-600 w-[150px]">Thành tiền</th>
+                                    <tr>
+                                        <th className="text-left w-[40%]">Mô tả</th>
+                                        <th className="text-right w-[15%]">SL</th>
+                                        <th className="text-right w-[20%]">Đơn giá</th>
+                                        <th className="text-right w-[25%]">Thành tiền</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {(invoice.items || []).map((item, index) => (
-                                        <tr key={item.id || index} className="border-b border-gray-100">
-                                            <td className="px-4 py-3">{item.description}</td>
-                                            <td className="px-4 py-3 text-right">{item.quantity}</td>
-                                            <td className="px-4 py-3 text-right font-mono">
+                                        <tr key={item.id || index}>
+                                            <td className="font-medium">{item.description}</td>
+                                            <td className="text-right">{item.quantity}</td>
+                                            <td className="text-right font-mono text-gray-600">
                                                 {formatCurrency(item.unitPrice)}
                                             </td>
-                                            <td className="px-4 py-3 text-right font-mono font-medium">
+                                            <td className="text-right font-mono font-semibold text-gray-900">
                                                 {formatCurrency(item.quantity * item.unitPrice)}
                                             </td>
                                         </tr>
                                     ))}
                                 </tbody>
                                 <tfoot>
-                                    <tr className="border-b border-gray-100">
-                                        <td colSpan={3} className="px-4 py-3 text-right font-medium">Tạm tính:</td>
-                                        <td className="px-4 py-3 text-right font-mono">
+                                    <tr>
+                                        <td colSpan={3} className="text-right font-medium text-gray-600 pt-4">Tạm tính:</td>
+                                        <td className="text-right font-mono pt-4 text-gray-900">
                                             {formatCurrency(subtotal)}
                                         </td>
                                     </tr>
-                                    <tr className="border-b border-gray-100">
-                                        <td colSpan={3} className="px-4 py-3 text-right font-medium">Thuế ({taxRate}%):</td>
-                                        <td className="px-4 py-3 text-right font-mono">
+                                    <tr>
+                                        <td colSpan={3} className="text-right font-medium text-gray-600 border-none pt-2">Thuế ({taxRate}%):</td>
+                                        <td className="text-right font-mono border-none pt-2 text-gray-900">
                                             {formatCurrency(taxAmount)}
                                         </td>
                                     </tr>
-                                    <tr className="bg-gray-50">
-                                        <td colSpan={3} className="px-4 py-3 text-right font-bold text-lg">
+                                    <tr className="border-none">
+                                        <td colSpan={3} className="text-right font-bold text-lg pt-4 border-none">
                                             Tổng cộng:
                                         </td>
-                                        <td className="px-4 py-3 text-right font-mono font-bold text-lg text-[var(--color-primary)]">
+                                        <td className="text-right font-mono font-bold text-xl text-blue-700 pt-4 border-none">
                                             {formatCurrency(total)}
                                         </td>
                                     </tr>
@@ -319,33 +324,36 @@ const InvoiceDetailPage = () => {
 
                 {/* Sidebar - Payment History */}
                 <div>
-                    <div className="card sticky top-4">
-                        <h3 className="text-lg font-semibold mb-4">Lịch sử thanh toán</h3>
+                    <div className="fc-card sticky top-6">
+                        <div className="fc-card__header">
+                            <h3 className="fc-card__title">Lịch sử thanh toán</h3>
+                        </div>
 
                         {payments.length === 0 ? (
-                            <div className="py-8 text-center">
-                                <p className="text-gray-500">Chưa có thanh toán nào</p>
+                            <div className="py-8 text-center bg-gray-50 rounded-lg border border-dashed border-gray-200">
+                                <p className="text-gray-500 text-sm">Chưa có thanh toán nào</p>
                             </div>
                         ) : (
                             <div className="space-y-3">
                                 {payments.map(payment => (
                                     <div
                                         key={payment.id}
-                                        className="p-3 bg-gray-50 rounded-lg"
+                                        className="p-3 bg-gray-50 rounded-lg border border-gray-100 hover:border-blue-100 transition-colors"
                                     >
                                         <div className="flex justify-between mb-1">
-                                            <span className="font-medium">{payment.id}</span>
-                                            <span className="font-mono font-semibold text-[var(--color-success)]">
+                                            <span className="font-medium text-sm text-gray-700">{payment.id}</span>
+                                            <span className="font-mono font-bold text-green-600">
                                                 +{formatCurrency(payment.amount)}
                                             </span>
                                         </div>
-                                        <div className="text-sm text-gray-500">
+                                        <div className="text-xs text-gray-500 flex justify-between">
                                             <span>{formatDate(payment.paymentDate)}</span>
-                                            <span> • </span>
-                                            <span>{getPaymentMethodLabel(payment.paymentMethod)}</span>
+                                            <span className="bg-white px-2 py-0.5 rounded border border-gray-200">
+                                                {getPaymentMethodLabel(payment.paymentMethod)}
+                                            </span>
                                         </div>
                                         {payment.note && (
-                                            <p className="text-sm text-gray-400 mt-1">
+                                            <p className="text-xs text-gray-400 mt-2 italic border-t border-gray-200 pt-1">
                                                 {payment.note}
                                             </p>
                                         )}
@@ -355,21 +363,23 @@ const InvoiceDetailPage = () => {
                         )}
 
                         {/* Total Paid */}
-                        <div className="mt-4 pt-4 border-t border-gray-200 flex justify-between">
-                            <span className="font-semibold">Tổng đã thanh toán:</span>
-                            <span className="font-mono font-bold text-[var(--color-success)]">
-                                {formatCurrency(invoice.paidAmount)}
-                            </span>
-                        </div>
-
-                        {extractAmount(invoice.balanceAmount) > 0 && (
-                            <div className="flex justify-between mt-2">
-                                <span className="font-semibold">Còn lại:</span>
-                                <span className="font-mono font-bold text-[var(--color-error)]">
-                                    {formatCurrency(invoice.balanceAmount)}
+                        <div className="mt-6 pt-4 border-t border-gray-200">
+                            <div className="flex justify-between mb-2">
+                                <span className="font-semibold text-gray-700">Đã thanh toán:</span>
+                                <span className="font-mono font-bold text-green-600">
+                                    {formatCurrency(invoice.paidAmount)}
                                 </span>
                             </div>
-                        )}
+
+                            {extractAmount(invoice.balanceAmount) > 0 && (
+                                <div className="flex justify-between items-center bg-red-50 p-3 rounded-lg border border-red-100">
+                                    <span className="font-bold text-red-700 text-sm">CÒN PHẢI TRẢ:</span>
+                                    <span className="font-mono font-bold text-red-600 text-lg">
+                                        {formatCurrency(invoice.balanceAmount)}
+                                    </span>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>

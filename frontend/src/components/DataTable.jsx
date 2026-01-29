@@ -65,14 +65,13 @@ export const DataTable = ({
 
     return (
         <div className="overflow-x-auto">
-            <table className="w-full border-collapse">
+            <table className="fc-table">
                 <thead>
-                    <tr className="bg-gray-50 border-b border-gray-200">
+                    <tr>
                         {columns.map((column) => (
                             <th
                                 key={column.key}
-                                className={`px-4 py-3 text-left text-sm font-semibold text-gray-700 ${column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
-                                    }`}
+                                className={column.sortable ? 'cursor-pointer hover:bg-gray-50' : ''}
                                 style={{ width: column.width }}
                                 onClick={() => column.sortable && handleSort(column.key)}
                             >
@@ -104,11 +103,10 @@ export const DataTable = ({
                             <tr
                                 key={row.id || rowIndex}
                                 onClick={() => onRowClick && onRowClick(row)}
-                                className={`border-b border-gray-100 ${onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
-                                    } transition-colors`}
+                                className={onRowClick ? 'cursor-pointer' : ''}
                             >
                                 {columns.map((column) => (
-                                    <td key={column.key} className="px-4 py-3">
+                                    <td key={column.key}>
                                         {column.render
                                             ? column.render(row[column.key], row, rowIndex)
                                             : row[column.key]}
@@ -151,8 +149,8 @@ export const DataTable = ({
                                 <button
                                     key={pageNum}
                                     className={`w-8 h-8 text-sm rounded transition ${pagination.page === pageNum
-                                            ? 'bg-[var(--color-primary)] text-white'
-                                            : 'border border-gray-300 hover:bg-gray-100'
+                                        ? 'bg-[var(--color-primary)] text-white'
+                                        : 'border border-gray-300 hover:bg-gray-100'
                                         }`}
                                     onClick={() => pagination.onPageChange(pageNum)}
                                 >

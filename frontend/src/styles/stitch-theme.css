@@ -1,0 +1,729 @@
+/* ========================================
+   FA Credit Stitch Theme
+   Based on Stitch Project Design
+   Color: #002885, Font: Inter
+   ======================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* CSS Variables */
+:root {
+    /* Primary Colors */
+    --fc-primary: #002885;
+    --fc-primary-light: #1a4199;
+    --fc-primary-dark: #001a5c;
+
+    /* Accent Colors */
+    --fc-accent: #3b82f6;
+    --fc-accent-light: #60a5fa;
+
+    /* Status Colors */
+    --fc-success: #10b981;
+    --fc-warning: #f59e0b;
+    --fc-danger: #ef4444;
+    --fc-info: #3b82f6;
+
+    /* Neutral Colors */
+    --fc-bg: #f8fafc;
+    --fc-surface: #ffffff;
+    --fc-border: #e2e8f0;
+    --fc-text: #1e293b;
+    --fc-text-secondary: #64748b;
+    --fc-text-muted: #94a3b8;
+
+    /* Shadows */
+    --fc-shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+    --fc-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+    --fc-shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+    --fc-shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+
+    /* Border Radius */
+    --fc-radius-sm: 0.375rem;
+    --fc-radius: 0.5rem;
+    --fc-radius-md: 0.75rem;
+    --fc-radius-lg: 1rem;
+    --fc-radius-xl: 1.5rem;
+}
+
+/* Base Styles */
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--fc-bg);
+    color: var(--fc-text);
+}
+
+/* ========================================
+   Sidebar Overrides (from Stitch)
+   Light background, blue active item
+   ======================================== */
+.sidebar {
+    background: #f8fafc !important;
+    border-right: 1px solid #e2e8f0;
+}
+
+.sidebar__logo-name {
+    color: var(--fc-text) !important;
+    font-weight: 700;
+}
+
+.sidebar__logo-subtitle {
+    color: var(--fc-text-secondary) !important;
+    font-size: 0.625rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+}
+
+.sidebar__nav-section-title {
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fc-text);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+    padding-left: 1rem;
+}
+
+.sidebar__nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem 1rem;
+    border-radius: var(--fc-radius-lg);
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--fc-text-secondary) !important;
+    transition: all 0.2s ease;
+}
+
+.sidebar__nav-item:hover {
+    background: #f1f5f9 !important;
+    color: var(--fc-text) !important;
+}
+
+.sidebar__nav-item.active {
+    background: var(--fc-accent) !important;
+    color: white !important;
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
+}
+
+/* ========================================
+   Glass Card (Glassmorphism from Stitch)
+   ======================================== */
+.glass-card {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    border-radius: var(--fc-radius-lg);
+    box-shadow: 0 4px 24px -2px rgba(148, 163, 184, 0.15);
+}
+
+/* Background blur effects for main content area */
+.fc-main-bg {
+    position: relative;
+    background: #f8fafc;
+}
+
+.fc-main-bg::before {
+    content: '';
+    position: fixed;
+    top: -10%;
+    left: 5%;
+    width: 40vw;
+    height: 40vw;
+    border-radius: 50%;
+    background: rgba(147, 197, 253, 0.2);
+    filter: blur(100px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.fc-main-bg::after {
+    content: '';
+    position: fixed;
+    bottom: -10%;
+    right: 5%;
+    width: 35vw;
+    height: 35vw;
+    border-radius: 50%;
+    background: rgba(165, 180, 252, 0.2);
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+}
+
+/* ========================================
+   Card Styles
+   ======================================== */
+.fc-card {
+    background: var(--fc-surface);
+    border-radius: var(--fc-radius-lg);
+    border: 1px solid var(--fc-border);
+    box-shadow: var(--fc-shadow-sm);
+    padding: 1.5rem;
+}
+
+.fc-card--elevated {
+    box-shadow: var(--fc-shadow-md);
+}
+
+.fc-card__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.fc-card__title {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--fc-text);
+}
+
+.fc-card__subtitle {
+    font-size: 0.875rem;
+    color: var(--fc-text-secondary);
+}
+
+/* ========================================
+   Button Styles
+   ======================================== */
+.fc-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.625rem 1.25rem;
+    border-radius: var(--fc-radius);
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    border: none;
+}
+
+.fc-btn--primary {
+    background: var(--fc-primary);
+    color: white;
+}
+
+.fc-btn--primary:hover {
+    background: var(--fc-primary-light);
+}
+
+.fc-btn--secondary {
+    background: var(--fc-bg);
+    color: var(--fc-text);
+    border: 1px solid var(--fc-border);
+}
+
+.fc-btn--secondary:hover {
+    background: var(--fc-border);
+}
+
+.fc-btn--success {
+    background: var(--fc-success);
+    color: white;
+}
+
+.fc-btn--danger {
+    background: var(--fc-danger);
+    color: white;
+}
+
+/* ========================================
+   Table Styles
+   ======================================== */
+.fc-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.fc-table th {
+    background: var(--fc-bg);
+    padding: 0.75rem 1rem;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--fc-text-secondary);
+    border-bottom: 1px solid var(--fc-border);
+}
+
+.fc-table td {
+    padding: 1rem;
+    border-bottom: 1px solid var(--fc-border);
+    font-size: 0.875rem;
+}
+
+.fc-table tr:last-child td {
+    border-bottom: none;
+}
+
+.fc-table tr:hover td {
+    background: rgba(0, 40, 133, 0.02);
+}
+
+/* ========================================
+   Badge Styles
+   ======================================== */
+.fc-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.25rem 0.75rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+.fc-badge--success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.fc-badge--warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.fc-badge--danger {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+.fc-badge--info {
+    background: #dbeafe;
+    color: #1e40af;
+}
+
+.fc-badge--neutral {
+    background: #f1f5f9;
+    color: #475569;
+}
+
+/* ========================================
+   Form Styles
+   ======================================== */
+.fc-input {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius);
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    background: var(--fc-surface);
+}
+
+.fc-input:focus {
+    outline: none;
+    border-color: var(--fc-primary);
+    box-shadow: 0 0 0 3px rgba(0, 40, 133, 0.1);
+}
+
+.fc-input::placeholder {
+    color: var(--fc-text-muted);
+}
+
+.fc-label {
+    display: block;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--fc-text);
+    margin-bottom: 0.5rem;
+}
+
+/* ========================================
+   Page Header
+   ======================================== */
+.fc-page-header {
+    margin-bottom: 1.5rem;
+}
+
+.fc-page-header__breadcrumb {
+    font-size: 0.75rem;
+    color: var(--fc-text-muted);
+    margin-bottom: 0.25rem;
+}
+
+.fc-page-header__title {
+    font-size: 1.875rem;
+    font-weight: 700;
+    color: var(--fc-text);
+    margin: 0;
+}
+
+.fc-page-header__subtitle {
+    font-size: 0.875rem;
+    color: var(--fc-text-secondary);
+    margin-top: 0.25rem;
+}
+
+/* ========================================
+   Stats Card (KPI)
+   ======================================== */
+.fc-stat-card {
+    background: var(--fc-surface);
+    border-radius: var(--fc-radius-lg);
+    padding: 1.25rem;
+    border: 1px solid var(--fc-border);
+}
+
+.fc-stat-card__label {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--fc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.fc-stat-card__value {
+    font-size: 1.5rem;
+    font-weight: 700;
+    color: var(--fc-text);
+    margin-top: 0.5rem;
+}
+
+.fc-stat-card__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--fc-radius);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.fc-stat-card__icon--primary {
+    background: rgba(0, 40, 133, 0.1);
+    color: var(--fc-primary);
+}
+
+.fc-stat-card__icon--success {
+    background: rgba(16, 185, 129, 0.1);
+    color: var(--fc-success);
+}
+
+.fc-stat-card__icon--warning {
+    background: rgba(245, 158, 11, 0.1);
+    color: var(--fc-warning);
+}
+
+.fc-stat-card__icon--danger {
+    background: rgba(239, 68, 68, 0.1);
+    color: var(--fc-danger);
+}
+
+/* ========================================
+   Search & Filter Bar
+   ======================================== */
+.fc-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    background: var(--fc-surface);
+    border: 1px solid var(--fc-border);
+    border-radius: var(--fc-radius-lg);
+    padding: 0.5rem 1rem;
+}
+
+.fc-search-bar__input {
+    flex: 1;
+    border: none;
+    outline: none;
+    font-size: 0.875rem;
+    background: transparent;
+}
+
+.fc-search-bar__icon {
+    color: var(--fc-text-muted);
+}
+
+/* ========================================
+   Avatar
+   ======================================== */
+.fc-avatar {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 600;
+    font-size: 0.875rem;
+    text-transform: uppercase;
+}
+
+.fc-avatar--primary {
+    background: rgba(0, 40, 133, 0.1);
+    color: var(--fc-primary);
+}
+
+/* ========================================
+   Empty State
+   ======================================== */
+.fc-empty {
+    text-align: center;
+    padding: 3rem 1.5rem;
+}
+
+.fc-empty__icon {
+    width: 4rem;
+    height: 4rem;
+    margin: 0 auto 1rem;
+    color: var(--fc-text-muted);
+}
+
+.fc-empty__title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--fc-text);
+    margin-bottom: 0.5rem;
+}
+
+.fc-empty__description {
+    font-size: 0.875rem;
+    color: var(--fc-text-secondary);
+}
+
+/* ========================================
+   Utility Classes
+   ======================================== */
+.fc-text-primary {
+    color: var(--fc-primary);
+}
+
+.fc-text-success {
+    color: var(--fc-success);
+}
+
+.fc-text-warning {
+    color: var(--fc-warning);
+}
+
+.fc-text-danger {
+    color: var(--fc-danger);
+}
+
+.fc-text-muted {
+    color: var(--fc-text-muted);
+}
+
+.fc-bg-primary {
+    background-color: var(--fc-primary);
+}
+
+.fc-bg-success {
+    background-color: var(--fc-success);
+}
+
+.fc-bg-warning {
+    background-color: var(--fc-warning);
+}
+
+.fc-bg-danger {
+    background-color: var(--fc-danger);
+}
+
+/* ========================================
+   Animations
+   ======================================== */
+@keyframes fc-fade-in {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.fc-animate-in {
+    animation: fc-fade-in 0.3s ease-out;
+}
+
+/* ========================================
+   Footer Branding
+   ======================================== */
+.fc-footer {
+    text-align: center;
+    padding: 1rem;
+    font-size: 0.75rem;
+    color: var(--fc-text-muted);
+}
+
+/* ========================================
+   Table Styles (from Stitch)
+   ======================================== */
+.table-header {
+    padding: 1rem 1.5rem;
+    text-align: left;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: var(--fc-text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: rgba(248, 250, 252, 0.5);
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.table-cell {
+    padding: 1rem 1.5rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    color: var(--fc-text);
+    border-bottom: 1px solid #f8fafc;
+}
+
+/* ========================================
+   Action Buttons (from Stitch)
+   ======================================== */
+.action-btn {
+    padding: 0.5rem;
+    border-radius: var(--fc-radius);
+    color: #94a3b8;
+    transition: all 0.2s ease;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.action-btn:hover {
+    color: var(--fc-accent);
+    background: rgba(59, 130, 246, 0.05);
+}
+
+.action-btn--edit {
+    color: #3b82f6;
+}
+
+.action-btn--edit:hover {
+    background: rgba(59, 130, 246, 0.1);
+}
+
+.action-btn--delete {
+    color: #f87171;
+}
+
+.action-btn--delete:hover {
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+}
+
+/* ========================================
+   Customer Avatar (from Stitch)
+   ======================================== */
+.customer-avatar {
+    width: 2.25rem;
+    height: 2.25rem;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.75rem;
+}
+
+.customer-avatar--blue {
+    background: #dbeafe;
+    color: #2563eb;
+}
+
+.customer-avatar--emerald {
+    background: #d1fae5;
+    color: #059669;
+}
+
+.customer-avatar--amber {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.customer-avatar--red {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.customer-avatar--purple {
+    background: #ede9fe;
+    color: #7c3aed;
+}
+
+.customer-avatar--orange {
+    background: #ffedd5;
+    color: #ea580c;
+}
+
+/* ========================================
+   Status Badges (from Stitch)
+   ======================================== */
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.25rem 0.625rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border: 1px solid;
+}
+
+.status-badge--success {
+    background: #d1fae5;
+    color: #166534;
+    border-color: #a7f3d0;
+}
+
+.status-badge--warning {
+    background: #fef3c7;
+    color: #92400e;
+    border-color: #fde68a;
+}
+
+.status-badge--danger {
+    background: #fee2e2;
+    color: #991b1b;
+    border-color: #fecaca;
+}
+
+.status-badge--info {
+    background: #dbeafe;
+    color: #1e40af;
+    border-color: #bfdbfe;
+}
+
+/* ========================================
+   Page Header Actions (from Stitch)
+   ======================================== */
+.fc-page-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.fc-btn--icon {
+    padding: 0.625rem;
+    border-radius: var(--fc-radius-md);
+    background: white;
+    border: 1px solid var(--fc-border);
+    color: var(--fc-text-secondary);
+    transition: all 0.2s ease;
+}
+
+.fc-btn--icon:hover {
+    background: var(--fc-bg);
+    color: var(--fc-text);
+}
+
+.fc-btn--primary-glow {
+    background: var(--fc-accent);
+    color: white;
+    box-shadow: 0 4px 12px -2px rgba(59, 130, 246, 0.3);
+    border: none;
+}
+
+.fc-btn--primary-glow:hover {
+    background: #2563eb;
+}
