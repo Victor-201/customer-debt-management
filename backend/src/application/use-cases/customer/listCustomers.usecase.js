@@ -3,8 +3,14 @@ export default class ListCustomersUseCase {
     this.customerRepository = customerRepository;
   }
 
-  async execute({ page, limit }) {
-    const result = await this.customerRepository.findActive({ page, limit });
+  async execute({ page, limit, sortBy, sortOrder, filters }) {
+    const result = await this.customerRepository.findAll({
+      page,
+      limit,
+      sortBy,
+      sortOrder,
+      filters,
+    });
 
     return {
       data: result.data.map((c) => this.#toResponse(c)),

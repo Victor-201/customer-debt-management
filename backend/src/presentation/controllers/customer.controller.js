@@ -28,22 +28,30 @@ class CustomerController {
     }
   };
 
-  getAllCustomers = async (req, res) => {
+  listCustomers = async (req, res) => {
     try {
-      const page = Math.max(parseInt(req.query.page) || 1, 1);
-      const limit = Math.max(parseInt(req.query.limit) || 10, 1);
-      const result = await this.getAllCustomersUseCase.execute({ page, limit });
-      res.json(result);
-    } catch (error) {
-      this.#handleError(res, error);
-    }
-  };
+      const {
+        page = 1,
+        limit = 10,
+        sortBy = "createdAt",
+        sortOrder = "DESC",
+        paymentTerm,
+        riskLevel,
+        status,
+      } = req.query;
 
-  listActiveCustomers = async (req, res) => {
-    try {
-      const page = Math.max(parseInt(req.query.page) || 1, 1);
-      const limit = Math.max(parseInt(req.query.limit) || 10, 1);
-      const result = await this.listCustomersUseCase.execute({ page, limit });
+      const result = await this.listCustomersUseCase.execute({
+        page: Number(page),
+        limit: Number(limit),
+        sortBy,
+        sortOrder,
+        filters: {
+          paymentTerm,
+          riskLevel,
+          status,
+        },
+      });
+
       res.json(result);
     } catch (error) {
       this.#handleError(res, error);

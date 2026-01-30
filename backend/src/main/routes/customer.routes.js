@@ -7,7 +7,6 @@ import CustomerRepository from "../../infrastructure/database/repositories/custo
 import CreateCustomerUseCase from "../../application/use-cases/customer/createCustomer.usecase.js";
 import UpdateCustomerUseCase from "../../application/use-cases/customer/updateCustomer.usecase.js";
 import DeleteCustomerUseCase from "../../application/use-cases/customer/deleteCustomer.usecase.js";
-import GetAllCustomersUseCase from "../../application/use-cases/customer/getAllCustomers.usecase.js";
 import GetCustomerByIdUseCase from "../../application/use-cases/customer/getCustomerById.usecase.js";
 import ListCustomersUseCase from "../../application/use-cases/customer/listCustomers.usecase.js";
 import UpdateCustomerStatusUseCase from "../../application/use-cases/customer/updateCustomerStatus.usecase.js";
@@ -41,7 +40,6 @@ const customerRepository = new CustomerRepository({
 const createCustomerUseCase = new CreateCustomerUseCase(customerRepository);
 const updateCustomerUseCase = new UpdateCustomerUseCase(customerRepository);
 const deleteCustomerUseCase = new DeleteCustomerUseCase(customerRepository);
-const getAllCustomersUseCase = new GetAllCustomersUseCase(customerRepository);
 const getCustomerByIdUseCase = new GetCustomerByIdUseCase(customerRepository);
 const listCustomersUseCase = new ListCustomersUseCase(customerRepository);
 const updateCustomerStatusUseCase =
@@ -53,7 +51,6 @@ const customerController = new CustomerController({
   createCustomerUseCase,
   updateCustomerUseCase,
   deleteCustomerUseCase,
-  getAllCustomersUseCase,
   getCustomerByIdUseCase,
   listCustomersUseCase,
   updateCustomerStatusUseCase,
@@ -72,13 +69,7 @@ router.post(
 router.get(
   "/",
   permissionMiddleware(CUSTOMER_PERMISSIONS.READ),
-  customerController.getAllCustomers
-);
-
-router.get(
-  "/active",
-  permissionMiddleware(CUSTOMER_PERMISSIONS.READ),
-  customerController.listActiveCustomers
+  customerController.listCustomers
 );
 
 router.get(

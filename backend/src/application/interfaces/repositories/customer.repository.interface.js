@@ -1,13 +1,29 @@
+/**
+ * @interface CustomerRepositoryInterface
+ */
 export default class CustomerRepositoryInterface {
   findById(id) {
     throw new Error("Method not implemented");
   }
 
-  findAll() {
-    throw new Error("Method not implemented");
-  }
-
-  findActive() {
+  /**
+   * @param {Object} params
+   * @param {number} params.page
+   * @param {number} params.limit
+   * @param {string} params.sortBy        // createdAt | creditLimit | email
+   * @param {string} params.sortOrder     // ASC | DESC
+   * @param {Object} params.filters
+   * @param {string} params.filters.paymentTerm
+   * @param {string} params.filters.riskLevel
+   * @param {string} params.filters.status
+   */
+  findAll({
+    page,
+    limit,
+    sortBy,
+    sortOrder,
+    filters,
+  }) {
     throw new Error("Method not implemented");
   }
 
@@ -22,6 +38,7 @@ export default class CustomerRepositoryInterface {
   delete(id) {
     throw new Error("Method not implemented");
   }
+
   updateRiskLevel(id, riskLevel) {
     throw new Error("Method not implemented");
   }
