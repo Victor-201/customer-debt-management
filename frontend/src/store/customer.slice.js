@@ -5,12 +5,12 @@ import { customerApi } from "@/api/customer.api";
    ASYNC THUNKS
 ======================= */
 
-// Lấy danh sách khách hàng
+// Lấy danh sách khách hàng (ALL)
 export const fetchCustomers = createAsyncThunk(
-  "customer/fetchAll",
-  async (_, { rejectWithValue }) => {
+  "customer/fetchList",
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await customerApi.getAllCustomers();
+      const res = await customerApi.getListCustomers(params);
       return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -57,6 +57,32 @@ export const updateCustomer = createAsyncThunk(
   }
 );
 
+// Cập nhật trạng thái khách hàng
+export const updateCustomerStatus = createAsyncThunk(
+  "customer/updateStatus",
+  async ({ id, status }, { rejectWithValue }) => {
+    try {
+      const res = await customerApi.updateCustomerStatus(id, status);
+      return { id, status: res.data.status };
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
+// Đánh giá rủi ro khách hàng
+export const assessCustomerRisk = createAsyncThunk(
+  "customer/assessRisk",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await customerApi.assessCustomerRisk(id);
+      return res.data; // customer object sau khi assess
+    } catch (error) {
+      return rejectWithValue(error.response?.data || error.message);
+    }
+  }
+);
+
 // Xóa khách hàng
 export const deleteCustomer = createAsyncThunk(
   "customer/delete",
@@ -78,6 +104,12 @@ const customerSlice = createSlice({
   name: "customer",
   initialState: {
     list: [],
+    pagination: {
+      page: 1,
+      limit: 10,
+      totalItems: 0,
+      totalPages: 0,
+    },
     selectedCustomer: null,
     loading: false,
     error: null,
@@ -91,26 +123,22 @@ const customerSlice = createSlice({
 
   extraReducers: (builder) => {
     builder
-      // FETCH ALL
+      /* ========= FETCH ALL ========= */
       .addCase(fetchCustomers.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload;
+        state.list = action.payload.data;
+        state.pagination = action.payload.pagination;
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // FETCH BY ID
-      .addCase(fetchCustomerById.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-        state.selectedCustomer = null;
-      })
+      /* ========= FETCH BY ID ========= */
       .addCase(fetchCustomerById.fulfilled, (state, action) => {
         state.loading = false;
         state.selectedCustomer = action.payload;
@@ -121,12 +149,13 @@ const customerSlice = createSlice({
         state.selectedCustomer = null;
       })
 
-      // CREATE
+      /* ========= CREATE ========= */
       .addCase(createCustomer.fulfilled, (state, action) => {
         state.list.unshift(action.payload);
+        state.pagination.totalItems += 1;
       })
 
-      // UPDATE
+      /* ========= UPDATE ========= */
       .addCase(updateCustomer.fulfilled, (state, action) => {
         const index = state.list.findIndex(
           (c) => c.id === action.payload.id
@@ -137,11 +166,46 @@ const customerSlice = createSlice({
         state.selectedCustomer = action.payload;
       })
 
-      // DELETE
+      /* ========= UPDATE STATUS ========= */
+      .addCase(updateCustomerStatus.fulfilled, (state, action) => {
+        const customer = state.list.find(
+          (c) => c.id === action.payload.id
+        );
+        if (customer) {
+          customer.status = action.payload.status;
+        }
+
+        if (
+          state.selectedCustomer &&
+          state.selectedCustomer.id === action.payload.id
+        ) {
+          state.selectedCustomer.status = action.payload.status;
+        }
+      })
+
+      /* ========= ASSESS RISK ========= */
+      .addCase(assessCustomerRisk.fulfilled, (state, action) => {
+        const index = state.list.findIndex(
+          (c) => c.id === action.payload.id
+        );
+        if (index !== -1) {
+          state.list[index] = action.payload;
+        }
+
+        if (
+          state.selectedCustomer &&
+          state.selectedCustomer.id === action.payload.id
+        ) {
+          state.selectedCustomer = action.payload;
+        }
+      })
+
+      /* ========= DELETE ========= */
       .addCase(deleteCustomer.fulfilled, (state, action) => {
         state.list = state.list.filter(
           (c) => c.id !== action.payload
         );
+        state.pagination.totalItems -= 1;
       });
   },
 });

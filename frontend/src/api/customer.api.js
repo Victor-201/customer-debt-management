@@ -1,38 +1,64 @@
 import apiClient from "./axiosClient";
 
 export const customerApi = {
-  // Tạo khách hàng mới
+  // ======================
+  // CREATE
+  // ======================
   createCustomer(data) {
     return apiClient.post("/api/customers", data);
   },
 
-  // Lấy danh sách khách hàng
-  getAllCustomers() {
-    return apiClient.get("/api/customers");
+  // ======================
+  // READ - LIST
+  // ======================
+  getListCustomers({
+    page = 1,
+    limit = 10,
+    sortBy,
+    sortOrder,
+    paymentTerm,
+    riskLevel,
+    status,
+  } = {}) {
+    return apiClient.get("/api/customers", {
+      params: {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+        paymentTerm,
+        riskLevel,
+        status,
+      },
+    });
   },
 
-  // Lấy khách hàng theo ID
-  getCustomerById(id) {
-    return apiClient.get(`/api/customers/${id}`);
+  // ======================
+  // READ - DETAIL
+  // ======================
+  getCustomerById(customerId) {
+    return apiClient.get(`/api/customers/${customerId}`);
   },
 
-  // Cập nhật khách hàng
-  updateCustomer(id, data) {
-    return apiClient.put(`/api/customers/${id}`, data);
+  // ======================
+  // UPDATE
+  // ======================
+  updateCustomer(customerId, data) {
+    return apiClient.put(`/api/customers/${customerId}`, data);
   },
 
-  // Xóa khách hàng
-  deleteCustomer(id) {
-    return apiClient.delete(`/api/customers/${id}`);
+  updateCustomerStatus(customerId, status) {
+    return apiClient.patch(`/api/customers/${customerId}/status`, { status });
   },
 
-  // Cập nhật trạng thái khách hàng
-  updateStatus(id, status) {
-    return apiClient.patch(`/api/customers/${id}/status`, { status });
+  assessCustomerRisk(customerId) {
+    return apiClient.patch(`/api/customers/${customerId}/assess-risk`);
   },
 
-  // Đánh giá rủi ro khách hàng
-  assessRisk(id) {
-    return apiClient.patch(`/api/customers/${id}/assess-risk`);
+  // ======================
+  // DELETE
+  // ======================
+  deleteCustomer(customerId) {
+    return apiClient.delete(`/api/customers/${customerId}`);
   },
 };

@@ -17,21 +17,67 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
     return row ? this.#toDomain(row) : null;
   }
 
-  async findAll() {
-    const rows = await this.CustomerModel.findAll({
-      order: [["created_at", "DESC"]],
+  async findAll({
+    page = 1,
+    limit = 10,
+    sortBy = "createdAt",
+    sortOrder = "DESC",
+    filters = {},
+  }) {
+    page = Math.max(parseInt(page) || 1, 1);
+    limit = Math.max(parseInt(limit) || 10, 1);
+
+    const offset = (page - 1) * limit;
+
+    /* ===== WHERE (FILTER) ===== */
+    const where = {};
+
+    if (filters.paymentTerm) {
+      where.payment_term = filters.paymentTerm;
+    }
+
+    if (filters.riskLevel) {
+      where.risk_level = filters.riskLevel;
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
+
+    /* ===== ORDER (SORT) ===== */
+    const order = [];
+
+    switch (sortBy) {
+      case "creditLimit":
+        order.push(["credit_limit", sortOrder]);
+        break;
+
+      case "email":
+        order.push(["email", sortOrder]);
+        break;
+
+      case "createdAt":
+      default:
+        order.push(["created_at", sortOrder]);
+        break;
+    }
+
+    const { rows, count } = await this.CustomerModel.findAndCountAll({
+      where,
+      order,
+      limit,
+      offset,
     });
 
-    return rows.map(row => this.#toDomain(row));
-  }
-
-  async findActive() {
-    const rows = await this.CustomerModel.findAll({
-      where: { status: "ACTIVE" },
-      order: [["name", "ASC"]],
-    });
-
-    return rows.map(row => this.#toDomain(row));
+    return {
+      data: rows.map((row) => this.#toDomain(row)),
+      pagination: {
+        page,
+        limit,
+        totalItems: count,
+        totalPages: Math.ceil(count / limit),
+      },
+    };
   }
 
   async create(customer) {
@@ -64,7 +110,7 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
       },
       {
         where: { id: customer.id },
-      }
+      },
     );
 
     return this.findById(customer.id);
@@ -86,43 +132,87 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
       },
       {
         where: { id },
-      }
+      },
     );
 
     return this.findById(id);
   }
 
   async findHighRiskCustomers() {
-    const { sequelize } = this.CustomerModel;
+    const customers = await this.CustomerModel.findAll({
+      where: {
+        risk_level: {
+          [Op.in]: ["HIGH_RISK", "WARNING"],
+        },
+      },
+      attributes: {
+        include: [
+          [
+            this.CustomerModel.sequelize.fn(
+              "COALESCE",
+              this.CustomerModel.sequelize.fn(
+                "SUM",
+                this.CustomerModel.sequelize.literal(
+                  `"Invoices"."total_amount" - "Invoices"."paid_amount"`,
+                ),
+              ),
+              0,
+            ),
+            "total_debt",
+          ],
+          [
+            this.CustomerModel.sequelize.fn(
+              "COALESCE",
+              this.CustomerModel.sequelize.fn(
+                "MAX",
+                this.CustomerModel.sequelize.literal(
+                  `EXTRACT(DAY FROM (NOW() - "Invoices"."due_date"))`,
+                ),
+              ),
+              0,
+            ),
+            "oldest_overdue_days",
+          ],
+        ],
+      },
+      include: [
+        {
+          model: this.InvoiceModel,
+          as: "Invoices",
+          attributes: [],
+          required: false,
+          where: {
+            status: {
+              [Op.in]: ["PENDING", "OVERDUE"],
+            },
+            due_date: {
+              [Op.lt]: new Date(),
+            },
+          },
+        },
+      ],
+      group: [
+        "Customer.id",
+        "Customer.name",
+        "Customer.email",
+        "Customer.phone",
+        "Customer.address",
+        "Customer.payment_term",
+        "Customer.credit_limit",
+        "Customer.risk_level",
+        "Customer.status",
+        "Customer.created_at",
+        "Customer.updated_at",
+      ],
+      order: [
+        [this.CustomerModel.sequelize.literal("total_debt"), "DESC"],
+        [this.CustomerModel.sequelize.literal("oldest_overdue_days"), "DESC"],
+      ],
+      subQuery: false,
+    });
 
-    // Query customers with HIGH_RISK or WARNING level, with aggregated debt info from overdue invoices
-    const query = `
-      SELECT 
-        c.id,
-        c.name,
-        c.email,
-        c.phone,
-        c.address,
-        c.payment_term,
-        c.credit_limit,
-        c.risk_level,
-        c.status,
-        COALESCE(SUM(i.total_amount - i.paid_amount), 0) as total_debt,
-        COALESCE(MAX(EXTRACT(DAY FROM (NOW() - i.due_date))), 0) as oldest_overdue_days
-      FROM customers c
-      LEFT JOIN invoices i ON c.id = i.customer_id 
-        AND i.status IN ('PENDING', 'OVERDUE')
-        AND i.due_date < NOW()
-      WHERE c.risk_level IN ('HIGH_RISK', 'WARNING')
-      GROUP BY c.id, c.name, c.email, c.phone, c.address, c.payment_term, c.credit_limit, c.risk_level, c.status
-      ORDER BY total_debt DESC, oldest_overdue_days DESC
-    `;
-
-    const [rows] = await sequelize.query(query);
-
-    return rows.map(row => ({
+    return customers.map((row) => ({
       id: row.id,
-      customerName: row.name,
       name: row.name,
       email: row.email,
       phone: row.phone,
@@ -131,8 +221,11 @@ export default class CustomerRepository extends CustomerRepositoryInterface {
       creditLimit: Number(row.credit_limit) || 0,
       riskLevel: row.risk_level,
       status: row.status,
-      totalDebt: Number(row.total_debt) || 0,
-      oldestOverdueDays: Math.max(0, Math.floor(Number(row.oldest_overdue_days) || 0))
+      totalDebt: Number(row.get("total_debt")) || 0,
+      oldestOverdueDays: Math.max(
+        0,
+        Math.floor(Number(row.get("oldest_overdue_days")) || 0),
+      ),
     }));
   }
 

@@ -3,9 +3,13 @@ export default class GetAllCustomersUseCase {
     this.customerRepository = customerRepository;
   }
 
-  async execute() {
-    const customers = await this.customerRepository.findAll();
-    return customers.map((c) => this.#toResponse(c));
+  async execute({ page, limit }) {
+    const result = await this.customerRepository.findAll({ page, limit });
+
+    return {
+      data: result.data.map((c) => this.#toResponse(c)),
+      pagination: result.pagination,
+    };
   }
 
   #toResponse(customer) {

@@ -30,8 +30,10 @@ class CustomerController {
 
   getAllCustomers = async (req, res) => {
     try {
-      const customers = await this.getAllCustomersUseCase.execute();
-      res.json(customers);
+      const page = Math.max(parseInt(req.query.page) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+      const result = await this.getAllCustomersUseCase.execute({ page, limit });
+      res.json(result);
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -39,8 +41,10 @@ class CustomerController {
 
   listActiveCustomers = async (req, res) => {
     try {
-      const customers = await this.listCustomersUseCase.execute();
-      res.json(customers);
+      const page = Math.max(parseInt(req.query.page) || 1, 1);
+      const limit = Math.max(parseInt(req.query.limit) || 10, 1);
+      const result = await this.listCustomersUseCase.execute({ page, limit });
+      res.json(result);
     } catch (error) {
       this.#handleError(res, error);
     }
@@ -48,7 +52,9 @@ class CustomerController {
 
   getCustomerById = async (req, res) => {
     try {
-      const customer = await this.getCustomerByIdUseCase.execute(req.params.customerId);
+      const customer = await this.getCustomerByIdUseCase.execute(
+        req.params.customerId,
+      );
       res.json(customer);
     } catch (error) {
       this.#handleError(res, error);
@@ -59,7 +65,7 @@ class CustomerController {
     try {
       const customer = await this.updateCustomerUseCase.execute(
         req.params.customerId,
-        req.body
+        req.body,
       );
       res.json(customer.toResponse());
     } catch (error) {
@@ -71,7 +77,7 @@ class CustomerController {
     try {
       const customer = await this.updateCustomerStatusUseCase.execute(
         req.params.customerId,
-        req.body.status
+        req.body.status,
       );
       res.json({ status: customer.status });
     } catch (error) {
@@ -81,7 +87,9 @@ class CustomerController {
 
   assessCustomerRisk = async (req, res) => {
     try {
-      const result = await this.assessCustomerRiskUseCase.execute(req.params.customerId);
+      const result = await this.assessCustomerRiskUseCase.execute(
+        req.params.customerId,
+      );
       res.json(result);
     } catch (error) {
       this.#handleError(res, error);

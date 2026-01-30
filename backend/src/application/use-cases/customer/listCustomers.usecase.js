@@ -3,9 +3,13 @@ export default class ListCustomersUseCase {
     this.customerRepository = customerRepository;
   }
 
-  async execute() {
-    const customers = await this.customerRepository.findActive();
-    return customers.map(c => this.#toResponse(c));
+  async execute({ page, limit }) {
+    const result = await this.customerRepository.findActive({ page, limit });
+
+    return {
+      data: result.data.map((c) => this.#toResponse(c)),
+      pagination: result.pagination,
+    };
   }
 
   #toResponse(customer) {
@@ -20,7 +24,7 @@ export default class ListCustomersUseCase {
       riskLevel: customer.riskLevel,
       status: customer.status,
       createdAt: customer.createdAt,
-      updatedAt: customer.updatedAt
+      updatedAt: customer.updatedAt,
     };
   }
 }
