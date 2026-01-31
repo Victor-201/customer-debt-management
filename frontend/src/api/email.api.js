@@ -6,11 +6,15 @@ import apiClient from './axiosClient.js';
 
 export const emailApi = {
     /**
-     * Get all email logs (history)
-     * @returns {Promise<Array>}
+     * Get all email logs (history) with pagination
+     * @param {Object} params - { page, limit }
+     * @returns {Promise<Object>} - { data, total, page, limit, totalPages }
      */
-    getLogs: async () => {
-        const response = await apiClient.get('/api/email-logs');
+    getLogs: async (params = {}) => {
+        const { page = 1, limit = 100 } = params;
+        const response = await apiClient.get('/api/email-logs', {
+            params: { page, limit }
+        });
         return response.data;
     },
 

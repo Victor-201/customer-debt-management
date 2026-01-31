@@ -86,7 +86,9 @@ const EmailHistoryPage = () => {
         setLoading(true);
         setError(null);
         try {
-            const logs = await emailApi.getLogs();
+            const result = await emailApi.getLogs({ page: 1, limit: 500 });
+            // Handle paginated response - data is in result.data
+            const logs = result.data || result;
             // Transform data to match UI expectations
             const transformed = logs.map(log => ({
                 id: log.id,

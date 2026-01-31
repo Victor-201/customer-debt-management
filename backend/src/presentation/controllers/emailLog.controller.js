@@ -5,8 +5,12 @@ export default class EmailLogController {
 
     async getAllLogs(req, res, next) {
         try {
-            const logs = await this.getAllEmailLogsUseCase.execute();
-            res.json(logs);
+            const { page = 1, limit = 100 } = req.query;
+            const result = await this.getAllEmailLogsUseCase.execute({
+                page: parseInt(page, 10),
+                limit: parseInt(limit, 10)
+            });
+            res.json(result);
         } catch (error) {
             next(error);
         }
