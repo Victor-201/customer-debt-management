@@ -14,6 +14,7 @@ class GetAllPaymentsUseCase {
             page = 1,
             limit = 10,
             invoiceId = null,
+            paymentMethod = null,
             startDate = null,
             endDate = null,
         } = params;
@@ -23,6 +24,7 @@ class GetAllPaymentsUseCase {
             page: parseInt(page, 10),
             limit: parseInt(limit, 10),
             invoiceId,
+            paymentMethod,
             startDate,
             endDate,
         });

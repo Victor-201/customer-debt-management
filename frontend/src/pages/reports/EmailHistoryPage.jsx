@@ -1,55 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import {
     Mail, Search, Calendar, CheckCircle, XCircle, Clock,
-    Loader2, RefreshCw, Eye, User, FileText, Filter, ChevronLeft, ChevronRight
+    Loader2, RefreshCw, Eye, User, FileText, Filter, ChevronLeft, ChevronRight, AlertTriangle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import emailApi from '../../api/email.api';
 
 /* ================= EMAIL HISTORY PAGE ================= */
 
-// Mock data - in real app, would come from API
-const generateMockEmailHistory = () => {
-    const statuses = ['sent', 'failed', 'pending'];
-    const customers = [
-        { name: 'Công ty ABC', email: 'abc@company.vn' },
-        { name: 'Nguyễn Văn A', email: 'nguyenvana@gmail.com' },
-        { name: 'Trần Thị B', email: 'tranthib@yahoo.com' },
-        { name: 'Lê Văn C', email: 'levanc@outlook.com' },
-        { name: 'Phạm Văn D', email: 'phamvand@company.vn' },
-        { name: 'Hoàng Thị E', email: 'hoangthie@gmail.com' }
-    ];
-
-    const history = [];
-    for (let i = 0; i < 50; i++) {
-        const customer = customers[Math.floor(Math.random() * customers.length)];
-        const date = new Date();
-        date.setDate(date.getDate() - Math.floor(Math.random() * 30));
-        date.setHours(Math.floor(Math.random() * 12) + 6);
-        date.setMinutes(Math.floor(Math.random() * 60));
-
-        history.push({
-            id: `EMAIL-${String(i + 1).padStart(5, '0')}`,
-            customerName: customer.name,
-            customerEmail: customer.email,
-            subject: `[Nhắc nhở] Thanh toán hóa đơn quá hạn - ${customer.name}`,
-            invoiceCount: Math.floor(Math.random() * 5) + 1,
-            totalAmount: Math.floor(Math.random() * 100) * 1000000 + 1000000,
-            status: statuses[Math.floor(Math.random() * 10) < 8 ? 0 : (Math.floor(Math.random() * 10) < 9 ? 2 : 1)],
-            sentAt: date.toISOString(),
-            errorMessage: Math.random() > 0.8 ? 'Email không hợp lệ' : null
-        });
-    }
-
-    return history.sort((a, b) => new Date(b.sentAt) - new Date(a.sentAt));
-};
-
 const formatCurrency = (amount) => {
+    if (!amount) return '—';
     if (amount >= 1e9) return `${(amount / 1e9).toFixed(1)} tỷ`;
     if (amount >= 1e6) return `${(amount / 1e6).toFixed(1)} tr`;
     return new Intl.NumberFormat('vi-VN').format(amount) + ' đ';
 };
 
 const formatDate = (dateString) => {
+    if (!dateString) return '—';
     const date = new Date(dateString);
     return date.toLocaleDateString('vi-VN', {
         day: '2-digit',
@@ -61,12 +28,20 @@ const formatDate = (dateString) => {
 };
 
 const StatusBadge = ({ status }) => {
+    const statusMap = {
+        'SUCCESS': 'sent',
+        'FAILED': 'failed',
+        'sent': 'sent',
+        'failed': 'failed'
+    };
+    const normalizedStatus = statusMap[status] || 'pending';
+
     const config = {
         sent: { bg: 'bg-green-100', text: 'text-green-600', icon: CheckCircle, label: 'Đã gửi' },
         failed: { bg: 'bg-red-100', text: 'text-red-600', icon: XCircle, label: 'Thất bại' },
         pending: { bg: 'bg-yellow-100', text: 'text-yellow-600', icon: Clock, label: 'Đang gửi' }
     };
-    const { bg, text, icon: Icon, label } = config[status] || config.pending;
+    const { bg, text, icon: Icon, label } = config[normalizedStatus];
 
     return (
         <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold ${bg} ${text}`}>
@@ -76,8 +51,24 @@ const StatusBadge = ({ status }) => {
     );
 };
 
+const EmailTypeBadge = ({ type }) => {
+    const config = {
+        'BEFORE_DUE': { label: 'Trước hạn', color: 'bg-blue-100 text-blue-600' },
+        'OVERDUE_1': { label: 'Quá hạn lần 1', color: 'bg-orange-100 text-orange-600' },
+        'OVERDUE_2': { label: 'Quá hạn lần 2', color: 'bg-red-100 text-red-600' }
+    };
+    const { label, color } = config[type] || { label: type, color: 'bg-slate-100 text-slate-600' };
+
+    return (
+        <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${color}`}>
+            {label}
+        </span>
+    );
+};
+
 const EmailHistoryPage = () => {
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
     const [emailHistory, setEmailHistory] = useState([]);
     const [filteredHistory, setFilteredHistory] = useState([]);
 
@@ -90,12 +81,35 @@ const EmailHistoryPage = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const itemsPerPage = 10;
 
-    useEffect(() => {
-        // Simulate API call
-        setTimeout(() => {
-            setEmailHistory(generateMockEmailHistory());
+    // Fetch email logs from API
+    const fetchEmailLogs = async () => {
+        setLoading(true);
+        setError(null);
+        try {
+            const logs = await emailApi.getLogs();
+            // Transform data to match UI expectations
+            const transformed = logs.map(log => ({
+                id: log.id,
+                customerName: log.Customer?.name || 'Không xác định',
+                customerEmail: log.Customer?.email || 'Không có email',
+                invoiceNumber: log.Invoice?.invoice_number || log.invoice_id,
+                invoiceAmount: log.Invoice?.total_amount || 0,
+                emailType: log.email_type,
+                status: log.status,
+                sentAt: log.sent_at,
+                errorMessage: log.error_message
+            }));
+            setEmailHistory(transformed);
+        } catch (err) {
+            console.error('Failed to fetch email logs:', err);
+            setError(err.message || 'Không thể tải lịch sử email');
+        } finally {
             setLoading(false);
-        }, 500);
+        }
+    };
+
+    useEffect(() => {
+        fetchEmailLogs();
     }, []);
 
     // Apply filters
@@ -106,15 +120,20 @@ const EmailHistoryPage = () => {
         if (searchTerm) {
             const term = searchTerm.toLowerCase();
             filtered = filtered.filter(item =>
-                item.customerName.toLowerCase().includes(term) ||
-                item.customerEmail.toLowerCase().includes(term) ||
-                item.id.toLowerCase().includes(term)
+                item.customerName?.toLowerCase().includes(term) ||
+                item.customerEmail?.toLowerCase().includes(term) ||
+                item.id?.toLowerCase().includes(term) ||
+                item.invoiceNumber?.toLowerCase().includes(term)
             );
         }
 
         // Status filter
         if (statusFilter !== 'all') {
-            filtered = filtered.filter(item => item.status === statusFilter);
+            filtered = filtered.filter(item => {
+                if (statusFilter === 'sent') return item.status === 'SUCCESS';
+                if (statusFilter === 'failed') return item.status === 'FAILED';
+                return true;
+            });
         }
 
         // Date filter
@@ -146,9 +165,8 @@ const EmailHistoryPage = () => {
     // Stats
     const stats = {
         total: emailHistory.length,
-        sent: emailHistory.filter(e => e.status === 'sent').length,
-        failed: emailHistory.filter(e => e.status === 'failed').length,
-        pending: emailHistory.filter(e => e.status === 'pending').length
+        sent: emailHistory.filter(e => e.status === 'SUCCESS').length,
+        failed: emailHistory.filter(e => e.status === 'FAILED').length
     };
 
     return (
@@ -185,22 +203,33 @@ const EmailHistoryPage = () => {
                             Cấu hình email
                         </Link>
                         <button
-                            onClick={() => {
-                                setLoading(true);
-                                setTimeout(() => {
-                                    setEmailHistory(generateMockEmailHistory());
-                                    setLoading(false);
-                                }, 500);
-                            }}
-                            className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors"
+                            onClick={fetchEmailLogs}
+                            disabled={loading}
+                            className="p-2.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 transition-colors disabled:opacity-50"
                         >
-                            <RefreshCw size={18} />
+                            <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
                         </button>
                     </div>
                 </div>
 
+                {/* Error Alert */}
+                {error && (
+                    <div className="glass-card p-4 border-l-4 border-red-500 bg-red-50">
+                        <div className="flex items-center gap-3">
+                            <AlertTriangle className="text-red-500" size={20} />
+                            <p className="text-red-700 font-medium">{error}</p>
+                            <button
+                                onClick={fetchEmailLogs}
+                                className="ml-auto text-sm text-red-600 hover:text-red-700 font-medium"
+                            >
+                                Thử lại
+                            </button>
+                        </div>
+                    </div>
+                )}
+
                 {/* Stats Cards */}
-                <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4">
                     <div className="glass-card p-5">
                         <div className="flex items-center gap-3">
                             <div className="w-10 h-10 bg-slate-100 rounded-xl flex items-center justify-center">
@@ -234,17 +263,6 @@ const EmailHistoryPage = () => {
                             </div>
                         </div>
                     </div>
-                    <div className="glass-card p-5">
-                        <div className="flex items-center gap-3">
-                            <div className="w-10 h-10 bg-yellow-100 rounded-xl flex items-center justify-center">
-                                <Clock className="text-yellow-600" size={20} />
-                            </div>
-                            <div>
-                                <p className="text-2xl font-bold text-yellow-600">{stats.pending}</p>
-                                <p className="text-sm text-slate-500">Đang gửi</p>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Filters */}
@@ -256,7 +274,7 @@ const EmailHistoryPage = () => {
                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                                 <input
                                     type="text"
-                                    placeholder="Tìm theo tên, email, mã..."
+                                    placeholder="Tìm theo tên, email, mã HĐ..."
                                     className="fc-input w-full pl-10"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
@@ -273,7 +291,6 @@ const EmailHistoryPage = () => {
                             <option value="all">Tất cả trạng thái</option>
                             <option value="sent">Đã gửi</option>
                             <option value="failed">Thất bại</option>
-                            <option value="pending">Đang gửi</option>
                         </select>
 
                         {/* Date Filter */}
@@ -302,10 +319,9 @@ const EmailHistoryPage = () => {
                                 <table className="w-full">
                                     <thead>
                                         <tr className="border-b border-slate-100">
-                                            <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Mã</th>
                                             <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Khách hàng</th>
-                                            <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Số HĐ</th>
-                                            <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Tổng tiền</th>
+                                            <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Hóa đơn</th>
+                                            <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Loại email</th>
                                             <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Thời gian</th>
                                             <th className="text-left px-6 py-4 text-xs font-bold text-slate-500 uppercase tracking-wider">Trạng thái</th>
                                         </tr>
@@ -313,16 +329,15 @@ const EmailHistoryPage = () => {
                                     <tbody className="divide-y divide-slate-50">
                                         {paginatedData.length === 0 ? (
                                             <tr>
-                                                <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
-                                                    Không tìm thấy email nào
+                                                <td colSpan={5} className="px-6 py-12 text-center text-slate-400">
+                                                    {emailHistory.length === 0
+                                                        ? 'Chưa có email nào được gửi'
+                                                        : 'Không tìm thấy email phù hợp'}
                                                 </td>
                                             </tr>
                                         ) : (
                                             paginatedData.map((email) => (
                                                 <tr key={email.id} className="hover:bg-slate-50/50 transition-colors">
-                                                    <td className="px-6 py-4">
-                                                        <span className="font-mono text-sm text-slate-600">{email.id}</span>
-                                                    </td>
                                                     <td className="px-6 py-4">
                                                         <div>
                                                             <p className="font-semibold text-slate-800">{email.customerName}</p>
@@ -330,10 +345,15 @@ const EmailHistoryPage = () => {
                                                         </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="font-semibold text-slate-700">{email.invoiceCount}</span>
+                                                        <div>
+                                                            <span className="font-mono text-sm text-slate-600">{email.invoiceNumber}</span>
+                                                            {email.invoiceAmount > 0 && (
+                                                                <p className="text-sm text-slate-400">{formatCurrency(email.invoiceAmount)}</p>
+                                                            )}
+                                                        </div>
                                                     </td>
                                                     <td className="px-6 py-4">
-                                                        <span className="font-semibold text-slate-800">{formatCurrency(email.totalAmount)}</span>
+                                                        <EmailTypeBadge type={email.emailType} />
                                                     </td>
                                                     <td className="px-6 py-4">
                                                         <span className="text-sm text-slate-500">{formatDate(email.sentAt)}</span>
@@ -381,8 +401,8 @@ const EmailHistoryPage = () => {
                                                     key={pageNum}
                                                     onClick={() => setCurrentPage(pageNum)}
                                                     className={`w-10 h-10 rounded-lg font-medium ${currentPage === pageNum
-                                                            ? 'bg-blue-500 text-white'
-                                                            : 'border border-slate-200 hover:bg-slate-50 text-slate-600'
+                                                        ? 'bg-blue-500 text-white'
+                                                        : 'border border-slate-200 hover:bg-slate-50 text-slate-600'
                                                         }`}
                                                 >
                                                     {pageNum}

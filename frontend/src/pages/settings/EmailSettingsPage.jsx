@@ -4,64 +4,131 @@ import {
     Loader2, FileText, Calendar, Bell, Edit3, Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import emailApi from '../../api/email.api';
+import settingsApi from '../../api/settings.api';
 
 /* ================= EMAIL SETTINGS PAGE ================= */
 
 const EmailSettingsPage = () => {
+    const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState(null);
-    
+
     // Email template config
     const [emailConfig, setEmailConfig] = useState({
-        subject: '[Nhắc nhở] Thanh toán hóa đơn quá hạn - {{Tên khách hàng}}',
-        greeting: 'Kính gửi {{Tên khách hàng}},',
-        opening: 'Chúng tôi xin thông báo rằng quý khách có {{số lượng}} hóa đơn đã quá hạn thanh toán với tổng số tiền {{tổng tiền}}.',
-        closing: 'Vui lòng thanh toán sớm để tránh phát sinh thêm chi phí. Nếu quý khách đã thanh toán, vui lòng bỏ qua email này.',
-        signature: 'Phòng Kế toán - FE Credit',
-        companyName: 'FE Credit'
+        subject: '[Nhắc nhở] Thanh toán hóa đơn quá hạn - {{customerName}}',
+        html: `<p>Kính gửi {{customerName}},</p>
+<p>Chúng tôi xin thông báo rằng quý khách có hóa đơn đã quá hạn thanh toán.</p>
+<p>Vui lòng thanh toán sớm để tránh phát sinh thêm chi phí.</p>
+<p>Trân trọng,<br/>Phòng Kế toán - FE Credit</p>`
     });
 
-    // Schedule config
+    // Schedule config (cron based)
     const [scheduleConfig, setScheduleConfig] = useState({
         enabled: true,
         sendTime: '08:00',
         frequency: 'daily', // daily, weekly, monthly
-        weeklyDay: 'monday',
-        minDaysOverdue: 1,
-        reminderGapDays: 7 // Don't send again if sent within X days
+        weeklyDay: 1, // Monday = 1
+        cron: '0 8 * * *' // Default: 8 AM every day
     });
 
     const [previewMode, setPreviewMode] = useState(false);
+
+    // Load settings from API
+    useEffect(() => {
+        const loadSettings = async () => {
+            try {
+                setLoading(true);
+
+                // Load email templates
+                const templates = await emailApi.getTemplates();
+                const reminderTemplate = templates.find(t => t.type === 'reminder') || templates[0];
+                if (reminderTemplate) {
+                    setEmailConfig({
+                        subject: reminderTemplate.subject || emailConfig.subject,
+                        html: reminderTemplate.html || emailConfig.html
+                    });
+                }
+
+                // Load settings
+                const settings = await settingsApi.getSettings();
+                if (settings && settings.cron) {
+                    const cronParts = settings.cron.SEND_REMINDER?.split(' ') || ['0', '8', '*', '*', '*'];
+                    const hour = cronParts[1] || '8';
+                    const minute = cronParts[0] || '0';
+
+                    // Determine frequency from cron
+                    let frequency = 'daily';
+                    let weeklyDay = 1;
+                    if (cronParts[4] !== '*') {
+                        frequency = 'weekly';
+                        weeklyDay = parseInt(cronParts[4]) || 1;
+                    } else if (cronParts[2] !== '*') {
+                        frequency = 'monthly';
+                    }
+
+                    setScheduleConfig({
+                        enabled: true,
+                        sendTime: `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`,
+                        frequency,
+                        weeklyDay,
+                        cron: settings.cron.SEND_REMINDER
+                    });
+                }
+            } catch (err) {
+                console.error('Failed to load settings:', err);
+                // Use defaults if API fails
+            } finally {
+                setLoading(false);
+            }
+        };
+
+        loadSettings();
+    }, []);
+
+    // Convert schedule config to cron expression
+    const buildCronExpression = (config) => {
+        const [hour, minute] = config.sendTime.split(':');
+
+        switch (config.frequency) {
+            case 'weekly':
+                return `${minute} ${hour} * * ${config.weeklyDay}`;
+            case 'monthly':
+                return `${minute} ${hour} 1 * *`;
+            default: // daily
+                return `${minute} ${hour} * * *`;
+        }
+    };
 
     const handleSave = async () => {
         try {
             setSaving(true);
             setError(null);
-            
-            // Simulate API call
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            
-            // In real app: save to backend
-            localStorage.setItem('emailConfig', JSON.stringify(emailConfig));
-            localStorage.setItem('scheduleConfig', JSON.stringify(scheduleConfig));
-            
+
+            // Save email template
+            await emailApi.updateTemplate('reminder', {
+                subject: emailConfig.subject,
+                html: emailConfig.html
+            });
+
+            // Save schedule settings
+            const cronExpression = buildCronExpression(scheduleConfig);
+            await settingsApi.updateSettings({
+                cron: {
+                    SEND_REMINDER: cronExpression
+                }
+            });
+
             setSaved(true);
             setTimeout(() => setSaved(false), 3000);
         } catch (err) {
-            setError('Không thể lưu cấu hình');
+            console.error('Failed to save settings:', err);
+            setError(err.response?.data?.message || 'Không thể lưu cấu hình');
         } finally {
             setSaving(false);
         }
     };
-
-    // Load saved config on mount
-    useEffect(() => {
-        const savedEmailConfig = localStorage.getItem('emailConfig');
-        const savedScheduleConfig = localStorage.getItem('scheduleConfig');
-        if (savedEmailConfig) setEmailConfig(JSON.parse(savedEmailConfig));
-        if (savedScheduleConfig) setScheduleConfig(JSON.parse(savedScheduleConfig));
-    }, []);
 
     const frequencyLabels = {
         daily: 'Hàng ngày',
@@ -70,14 +137,22 @@ const EmailSettingsPage = () => {
     };
 
     const weekDays = [
-        { value: 'monday', label: 'Thứ 2' },
-        { value: 'tuesday', label: 'Thứ 3' },
-        { value: 'wednesday', label: 'Thứ 4' },
-        { value: 'thursday', label: 'Thứ 5' },
-        { value: 'friday', label: 'Thứ 6' },
-        { value: 'saturday', label: 'Thứ 7' },
-        { value: 'sunday', label: 'Chủ nhật' }
+        { value: 1, label: 'Thứ 2' },
+        { value: 2, label: 'Thứ 3' },
+        { value: 3, label: 'Thứ 4' },
+        { value: 4, label: 'Thứ 5' },
+        { value: 5, label: 'Thứ 6' },
+        { value: 6, label: 'Thứ 7' },
+        { value: 0, label: 'Chủ nhật' }
     ];
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[400px]">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            </div>
+        );
+    }
 
     return (
         <div className="relative min-h-screen">
@@ -105,7 +180,7 @@ const EmailSettingsPage = () => {
                         </p>
                     </div>
                     <div className="flex items-center gap-3">
-                        <Link 
+                        <Link
                             to="/reports/email-history"
                             className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium flex items-center gap-2 transition-colors"
                         >
@@ -171,61 +246,22 @@ const EmailSettingsPage = () => {
                                         type="text"
                                         className="fc-input w-full"
                                         value={emailConfig.subject}
-                                        onChange={(e) => setEmailConfig({...emailConfig, subject: e.target.value})}
+                                        onChange={(e) => setEmailConfig({ ...emailConfig, subject: e.target.value })}
                                     />
-                                    <p className="text-xs text-slate-400 mt-1">Sử dụng {'{{Tên khách hàng}}'} để thay thế tên</p>
+                                    <p className="text-xs text-slate-400 mt-1">Sử dụng {'{{customerName}}'} để thay thế tên khách hàng</p>
                                 </div>
 
                                 <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Lời chào</label>
-                                    <input
-                                        type="text"
-                                        className="fc-input w-full"
-                                        value={emailConfig.greeting}
-                                        onChange={(e) => setEmailConfig({...emailConfig, greeting: e.target.value})}
-                                    />
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Nội dung mở đầu</label>
+                                    <label className="block text-sm font-bold text-slate-700 mb-2">Nội dung email (HTML)</label>
                                     <textarea
-                                        className="fc-input w-full resize-none"
-                                        rows={3}
-                                        value={emailConfig.opening}
-                                        onChange={(e) => setEmailConfig({...emailConfig, opening: e.target.value})}
+                                        className="fc-input w-full resize-none font-mono text-sm"
+                                        rows={12}
+                                        value={emailConfig.html}
+                                        onChange={(e) => setEmailConfig({ ...emailConfig, html: e.target.value })}
                                     />
-                                    <p className="text-xs text-slate-400 mt-1">Biến: {'{{số lượng}}, {{tổng tiền}}'}</p>
-                                </div>
-
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Lời kết</label>
-                                    <textarea
-                                        className="fc-input w-full resize-none"
-                                        rows={2}
-                                        value={emailConfig.closing}
-                                        onChange={(e) => setEmailConfig({...emailConfig, closing: e.target.value})}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Chữ ký</label>
-                                        <input
-                                            type="text"
-                                            className="fc-input w-full"
-                                            value={emailConfig.signature}
-                                            onChange={(e) => setEmailConfig({...emailConfig, signature: e.target.value})}
-                                        />
-                                    </div>
-                                    <div>
-                                        <label className="block text-sm font-bold text-slate-700 mb-2">Tên công ty</label>
-                                        <input
-                                            type="text"
-                                            className="fc-input w-full"
-                                            value={emailConfig.companyName}
-                                            onChange={(e) => setEmailConfig({...emailConfig, companyName: e.target.value})}
-                                        />
-                                    </div>
+                                    <p className="text-xs text-slate-400 mt-1">
+                                        Biến: {'{{customerName}}, {{invoiceNumber}}, {{amount}}, {{dueDate}}'}
+                                    </p>
                                 </div>
                             </div>
                         ) : (
@@ -233,23 +269,20 @@ const EmailSettingsPage = () => {
                             <div className="bg-slate-50 rounded-xl p-5 border border-slate-200">
                                 <div className="border-b border-slate-200 pb-3 mb-4">
                                     <p className="text-xs text-slate-500">Tiêu đề:</p>
-                                    <p className="font-medium text-slate-800">{emailConfig.subject.replace('{{Tên khách hàng}}', 'Nguyễn Văn A')}</p>
-                                </div>
-                                <div className="text-sm text-slate-600 space-y-3">
-                                    <p>{emailConfig.greeting.replace('{{Tên khách hàng}}', 'Nguyễn Văn A')}</p>
-                                    <p>{emailConfig.opening.replace('{{số lượng}}', '3').replace('{{tổng tiền}}', '15.000.000 đ')}</p>
-                                    <p className="text-slate-500">Chi tiết các hóa đơn quá hạn:</p>
-                                    <ul className="list-disc list-inside pl-4 text-slate-400">
-                                        <li>INV-001 - Quá hạn 5 ngày - 5.000.000 đ</li>
-                                        <li>INV-002 - Quá hạn 10 ngày - 7.000.000 đ</li>
-                                        <li>INV-003 - Quá hạn 15 ngày - 3.000.000 đ</li>
-                                    </ul>
-                                    <p>{emailConfig.closing}</p>
-                                    <p className="pt-3 text-slate-400">
-                                        Trân trọng,<br/>
-                                        {emailConfig.signature} - {emailConfig.companyName}
+                                    <p className="font-medium text-slate-800">
+                                        {emailConfig.subject.replace('{{customerName}}', 'Nguyễn Văn A')}
                                     </p>
                                 </div>
+                                <div
+                                    className="text-sm text-slate-600 prose prose-sm max-w-none"
+                                    dangerouslySetInnerHTML={{
+                                        __html: emailConfig.html
+                                            .replace(/\{\{customerName\}\}/g, 'Nguyễn Văn A')
+                                            .replace(/\{\{invoiceNumber\}\}/g, 'INV-001')
+                                            .replace(/\{\{amount\}\}/g, '15.000.000 đ')
+                                            .replace(/\{\{dueDate\}\}/g, '15/01/2026')
+                                    }}
+                                />
                             </div>
                         )}
                     </div>
@@ -269,11 +302,11 @@ const EmailSettingsPage = () => {
                                     <p className="text-sm text-slate-500">Hệ thống sẽ tự động gửi email nhắc nợ theo lịch</p>
                                 </div>
                                 <label className="relative inline-flex items-center cursor-pointer">
-                                    <input 
-                                        type="checkbox" 
+                                    <input
+                                        type="checkbox"
                                         className="sr-only peer"
                                         checked={scheduleConfig.enabled}
-                                        onChange={(e) => setScheduleConfig({...scheduleConfig, enabled: e.target.checked})}
+                                        onChange={(e) => setScheduleConfig({ ...scheduleConfig, enabled: e.target.checked })}
                                     />
                                     <div className="w-11 h-6 bg-slate-300 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-purple-500"></div>
                                 </label>
@@ -286,7 +319,7 @@ const EmailSettingsPage = () => {
                                         type="time"
                                         className="fc-input w-full"
                                         value={scheduleConfig.sendTime}
-                                        onChange={(e) => setScheduleConfig({...scheduleConfig, sendTime: e.target.value})}
+                                        onChange={(e) => setScheduleConfig({ ...scheduleConfig, sendTime: e.target.value })}
                                     />
                                 </div>
                                 <div>
@@ -294,7 +327,7 @@ const EmailSettingsPage = () => {
                                     <select
                                         className="fc-input w-full"
                                         value={scheduleConfig.frequency}
-                                        onChange={(e) => setScheduleConfig({...scheduleConfig, frequency: e.target.value})}
+                                        onChange={(e) => setScheduleConfig({ ...scheduleConfig, frequency: e.target.value })}
                                     >
                                         <option value="daily">Hàng ngày</option>
                                         <option value="weekly">Hàng tuần</option>
@@ -309,7 +342,7 @@ const EmailSettingsPage = () => {
                                     <select
                                         className="fc-input w-full"
                                         value={scheduleConfig.weeklyDay}
-                                        onChange={(e) => setScheduleConfig({...scheduleConfig, weeklyDay: e.target.value})}
+                                        onChange={(e) => setScheduleConfig({ ...scheduleConfig, weeklyDay: parseInt(e.target.value) })}
                                     >
                                         {weekDays.map(day => (
                                             <option key={day.value} value={day.value}>{day.label}</option>
@@ -317,33 +350,6 @@ const EmailSettingsPage = () => {
                                     </select>
                                 </div>
                             )}
-
-                            <hr className="border-slate-100" />
-
-                            <div className="grid grid-cols-2 gap-4">
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Quá hạn tối thiểu (ngày)</label>
-                                    <input
-                                        type="number"
-                                        className="fc-input w-full"
-                                        min="1"
-                                        value={scheduleConfig.minDaysOverdue}
-                                        onChange={(e) => setScheduleConfig({...scheduleConfig, minDaysOverdue: parseInt(e.target.value) || 1})}
-                                    />
-                                    <p className="text-xs text-slate-400 mt-1">Chỉ gửi cho hóa đơn quá hạn ít nhất X ngày</p>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-bold text-slate-700 mb-2">Khoảng cách nhắc lại (ngày)</label>
-                                    <input
-                                        type="number"
-                                        className="fc-input w-full"
-                                        min="1"
-                                        value={scheduleConfig.reminderGapDays}
-                                        onChange={(e) => setScheduleConfig({...scheduleConfig, reminderGapDays: parseInt(e.target.value) || 7})}
-                                    />
-                                    <p className="text-xs text-slate-400 mt-1">Không gửi lại nếu đã gửi trong X ngày</p>
-                                </div>
-                            </div>
                         </div>
 
                         {/* Summary */}
@@ -368,9 +374,8 @@ const EmailSettingsPage = () => {
                                 </div>
                                 <div className="flex items-center gap-2">
                                     <Bell size={14} className="text-slate-400" />
-                                    <span className="text-slate-600">
-                                        Điều kiện: Quá hạn ≥ <strong>{scheduleConfig.minDaysOverdue} ngày</strong>, 
-                                        chưa gửi trong <strong>{scheduleConfig.reminderGapDays} ngày</strong>
+                                    <span className="text-slate-600 font-mono text-xs">
+                                        Cron: {buildCronExpression(scheduleConfig)}
                                     </span>
                                 </div>
                             </div>

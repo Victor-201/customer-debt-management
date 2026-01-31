@@ -82,11 +82,15 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
     /**
      * Find all payments with pagination and filtering
      */
-    async findAll({ search, page, limit, invoiceId, startDate, endDate }) {
+    async findAll({ search, page, limit, invoiceId, paymentMethod, startDate, endDate }) {
         const where = {};
 
         if (invoiceId) {
             where.invoice_id = invoiceId;
+        }
+
+        if (paymentMethod) {
+            where.method = paymentMethod;
         }
 
         if (search) {
