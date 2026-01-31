@@ -1,9 +1,11 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import {
     Settings, Mail, Clock, Save, AlertCircle, CheckCircle,
-    Loader2, FileText, Calendar, Bell, Edit3, Eye, Copy, Code, Type, Variable
+    Loader2, FileText, Calendar, Bell, Copy, Code, Variable, Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 import emailApi from '../../api/email.api';
 import settingsApi from '../../api/settings.api';
 
@@ -34,7 +36,7 @@ const VariablePicker = ({ onInsert }) => {
                 <Variable size={18} className="text-purple-500" />
                 Biến có sẵn
             </h3>
-            <p className="text-xs text-slate-500">Click để chèn hoặc sao chép vào clipboard</p>
+            <p className="text-xs text-slate-500">Click để chèn vào editor hoặc sao chép</p>
             <div className="grid gap-2">
                 {TEMPLATE_VARIABLES.map((v) => (
                     <div
@@ -65,126 +67,32 @@ const VariablePicker = ({ onInsert }) => {
     );
 };
 
-/* ================= HTML EDITOR ================= */
-const HtmlEditor = ({ value, onChange, onInsertVariable }) => {
-    const textareaRef = useRef(null);
-    const [mode, setMode] = useState('code'); // 'code' or 'visual'
-
-    const insertAtCursor = (text) => {
-        const textarea = textareaRef.current;
-        if (!textarea) return;
-
-        const start = textarea.selectionStart;
-        const end = textarea.selectionEnd;
-        const newValue = value.substring(0, start) + text + value.substring(end);
-        onChange(newValue);
-
-        // Restore cursor position
-        setTimeout(() => {
-            textarea.focus();
-            textarea.setSelectionRange(start + text.length, start + text.length);
-        }, 0);
-    };
-
-    // Expose insertAtCursor to parent
-    useEffect(() => {
-        if (onInsertVariable) {
-            onInsertVariable.current = insertAtCursor;
-        }
-    }, [value]);
-
-    const previewHtml = value
-        .replace(/\{\{customerName\}\}/g, '<strong>Nguyễn Văn A</strong>')
-        .replace(/\{\{customerEmail\}\}/g, 'nguyenvana@email.com')
-        .replace(/\{\{invoiceNumber\}\}/g, '<code>INV-2026-001</code>')
-        .replace(/\{\{invoiceAmount\}\}/g, '<strong class="text-red-600">15.000.000 đ</strong>')
-        .replace(/\{\{dueDate\}\}/g, '15/01/2026')
-        .replace(/\{\{daysOverdue\}\}/g, '7')
-        .replace(/\{\{companyName\}\}/g, 'FA Credit');
-
-    return (
-        <div className="space-y-3">
-            {/* Mode Toggle */}
-            <div className="flex items-center gap-2">
-                <button
-                    onClick={() => setMode('code')}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${mode === 'code'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'text-slate-500 hover:bg-slate-100'
-                        }`}
-                >
-                    <Code size={14} />
-                    HTML Code
-                </button>
-                <button
-                    onClick={() => setMode('visual')}
-                    className={`px-3 py-1.5 rounded-lg text-sm font-medium flex items-center gap-1.5 transition-colors ${mode === 'visual'
-                            ? 'bg-purple-100 text-purple-700'
-                            : 'text-slate-500 hover:bg-slate-100'
-                        }`}
-                >
-                    <Eye size={14} />
-                    Xem trước
-                </button>
-            </div>
-
-            {/* Editor / Preview */}
-            {mode === 'code' ? (
-                <div className="relative">
-                    <textarea
-                        ref={textareaRef}
-                        className="fc-input w-full resize-none font-mono text-sm leading-relaxed"
-                        rows={16}
-                        value={value}
-                        onChange={(e) => onChange(e.target.value)}
-                        placeholder="Nhập nội dung HTML email..."
-                        spellCheck={false}
-                    />
-                    <div className="absolute bottom-2 right-2 text-xs text-slate-400">
-                        {value.length} ký tự
-                    </div>
-                </div>
-            ) : (
-                <div className="bg-white border border-slate-200 rounded-xl p-6 min-h-[300px]">
-                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: previewHtml }} />
-                </div>
-            )}
-        </div>
-    );
-};
-
 /* ================= EMAIL SETTINGS PAGE ================= */
 const EmailSettingsPage = () => {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [saved, setSaved] = useState(false);
     const [error, setError] = useState(null);
-    const insertVariableRef = useRef(null);
+    const [viewMode, setViewMode] = useState('editor'); // 'editor', 'html', 'preview'
+    const quillRef = React.useRef(null);
 
     // Email template config
     const [emailConfig, setEmailConfig] = useState({
         subject: '[Nhắc nhở] Thanh toán hóa đơn quá hạn - {{customerName}}',
         html: `<p>Kính gửi <strong>{{customerName}}</strong>,</p>
-
 <p>Chúng tôi xin thông báo rằng hóa đơn <strong>{{invoiceNumber}}</strong> với số tiền <strong>{{invoiceAmount}}</strong> đã quá hạn thanh toán <strong>{{daysOverdue}}</strong> ngày (hạn thanh toán: {{dueDate}}).</p>
-
 <p>Vui lòng thanh toán sớm để tránh phát sinh thêm chi phí và ảnh hưởng đến uy tín tín dụng của quý khách.</p>
-
 <p><strong>Thông tin thanh toán:</strong></p>
 <ul>
     <li>Số hóa đơn: {{invoiceNumber}}</li>
     <li>Số tiền: {{invoiceAmount}}</li>
     <li>Ngày đến hạn: {{dueDate}}</li>
 </ul>
-
 <p>Nếu quý khách đã thanh toán, vui lòng bỏ qua email này.</p>
-
-<p>Trân trọng,<br/>
-<strong>Phòng Kế toán</strong><br/>
-{{companyName}}</p>`
+<p>Trân trọng,<br/><strong>Phòng Kế toán</strong><br/>{{companyName}}</p>`
     });
 
-    // Schedule config (cron based)
+    // Schedule config
     const [scheduleConfig, setScheduleConfig] = useState({
         enabled: true,
         sendTime: '08:00',
@@ -192,6 +100,24 @@ const EmailSettingsPage = () => {
         weeklyDay: 1,
         cron: '0 8 * * *'
     });
+
+    // Quill editor modules
+    const modules = useMemo(() => ({
+        toolbar: [
+            [{ 'header': [1, 2, 3, false] }],
+            ['bold', 'italic', 'underline', 'strike'],
+            [{ 'color': [] }, { 'background': [] }],
+            [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+            [{ 'align': [] }],
+            ['link'],
+            ['clean']
+        ],
+    }), []);
+
+    const formats = [
+        'header', 'bold', 'italic', 'underline', 'strike',
+        'color', 'background', 'list', 'bullet', 'align', 'link'
+    ];
 
     // Load settings from API
     useEffect(() => {
@@ -274,12 +200,23 @@ const EmailSettingsPage = () => {
     };
 
     const handleInsertVariable = (variable) => {
-        if (insertVariableRef.current) {
-            insertVariableRef.current(variable);
+        const editor = quillRef.current?.getEditor();
+        if (editor) {
+            const range = editor.getSelection(true);
+            editor.insertText(range.index, variable);
+            editor.setSelection(range.index + variable.length);
         }
     };
 
-    const frequencyLabels = { daily: 'Hàng ngày', weekly: 'Hàng tuần', monthly: 'Hàng tháng' };
+    const previewHtml = emailConfig.html
+        .replace(/\{\{customerName\}\}/g, '<strong style="color:#7c3aed">Nguyễn Văn A</strong>')
+        .replace(/\{\{customerEmail\}\}/g, 'nguyenvana@email.com')
+        .replace(/\{\{invoiceNumber\}\}/g, '<code style="background:#f3e8ff;padding:2px 6px;border-radius:4px">INV-2026-001</code>')
+        .replace(/\{\{invoiceAmount\}\}/g, '<strong style="color:#dc2626">15.000.000 đ</strong>')
+        .replace(/\{\{dueDate\}\}/g, '15/01/2026')
+        .replace(/\{\{daysOverdue\}\}/g, '<strong style="color:#f59e0b">7</strong>')
+        .replace(/\{\{companyName\}\}/g, 'FA Credit');
+
     const weekDays = [
         { value: 1, label: 'Thứ 2' }, { value: 2, label: 'Thứ 3' },
         { value: 3, label: 'Thứ 4' }, { value: 4, label: 'Thứ 5' },
@@ -326,7 +263,7 @@ const EmailSettingsPage = () => {
                             className="px-4 py-2 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-600 font-medium flex items-center gap-2 transition-colors"
                         >
                             <FileText size={18} />
-                            Lịch sử ({'>'}68k emails)
+                            Lịch sử gửi
                         </Link>
                         <button
                             onClick={handleSave}
@@ -374,17 +311,88 @@ const EmailSettingsPage = () => {
                             </p>
                         </div>
 
-                        {/* HTML Editor */}
+                        {/* Rich Text Editor */}
                         <div className="glass-card p-6 space-y-4">
-                            <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
-                                <Code className="text-blue-500" size={20} />
-                                Nội dung Email (HTML)
-                            </h2>
-                            <HtmlEditor
-                                value={emailConfig.html}
-                                onChange={(html) => setEmailConfig({ ...emailConfig, html })}
-                                onInsertVariable={insertVariableRef}
-                            />
+                            <div className="flex items-center justify-between">
+                                <h2 className="text-lg font-bold text-slate-900 flex items-center gap-2">
+                                    <Code className="text-blue-500" size={20} />
+                                    Nội dung Email
+                                </h2>
+                                <div className="flex items-center gap-2 bg-slate-100 rounded-lg p-1">
+                                    <button
+                                        onClick={() => setViewMode('editor')}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'editor' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500'
+                                            }`}
+                                    >
+                                        Editor
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('html')}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors ${viewMode === 'html' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500'
+                                            }`}
+                                    >
+                                        HTML
+                                    </button>
+                                    <button
+                                        onClick={() => setViewMode('preview')}
+                                        className={`px-3 py-1.5 rounded-md text-sm font-medium transition-colors flex items-center gap-1 ${viewMode === 'preview' ? 'bg-white text-purple-600 shadow-sm' : 'text-slate-500'
+                                            }`}
+                                    >
+                                        <Eye size={14} />
+                                        Preview
+                                    </button>
+                                </div>
+                            </div>
+
+                            {viewMode === 'editor' && (
+                                <div className="email-editor-container">
+                                    <style>{`
+                                        .email-editor-container .ql-container {
+                                            min-height: 300px;
+                                            font-size: 14px;
+                                            font-family: inherit;
+                                        }
+                                        .email-editor-container .ql-editor {
+                                            min-height: 300px;
+                                        }
+                                        .email-editor-container .ql-toolbar {
+                                            border-radius: 12px 12px 0 0;
+                                            background: #f8fafc;
+                                            border-color: #e2e8f0;
+                                        }
+                                        .email-editor-container .ql-container {
+                                            border-radius: 0 0 12px 12px;
+                                            border-color: #e2e8f0;
+                                        }
+                                    `}</style>
+                                    <ReactQuill
+                                        ref={quillRef}
+                                        theme="snow"
+                                        value={emailConfig.html}
+                                        onChange={(html) => setEmailConfig({ ...emailConfig, html })}
+                                        modules={modules}
+                                        formats={formats}
+                                        placeholder="Soạn nội dung email..."
+                                    />
+                                </div>
+                            )}
+
+                            {viewMode === 'html' && (
+                                <textarea
+                                    className="fc-input w-full font-mono text-sm leading-relaxed resize-none"
+                                    rows={16}
+                                    value={emailConfig.html}
+                                    onChange={(e) => setEmailConfig({ ...emailConfig, html: e.target.value })}
+                                    placeholder="Nhập HTML code..."
+                                    spellCheck={false}
+                                />
+                            )}
+
+                            {viewMode === 'preview' && (
+                                <div className="bg-white border border-slate-200 rounded-xl p-6 min-h-[300px]">
+                                    <div className="prose prose-sm max-w-none" dangerouslySetInnerHTML={{ __html: previewHtml }} />
+                                </div>
+                            )}
                         </div>
 
                         {/* Schedule Config */}
@@ -468,21 +476,13 @@ const EmailSettingsPage = () => {
                         <div className="glass-card p-5">
                             <h3 className="font-bold text-slate-800 flex items-center gap-2 mb-4">
                                 <Bell className="text-green-500" size={18} />
-                                Thống kê
+                                Hướng dẫn
                             </h3>
-                            <div className="space-y-3 text-sm">
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Tổng email đã gửi:</span>
-                                    <span className="font-bold text-slate-800">68,036</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Email gửi hôm nay:</span>
-                                    <span className="font-bold text-green-600">--</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span className="text-slate-500">Tỉ lệ thành công:</span>
-                                    <span className="font-bold text-blue-600">~100%</span>
-                                </div>
+                            <div className="space-y-3 text-sm text-slate-600">
+                                <p>1. Sử dụng <strong>Editor</strong> để soạn nội dung với định dạng</p>
+                                <p>2. Click vào <strong>biến</strong> ở bên phải để chèn vào editor</p>
+                                <p>3. Chuyển sang <strong>HTML</strong> để chỉnh sửa code trực tiếp</p>
+                                <p>4. Xem <strong>Preview</strong> để kiểm tra kết quả</p>
                             </div>
                         </div>
                     </div>
