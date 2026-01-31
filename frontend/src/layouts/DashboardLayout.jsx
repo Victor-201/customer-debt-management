@@ -66,12 +66,13 @@ const DashboardLayout = () => {
         { to: "/reports/aging", icon: <FiBarChart2 />, label: "Tuổi nợ" },
         { to: "/reports/high-risk", icon: <FiAlertTriangle />, label: "Rủi ro cao" },
         { to: "/reports/overdue", icon: <FiClock />, label: "Quá hạn" },
+        { to: "/reports/email-history", icon: <FiMail />, label: "Lịch sử gửi mail" },
       ],
     },
     {
       title: "CÀI ĐẶT",
       items: [
-        { to: "/settings", icon: <FiMail />, label: "Tự động hóa" },
+        { to: "/settings/email", icon: <FiSettings />, label: "Cấu hình Email" },
       ],
     },
   ];

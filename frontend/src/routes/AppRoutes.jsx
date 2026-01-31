@@ -25,8 +25,9 @@ import PaymentPage from "../pages/payments/PaymentPage";
 import AgingReportPage from "../pages/reports/AgingReportPage";
 import HighRiskCustomerPage from "../pages/reports/HighRiskCustomerPage";
 import OverdueARPage from "../pages/reports/OverdueARPage";
+import EmailHistoryPage from "../pages/reports/EmailHistoryPage";
 /* ================= SETTINGS ================= */
-import AutomationSettingsPage from "../pages/settings/AutomationSettingsPage";
+import EmailSettingsPage from "../pages/settings/EmailSettingsPage";
 /* ================= ERRORS ================= */
 import NotFoundPage from "../pages/NotFoundPage";
 
@@ -80,10 +81,11 @@ const AppRoutes = () => {
         <Route path="/reports/aging" element={<AgingReportPage />} />
         <Route path="/reports/high-risk" element={<HighRiskCustomerPage />} />
         <Route path="/reports/overdue" element={<OverdueARPage />} />
+        <Route path="/reports/email-history" element={<EmailHistoryPage />} />
 
         {/* ================= SETTINGS ================= */}
-        <Route path="/settings" element={<AutomationSettingsPage />} />
-        <Route path="/settings/automation" element={<AutomationSettingsPage />} />
+        <Route path="/settings" element={<EmailSettingsPage />} />
+        <Route path="/settings/email" element={<EmailSettingsPage />} />
 
         {/* ================= 404 INSIDE DASHBOARD ================= */}
         <Route path="*" element={<NotFoundPage />} />

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   fetchCustomers,
@@ -6,6 +6,7 @@ import {
   updateCustomer,
 } from "../../store/customer.slice";
 import { useNavigate } from "react-router-dom";
+import { Search, ArrowUpDown, Filter, ChevronDown } from "lucide-react";
 
 const CustomerListPage = () => {
   const dispatch = useDispatch();
@@ -19,6 +20,16 @@ const CustomerListPage = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
 
+  // Sorting state
+  const [sortField, setSortField] = useState('name'); // name, creditLimit, createdAt
+  const [sortDirection, setSortDirection] = useState('asc'); // asc, desc
+
+  // Filtering state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [paymentTermFilter, setPaymentTermFilter] = useState('all');
+  const [riskLevelFilter, setRiskLevelFilter] = useState('all');
+  const [statusFilter, setStatusFilter] = useState('all');
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -29,6 +40,70 @@ const CustomerListPage = () => {
     riskLevel: "NORMAL",
     status: "ACTIVE",
   });
+
+  // Filtered and sorted list
+  const filteredAndSortedList = useMemo(() => {
+    let result = [...list];
+
+    // Search filter
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      result = result.filter(c =>
+        c.name?.toLowerCase().includes(term) ||
+        c.email?.toLowerCase().includes(term) ||
+        c.phone?.includes(term)
+      );
+    }
+
+    // Payment term filter
+    if (paymentTermFilter !== 'all') {
+      result = result.filter(c => c.paymentTerm === paymentTermFilter);
+    }
+
+    // Risk level filter
+    if (riskLevelFilter !== 'all') {
+      result = result.filter(c => c.riskLevel === riskLevelFilter);
+    }
+
+    // Status filter
+    if (statusFilter !== 'all') {
+      result = result.filter(c => c.status === statusFilter);
+    }
+
+    // Sorting
+    result.sort((a, b) => {
+      let compareA, compareB;
+
+      if (sortField === 'name') {
+        compareA = a.name?.toLowerCase() || '';
+        compareB = b.name?.toLowerCase() || '';
+      } else if (sortField === 'creditLimit') {
+        compareA = a.creditLimit || 0;
+        compareB = b.creditLimit || 0;
+      } else if (sortField === 'createdAt') {
+        compareA = new Date(a.createdAt || 0).getTime();
+        compareB = new Date(b.createdAt || 0).getTime();
+      }
+
+      if (sortDirection === 'asc') {
+        return compareA > compareB ? 1 : -1;
+      } else {
+        return compareA < compareB ? 1 : -1;
+      }
+    });
+
+    return result;
+  }, [list, searchTerm, paymentTermFilter, riskLevelFilter, statusFilter, sortField, sortDirection]);
+
+  // Handle sort toggle
+  const handleSort = (field) => {
+    if (sortField === field) {
+      setSortDirection(d => d === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
 
   useEffect(() => {
     dispatch(fetchCustomers());
@@ -148,7 +223,7 @@ const CustomerListPage = () => {
         {/* HEADER */}
         <div className="fc-card__header">
           <h2 className="fc-card__title">
-            Tất cả khách hàng
+            Tất cả khách hàng ({filteredAndSortedList.length})
           </h2>
 
           <button
@@ -157,6 +232,103 @@ const CustomerListPage = () => {
           >
             + Thêm khách hàng
           </button>
+        </div>
+
+        {/* FILTER BAR */}
+        <div className="mb-6 p-4 bg-slate-50 rounded-xl space-y-4">
+          <div className="flex flex-wrap items-center gap-4">
+            {/* Search */}
+            <div className="flex-1 min-w-[200px]">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                <input
+                  type="text"
+                  placeholder="Tìm theo tên, email, SĐT..."
+                  className="fc-input w-full pl-10"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+              </div>
+            </div>
+
+            {/* Sort */}
+            <div className="flex items-center gap-2">
+              <ArrowUpDown size={16} className="text-slate-400" />
+              <select
+                className="fc-input w-40"
+                value={`${sortField}-${sortDirection}`}
+                onChange={(e) => {
+                  const [field, dir] = e.target.value.split('-');
+                  setSortField(field);
+                  setSortDirection(dir);
+                }}
+              >
+                <option value="name-asc">Tên A-Z</option>
+                <option value="name-desc">Tên Z-A</option>
+                <option value="creditLimit-desc">Hạn mức cao nhất</option>
+                <option value="creditLimit-asc">Hạn mức thấp nhất</option>
+                <option value="createdAt-desc">Mới nhất</option>
+                <option value="createdAt-asc">Cũ nhất</option>
+              </select>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-4">
+            <div className="flex items-center gap-2">
+              <Filter size={16} className="text-slate-400" />
+              <span className="text-sm text-slate-500 font-medium">Lọc:</span>
+            </div>
+
+            {/* Payment Term Filter */}
+            <select
+              className="fc-input w-44"
+              value={paymentTermFilter}
+              onChange={(e) => setPaymentTermFilter(e.target.value)}
+            >
+              <option value="all">Tất cả hình thức</option>
+              <option value="NET_7">Thanh toán 7 ngày</option>
+              <option value="NET_15">Thanh toán 15 ngày</option>
+              <option value="NET_30">Thanh toán 30 ngày</option>
+            </select>
+
+            {/* Risk Level Filter */}
+            <select
+              className="fc-input w-40"
+              value={riskLevelFilter}
+              onChange={(e) => setRiskLevelFilter(e.target.value)}
+            >
+              <option value="all">Tất cả rủi ro</option>
+              <option value="NORMAL">Bình thường</option>
+              <option value="WARNING">Cảnh báo</option>
+              <option value="HIGH_RISK">Rủi ro cao</option>
+            </select>
+
+            {/* Status Filter */}
+            <select
+              className="fc-input w-44"
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value)}
+            >
+              <option value="all">Tất cả trạng thái</option>
+              <option value="ACTIVE">Đang hoạt động</option>
+              <option value="INACTIVE">Ngừng hoạt động</option>
+            </select>
+
+            {/* Clear Filters */}
+            {(searchTerm || paymentTermFilter !== 'all' || riskLevelFilter !== 'all' || statusFilter !== 'all') && (
+              <button
+                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                onClick={() => {
+                  setSearchTerm('');
+                  setPaymentTermFilter('all');
+                  setRiskLevelFilter('all');
+                  setStatusFilter('all');
+                }}
+              >
+                Xóa bộ lọc
+              </button>
+            )}
+          </div>
         </div>
 
         {/* TABLE */}
@@ -176,18 +348,18 @@ const CustomerListPage = () => {
             </thead>
 
             <tbody>
-              {list.length === 0 && (
+              {filteredAndSortedList.length === 0 && (
                 <tr>
                   <td
                     colSpan="8"
                     className="p-4 text-center text-gray-500"
                   >
-                    Không có khách hàng
+                    {list.length === 0 ? 'Không có khách hàng' : 'Không tìm thấy khách hàng phù hợp'}
                   </td>
                 </tr>
               )}
 
-              {list.map((customer) => (
+              {filteredAndSortedList.map((customer) => (
                 <tr key={customer.id}>
                   {/* NAME */}
                   <td>
