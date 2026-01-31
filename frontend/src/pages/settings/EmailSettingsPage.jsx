@@ -385,7 +385,7 @@ const EmailSettingsPage = () => {
 
                 {/* Footer */}
                 <div className="text-center text-xs text-slate-400 py-6 font-medium">
-                    © 2026 ARMS – Internal System
+                    © 2026 FA Credit by Group 6
                 </div>
             </div>
         </div>

@@ -160,7 +160,7 @@ const LoginPage = () => {
 
               {/* Footer */}
               <p className="login-footer">
-                © 2026 FA Credit by Group 6 XDHTTTQL
+                © 2026 FA Credit by Group 6
               </p>
             </form>
           </div>

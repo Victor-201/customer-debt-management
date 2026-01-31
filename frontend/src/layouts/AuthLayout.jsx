@@ -50,7 +50,7 @@ const AuthLayout = () => {
 
           {/* Footer */}
           <div className="auth-footer">
-            <p>© 2026 FA Credit by Group 6 XDHTTTQL</p>
+            <p>© 2026 FA Credit by Group 6</p>
           </div>
         </div>
       </div>
