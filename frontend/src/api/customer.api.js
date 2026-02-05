@@ -6,9 +6,11 @@ export const customerApi = {
     return apiClient.post("/api/customers", data);
   },
 
-  // Lấy danh sách khách hàng
-  getAllCustomers() {
-    return apiClient.get("/api/customers");
+  // Lấy danh sách khách hàng (lấy tất cả)
+  getAllCustomers(params = {}) {
+    return apiClient.get("/api/customers", {
+      params: { limit: 1000, ...params }
+    });
   },
 
   // Lấy khách hàng theo ID
