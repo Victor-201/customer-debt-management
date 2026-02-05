@@ -1,5 +1,6 @@
 import { registerCrons } from "../../infrastructure/scheduler/cron.registry.js";
 import SendReminderEmailJob from "../../infrastructure/scheduler/sendReminderEmail.job.js";
+import UpdateOverdueInvoicesJob from "../../infrastructure/scheduler/updateOverdueInvoices.job.js";
 import SendReminderEmailUseCase from "../../application/use-cases/notification/sendReminderEmail.usecase.js";
 import LogHistoryEmailUseCase from "../../application/use-cases/notification/logHistoryEmail.usecase.js";
 import InvoiceRepository from "../../infrastructure/database/repositories/invoice.repository.js";
@@ -47,15 +48,24 @@ export function initScheduler() {
         emailLogRepository
     });
 
-    // Init Job
+    // Init Jobs
     const sendReminderEmailJob = new SendReminderEmailJob({
         invoiceRepository,
         customerRepository,
         sendReminderEmailUseCase
     });
 
+    const updateOverdueInvoicesJob = new UpdateOverdueInvoicesJob({
+        invoiceRepository
+    });
+
     // Register Crons
-    registerCrons({ sendReminderEmailJob });
+    registerCrons({ sendReminderEmailJob, updateOverdueInvoicesJob });
+
+    // Run overdue update immediately on startup
+    updateOverdueInvoicesJob.run().catch(err => {
+        console.error("[SCHEDULER] Failed to run initial overdue update:", err);
+    });
 
     console.log("[SCHEDULER] Automatic reminder system registered.");
 }
