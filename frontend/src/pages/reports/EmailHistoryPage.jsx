@@ -271,17 +271,15 @@ const EmailHistoryPage = () => {
                 <div className="glass-card p-4">
                     <div className="flex flex-wrap items-center gap-4">
                         {/* Search */}
-                        <div className="flex-1 min-w-[200px]">
-                            <div className="relative">
-                                <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
-                                <input
-                                    type="text"
-                                    placeholder="Tìm theo tên, email, mã HĐ..."
-                                    className="fc-input w-full pl-9"
-                                    value={searchTerm}
-                                    onChange={(e) => setSearchTerm(e.target.value)}
-                                />
-                            </div>
+                        <div className="fc-search-bar flex-1 min-w-[200px]">
+                            <Search className="fc-search-bar__icon" size={16} />
+                            <input
+                                type="text"
+                                placeholder="Tìm theo tên, email, mã HĐ..."
+                                className="fc-search-bar__input"
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
                         </div>
 
                         {/* Status Filter */}
