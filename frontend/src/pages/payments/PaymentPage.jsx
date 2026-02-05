@@ -20,6 +20,7 @@ import ConfirmModal from '../../components/ConfirmModal.jsx';
 import { formatCurrency } from '../../utils/money.util.js';
 import { formatDate } from '../../utils/date.util.js';
 import { PAYMENT_METHOD_OPTIONS, getPaymentMethodLabel } from '../../constants/paymentTerms.js';
+import { paymentApi } from '../../api/payment.api.js';
 
 /**
  * PaymentPage
@@ -36,6 +37,7 @@ const PaymentPage = () => {
     // Local state
     const [deleteModal, setDeleteModal] = useState({ open: false, payment: null });
     const [showFilters, setShowFilters] = useState(false);
+    const [summary, setSummary] = useState(null);
 
     // Fetch payments on mount and when filters change
     useEffect(() => {
@@ -45,6 +47,19 @@ const PaymentPage = () => {
             limit: pagination.limit
         }));
     }, [dispatch, filters, pagination.page]);
+
+    // Fetch summary statistics
+    useEffect(() => {
+        const fetchSummary = async () => {
+            try {
+                const data = await paymentApi.getSummary();
+                setSummary(data);
+            } catch (error) {
+                console.error('Error fetching payment summary:', error);
+            }
+        };
+        fetchSummary();
+    }, []);
 
     // Handle filter change
     const handleFilterChange = (key, value) => {
@@ -77,8 +92,7 @@ const PaymentPage = () => {
         }
     };
 
-    // Calculate total amount
-    const totalAmount = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+
 
     // Table columns
     const columns = [
@@ -153,11 +167,11 @@ const PaymentPage = () => {
                 <div className="flex justify-between items-end flex-wrap gap-4">
                     <div>
                         <h1 className="fc-page-header__title">Lịch sử thanh toán</h1>
-                        <p className="fc-page-header__subtitle">Tổng cộng {pagination.total} phiếu thu</p>
+                        <p className="fc-page-header__subtitle">Tổng cộng {summary?.totalCount || 0} phiếu thu</p>
                     </div>
                     <div className="px-5 py-3 bg-emerald-500 text-white rounded-xl font-bold flex items-center gap-2 shadow-lg">
                         <FiDollarSign />
-                        Tổng thu: {formatCurrency(totalAmount)}
+                        Tổng thu: {formatCurrency(summary?.totalReceived || 0)}
                     </div>
                 </div>
             </div>
@@ -173,30 +187,49 @@ const PaymentPage = () => {
                         </div>
                     </div>
                     <div className="mt-4">
-                        <div className="text-2xl font-bold tracking-tight">{formatCurrency(totalAmount)}</div>
-                        <div className="text-xs font-medium mt-1 text-emerald-50">{pagination.total} phiếu thu</div>
+                        <div className="text-2xl font-bold tracking-tight">{formatCurrency(summary?.totalReceived || 0)}</div>
+                        <div className="text-xs font-medium mt-1 text-emerald-50">{summary?.totalCount || 0} phiếu thu</div>
                     </div>
                 </div>
 
-                {/* Method Cards */}
-                {PAYMENT_METHOD_OPTIONS.slice(0, 3).map(method => {
-                    const methodPayments = payments.filter(p => p.method === method.value);
-                    const methodTotal = methodPayments.reduce((sum, p) => sum + (p.amount || 0), 0);
-
-                    return (
-                        <div key={method.value} className="glass-card p-5">
-                            <div className="text-sm font-medium text-gray-500">{method.label}</div>
-                            <div className="mt-4">
-                                <div className="text-2xl font-bold text-gray-800">
-                                    {formatCurrency(methodTotal)}
-                                </div>
-                                <div className="text-xs font-medium mt-1 text-gray-400">
-                                    {methodPayments.length} phiếu thu
-                                </div>
-                            </div>
+                {/* Cash Card */}
+                <div className="glass-card p-5">
+                    <div className="text-sm font-medium text-gray-500">Tiền mặt</div>
+                    <div className="mt-4">
+                        <div className="text-2xl font-bold text-gray-800">
+                            {formatCurrency(summary?.amountByMethod?.cash || 0)}
                         </div>
-                    );
-                })}
+                        <div className="text-xs font-medium mt-1 text-gray-400">
+                            {summary?.byMethod?.cash || 0} phiếu thu
+                        </div>
+                    </div>
+                </div>
+
+                {/* Bank Transfer Card */}
+                <div className="glass-card p-5">
+                    <div className="text-sm font-medium text-gray-500">Chuyển khoản</div>
+                    <div className="mt-4">
+                        <div className="text-2xl font-bold text-gray-800">
+                            {formatCurrency(summary?.amountByMethod?.bankTransfer || 0)}
+                        </div>
+                        <div className="text-xs font-medium mt-1 text-gray-400">
+                            {summary?.byMethod?.bankTransfer || 0} phiếu thu
+                        </div>
+                    </div>
+                </div>
+
+                {/* Credit Card */}
+                <div className="glass-card p-5">
+                    <div className="text-sm font-medium text-gray-500">Thẻ tín dụng</div>
+                    <div className="mt-4">
+                        <div className="text-2xl font-bold text-gray-800">
+                            {formatCurrency(summary?.amountByMethod?.creditCard || 0)}
+                        </div>
+                        <div className="text-xs font-medium mt-1 text-gray-400">
+                            {summary?.byMethod?.creditCard || 0} phiếu thu
+                        </div>
+                    </div>
+                </div>
             </div>
 
             {/* Filter Bar */}

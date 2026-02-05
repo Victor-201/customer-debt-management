@@ -161,7 +161,11 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
                 COALESCE(SUM(amount) FILTER (WHERE method = 'REVERSAL'), 0) as total_reversed,
                 COUNT(*) FILTER (WHERE method = 'BANK_TRANSFER') as bank_transfer_count,
                 COUNT(*) FILTER (WHERE method = 'CASH') as cash_count,
-                COUNT(*) FILTER (WHERE method = 'REVERSAL') as reversal_count
+                COUNT(*) FILTER (WHERE method = 'CREDIT_CARD') as credit_card_count,
+                COUNT(*) FILTER (WHERE method = 'REVERSAL') as reversal_count,
+                COALESCE(SUM(amount) FILTER (WHERE method = 'CASH'), 0) as cash_amount,
+                COALESCE(SUM(amount) FILTER (WHERE method = 'BANK_TRANSFER'), 0) as bank_transfer_amount,
+                COALESCE(SUM(amount) FILTER (WHERE method = 'CREDIT_CARD'), 0) as credit_card_amount
             FROM payments
             ${dateFilter}
         `;
@@ -202,7 +206,13 @@ export default class PaymentRepository extends PaymentRepositoryInterface {
                 byMethod: {
                     bankTransfer: parseInt(summary.bank_transfer_count || 0, 10),
                     cash: parseInt(summary.cash_count || 0, 10),
+                    creditCard: parseInt(summary.credit_card_count || 0, 10),
                     reversal: parseInt(summary.reversal_count || 0, 10),
+                },
+                amountByMethod: {
+                    cash: parseFloat(summary.cash_amount || 0),
+                    bankTransfer: parseFloat(summary.bank_transfer_amount || 0),
+                    creditCard: parseFloat(summary.credit_card_amount || 0),
                 },
                 // Dashboard stats
                 totalThisMonth: parseFloat(monthly.total_this_month || 0),
