@@ -1,4 +1,4 @@
 {
-  "subject": "[Nhắc nợ] Hóa đơn #{{invoice.invoice_number}} sắp đến hạn phải trả",
-  "html": "<div>Kính gửi {{customer.name}}, ...</div>"
+  "subject": "[Quá hạn] Hóa đơn #{{invoiceNumber}} đã quá hạn thanh toán",
+  "html": "<p>Kính gửi <strong>{{customerName}}</strong>,</p>\n<p>Chúng tôi xin thông báo rằng hóa đơn <strong>{{invoiceNumber}}</strong> với số tiền <strong>{{invoiceAmount}}</strong> đã quá hạn thanh toán <strong>{{daysOverdue}}</strong> ngày (hạn thanh toán: {{dueDate}}).</p>\n<p>Vui lòng thanh toán sớm để tránh phát sinh thêm chi phí và ảnh hưởng đến uy tín tín dụng của quý khách.</p>\n<p><strong>Thông tin thanh toán:</strong></p>\n<ul>\n    <li>Số hóa đơn: {{invoiceNumber}}</li>\n    <li>Số tiền: {{invoiceAmount}}</li>\n    <li>Ngày đến hạn: {{dueDate}}</li>\n    <li>Số ngày quá hạn: {{daysOverdue}}</li>\n</ul>\n<p>Nếu quý khách đã thanh toán, vui lòng bỏ qua email này.</p>\n<p>Trân trọng,<br/><strong>Phòng Kế toán</strong><br/>{{companyName}}</p>"
 }

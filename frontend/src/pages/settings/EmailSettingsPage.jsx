@@ -125,13 +125,16 @@ const EmailSettingsPage = () => {
             try {
                 setLoading(true);
                 const templates = await emailApi.getTemplates();
-                const reminderTemplate = templates.find(t => t.type === 'reminder') || templates[0];
-                if (reminderTemplate) {
-                    setEmailConfig({
-                        subject: reminderTemplate.subject || emailConfig.subject,
-                        html: reminderTemplate.html || emailConfig.html
-                    });
+                // Look for BEFORE_DUE template (nhắc nợ trước hạn)
+                const reminderTemplate = templates.find(t => t.type === 'BEFORE_DUE') || templates[0];
+                if (reminderTemplate && reminderTemplate.subject && reminderTemplate.html) {
+                    // Only update if template has actual content
+                    setEmailConfig(prev => ({
+                        subject: reminderTemplate.subject || prev.subject,
+                        html: reminderTemplate.html || prev.html
+                    }));
                 }
+                // If no templates or empty content, keep the default values
 
                 const settings = await settingsApi.getSettings();
                 if (settings && settings.cron) {
