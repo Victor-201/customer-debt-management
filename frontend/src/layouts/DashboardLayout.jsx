@@ -54,8 +54,8 @@ const DashboardLayout = () => {
         { to: "/customers", icon: <FiBriefcase />, label: "Khách hàng" },
         { to: "/invoices", icon: <FiFileText />, label: "Hóa đơn" },
         { to: "/payments", icon: <FiDollarSign />, label: "Thanh toán" },
-        { to: "/users", icon: <FiUser />, label: "Nhân viên" },
-      ],
+        { to: "/users", icon: <FiUser />, label: "Nhân viên", adminOnly: true },
+      ].filter(item => !item.adminOnly || user?.role === 'ADMIN'),
     },
     {
       title: "BÁO CÁO",

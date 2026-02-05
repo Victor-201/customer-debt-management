@@ -75,10 +75,19 @@ const CustomerDetailPage = () => {
       setInvoices(invoicesData);
 
       // Calculate debt summary
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
       const summary = invoicesData.reduce((acc, inv) => {
-        acc.total += parseFloat(inv.totalAmount || 0);
-        if (inv.status === 'PENDING') acc.pending += parseFloat(inv.totalAmount || 0);
-        if (inv.status === 'OVERDUE') acc.overdue += parseFloat(inv.totalAmount || 0);
+        const balance = parseFloat(inv.balanceAmount || inv.totalAmount || 0) - parseFloat(inv.paidAmount || 0);
+        const dueDate = new Date(inv.dueDate);
+        dueDate.setHours(0, 0, 0, 0);
+        const isOverdue = dueDate < today && inv.status !== 'PAID';
+        const isPending = inv.status === 'PENDING' && !isOverdue;
+
+        acc.total += balance > 0 ? balance : 0;
+        if (isPending) acc.pending += balance > 0 ? balance : 0;
+        if (isOverdue || inv.status === 'OVERDUE') acc.overdue += balance > 0 ? balance : 0;
         if (inv.status === 'PAID') acc.paid += parseFloat(inv.totalAmount || 0);
         return acc;
       }, { total: 0, pending: 0, overdue: 0, paid: 0 });
@@ -236,8 +245,8 @@ const CustomerDetailPage = () => {
           </div>
           <span
             className={`px-4 py-2 rounded-full font-semibold ${selectedCustomer.status === "ACTIVE"
-                ? "bg-green-100 text-green-700"
-                : "bg-red-100 text-red-700"
+              ? "bg-green-100 text-green-700"
+              : "bg-red-100 text-red-700"
               }`}
           >
             {selectedCustomer.status === "ACTIVE" ? "Đang hoạt động" : "Ngừng hoạt động"}
@@ -516,8 +525,8 @@ const CustomerDetailPage = () => {
               </button>
               <button
                 className={`flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-colors ${confirmData?.type === 'deactivate'
-                    ? 'bg-red-600 hover:bg-red-700'
-                    : 'bg-green-600 hover:bg-green-700'
+                  ? 'bg-red-600 hover:bg-red-700'
+                  : 'bg-green-600 hover:bg-green-700'
                   }`}
                 onClick={() => {
                   if (confirmData?.type === 'deactivate') {
