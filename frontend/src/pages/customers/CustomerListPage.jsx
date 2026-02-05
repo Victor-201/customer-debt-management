@@ -6,13 +6,13 @@ import {
   updateCustomer,
 } from "../../store/customer.slice";
 import { useNavigate } from "react-router-dom";
-import { Search, ArrowUpDown, Filter, ChevronDown } from "lucide-react";
+import { Search, Filter, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, X } from "lucide-react";
 
 const CustomerListPage = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
-  const { list, loading, error } = useSelector(
+  const { list, loading, error, pagination } = useSelector(
     (state) => state.customers
   );
 
@@ -20,12 +20,17 @@ const CustomerListPage = () => {
   const [showConfirm, setShowConfirm] = useState(false);
   const [confirmData, setConfirmData] = useState(null);
 
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [limit] = useState(10);
+
   // Sorting state
-  const [sortField, setSortField] = useState('name'); // name, creditLimit, createdAt
-  const [sortDirection, setSortDirection] = useState('asc'); // asc, desc
+  const [sortField, setSortField] = useState('createdAt');
+  const [sortDirection, setSortDirection] = useState('desc');
 
   // Filtering state
   const [searchTerm, setSearchTerm] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
   const [paymentTermFilter, setPaymentTermFilter] = useState('all');
   const [riskLevelFilter, setRiskLevelFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -41,59 +46,22 @@ const CustomerListPage = () => {
     status: "ACTIVE",
   });
 
-  // Filtered and sorted list
-  const filteredAndSortedList = useMemo(() => {
-    let result = [...list];
+  // Active filters count
+  const activeFiltersCount = [paymentTermFilter, riskLevelFilter, statusFilter].filter(f => f !== 'all').length;
 
-    // Search filter
-    if (searchTerm) {
-      const term = searchTerm.toLowerCase();
-      result = result.filter(c =>
-        c.name?.toLowerCase().includes(term) ||
-        c.email?.toLowerCase().includes(term) ||
-        c.phone?.includes(term)
-      );
-    }
-
-    // Payment term filter
-    if (paymentTermFilter !== 'all') {
-      result = result.filter(c => c.paymentTerm === paymentTermFilter);
-    }
-
-    // Risk level filter
-    if (riskLevelFilter !== 'all') {
-      result = result.filter(c => c.riskLevel === riskLevelFilter);
-    }
-
-    // Status filter
-    if (statusFilter !== 'all') {
-      result = result.filter(c => c.status === statusFilter);
-    }
-
-    // Sorting
-    result.sort((a, b) => {
-      let compareA, compareB;
-
-      if (sortField === 'name') {
-        compareA = a.name?.toLowerCase() || '';
-        compareB = b.name?.toLowerCase() || '';
-      } else if (sortField === 'creditLimit') {
-        compareA = a.creditLimit || 0;
-        compareB = b.creditLimit || 0;
-      } else if (sortField === 'createdAt') {
-        compareA = new Date(a.createdAt || 0).getTime();
-        compareB = new Date(b.createdAt || 0).getTime();
-      }
-
-      if (sortDirection === 'asc') {
-        return compareA > compareB ? 1 : -1;
-      } else {
-        return compareA < compareB ? 1 : -1;
-      }
-    });
-
-    return result;
-  }, [list, searchTerm, paymentTermFilter, riskLevelFilter, statusFilter, sortField, sortDirection]);
+  // Fetch customers when page/sort changes
+  useEffect(() => {
+    dispatch(fetchCustomers({
+      page: currentPage,
+      limit,
+      sortBy: sortField,
+      sortOrder: sortDirection.toUpperCase(),
+      search: searchTerm || undefined,
+      paymentTerm: paymentTermFilter !== 'all' ? paymentTermFilter : undefined,
+      riskLevel: riskLevelFilter !== 'all' ? riskLevelFilter : undefined,
+      status: statusFilter !== 'all' ? statusFilter : undefined,
+    }));
+  }, [dispatch, currentPage, limit, sortField, sortDirection, searchTerm, paymentTermFilter, riskLevelFilter, statusFilter]);
 
   // Handle sort toggle
   const handleSort = (field) => {
@@ -103,11 +71,27 @@ const CustomerListPage = () => {
       setSortField(field);
       setSortDirection('asc');
     }
+    setCurrentPage(1);
   };
 
-  useEffect(() => {
-    dispatch(fetchCustomers());
-  }, [dispatch]);
+  // Sort icon
+  const SortIcon = ({ field }) => {
+    if (sortField !== field) {
+      return <ChevronUp className="inline w-4 h-4 text-slate-300" />;
+    }
+    return sortDirection === 'asc'
+      ? <ChevronUp className="inline w-4 h-4 text-blue-600" />
+      : <ChevronDown className="inline w-4 h-4 text-blue-600" />;
+  };
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm('');
+    setPaymentTermFilter('all');
+    setRiskLevelFilter('all');
+    setStatusFilter('all');
+    setCurrentPage(1);
+  };
 
   /* ================= HANDLERS ================= */
 
@@ -201,9 +185,13 @@ const CustomerListPage = () => {
     setConfirmData(null);
   };
 
+  // Pagination info
+  const totalPages = pagination?.totalPages || 1;
+  const totalItems = pagination?.total || list.length;
+
   /* ================= UI ================= */
 
-  if (loading)
+  if (loading && list.length === 0)
     return <p className="p-4">Đang tải dữ liệu...</p>;
 
   if (error)
@@ -223,7 +211,7 @@ const CustomerListPage = () => {
         {/* HEADER */}
         <div className="fc-card__header">
           <h2 className="fc-card__title">
-            Tất cả khách hàng ({filteredAndSortedList.length})
+            Tất cả khách hàng ({totalItems})
           </h2>
 
           <button
@@ -234,68 +222,101 @@ const CustomerListPage = () => {
           </button>
         </div>
 
-        {/* FILTER BAR */}
-        <div className="mb-6 p-4 bg-slate-50 rounded-xl space-y-4">
-          <div className="flex flex-wrap items-center gap-4">
-            {/* Search */}
-            <div className="flex-1 min-w-[200px]">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-                <input
-                  type="text"
-                  placeholder="Tìm theo tên, email, SĐT..."
-                  className="fc-input w-full pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
-              </div>
-            </div>
-
-            {/* Sort */}
-            <div className="flex items-center gap-2">
-              <ArrowUpDown size={16} className="text-slate-400" />
-              <select
-                className="fc-input w-40"
-                value={`${sortField}-${sortDirection}`}
-                onChange={(e) => {
-                  const [field, dir] = e.target.value.split('-');
-                  setSortField(field);
-                  setSortDirection(dir);
-                }}
-              >
-                <option value="name-asc">Tên A-Z</option>
-                <option value="name-desc">Tên Z-A</option>
-                <option value="creditLimit-desc">Hạn mức cao nhất</option>
-                <option value="creditLimit-asc">Hạn mức thấp nhất</option>
-                <option value="createdAt-desc">Mới nhất</option>
-                <option value="createdAt-asc">Cũ nhất</option>
-              </select>
-            </div>
+        {/* SEARCH & FILTER BAR - Compact */}
+        <div className="mb-4 flex items-center gap-3 flex-wrap">
+          {/* Search */}
+          <div className="relative flex-1 min-w-[200px] max-w-[300px]">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+            <input
+              type="text"
+              placeholder="Tìm kiếm..."
+              className="fc-input w-full pl-10 py-2"
+              value={searchTerm}
+              onChange={(e) => {
+                setSearchTerm(e.target.value);
+                setCurrentPage(1);
+              }}
+            />
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex items-center gap-2">
-              <Filter size={16} className="text-slate-400" />
-              <span className="text-sm text-slate-500 font-medium">Lọc:</span>
-            </div>
+          {/* Filter Toggle Button */}
+          <button
+            className={`fc-btn ${showFilters || activeFiltersCount > 0 ? 'fc-btn--primary' : 'fc-btn--secondary'} flex items-center gap-2`}
+            onClick={() => setShowFilters(!showFilters)}
+          >
+            <Filter size={16} />
+            Bộ lọc
+            {activeFiltersCount > 0 && (
+              <span className="ml-1 bg-white text-blue-600 rounded-full w-5 h-5 text-xs flex items-center justify-center font-bold">
+                {activeFiltersCount}
+              </span>
+            )}
+          </button>
 
-            {/* Payment Term Filter */}
+          {/* Active Filter Tags */}
+          {activeFiltersCount > 0 && (
+            <div className="flex items-center gap-2">
+              {paymentTermFilter !== 'all' && (
+                <span className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs font-medium">
+                  {paymentTermFilter === 'NET_7' ? '7 ngày' : paymentTermFilter === 'NET_15' ? '15 ngày' : '30 ngày'}
+                  <X
+                    size={14}
+                    className="cursor-pointer hover:text-blue-900"
+                    onClick={() => { setPaymentTermFilter('all'); setCurrentPage(1); }}
+                  />
+                </span>
+              )}
+              {riskLevelFilter !== 'all' && (
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${riskLevelFilter === 'HIGH_RISK' ? 'bg-red-100 text-red-700' :
+                    riskLevelFilter === 'WARNING' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                  }`}>
+                  {riskLevelFilter === 'HIGH_RISK' ? 'Rủi ro cao' : riskLevelFilter === 'WARNING' ? 'Cảnh báo' : 'Bình thường'}
+                  <X
+                    size={14}
+                    className="cursor-pointer"
+                    onClick={() => { setRiskLevelFilter('all'); setCurrentPage(1); }}
+                  />
+                </span>
+              )}
+              {statusFilter !== 'all' && (
+                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${statusFilter === 'ACTIVE' ? 'bg-green-100 text-green-700' : 'bg-slate-100 text-slate-700'
+                  }`}>
+                  {statusFilter === 'ACTIVE' ? 'Hoạt động' : 'Ngừng'}
+                  <X
+                    size={14}
+                    className="cursor-pointer"
+                    onClick={() => { setStatusFilter('all'); setCurrentPage(1); }}
+                  />
+                </span>
+              )}
+              <button
+                className="text-xs text-slate-500 hover:text-slate-700 underline"
+                onClick={clearFilters}
+              >
+                Xóa tất cả
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* FILTER DROPDOWN - Hidden by default */}
+        {showFilters && (
+          <div className="mb-4 p-4 bg-slate-50 rounded-xl flex flex-wrap items-center gap-4 animate-fadeIn">
             <select
               className="fc-input w-44"
               value={paymentTermFilter}
-              onChange={(e) => setPaymentTermFilter(e.target.value)}
+              onChange={(e) => { setPaymentTermFilter(e.target.value); setCurrentPage(1); }}
             >
-              <option value="all">Tất cả hình thức</option>
+              <option value="all">Tất cả hình thức TT</option>
               <option value="NET_7">Thanh toán 7 ngày</option>
               <option value="NET_15">Thanh toán 15 ngày</option>
               <option value="NET_30">Thanh toán 30 ngày</option>
             </select>
 
-            {/* Risk Level Filter */}
             <select
               className="fc-input w-40"
               value={riskLevelFilter}
-              onChange={(e) => setRiskLevelFilter(e.target.value)}
+              onChange={(e) => { setRiskLevelFilter(e.target.value); setCurrentPage(1); }}
             >
               <option value="all">Tất cả rủi ro</option>
               <option value="NORMAL">Bình thường</option>
@@ -303,63 +324,57 @@ const CustomerListPage = () => {
               <option value="HIGH_RISK">Rủi ro cao</option>
             </select>
 
-            {/* Status Filter */}
             <select
               className="fc-input w-44"
               value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value)}
+              onChange={(e) => { setStatusFilter(e.target.value); setCurrentPage(1); }}
             >
               <option value="all">Tất cả trạng thái</option>
               <option value="ACTIVE">Đang hoạt động</option>
               <option value="INACTIVE">Ngừng hoạt động</option>
             </select>
-
-            {/* Clear Filters */}
-            {(searchTerm || paymentTermFilter !== 'all' || riskLevelFilter !== 'all' || statusFilter !== 'all') && (
-              <button
-                className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-                onClick={() => {
-                  setSearchTerm('');
-                  setPaymentTermFilter('all');
-                  setRiskLevelFilter('all');
-                  setStatusFilter('all');
-                }}
-              >
-                Xóa bộ lọc
-              </button>
-            )}
           </div>
-        </div>
+        )}
 
         {/* TABLE */}
         <div className="overflow-x-auto">
           <table className="fc-table">
             <thead>
               <tr>
-                <th>Tên</th>
+                <th
+                  className="cursor-pointer hover:bg-slate-100 select-none"
+                  onClick={() => handleSort('name')}
+                >
+                  Khách hàng <SortIcon field="name" />
+                </th>
                 <th>Email</th>
-                <th>Số điện thoại</th>
-                <th>Hình thức thanh toán</th>
-                <th>Hạn mức tín dụng</th>
-                <th>Mức độ rủi ro</th>
+                <th>SĐT</th>
+                <th>Hình thức TT</th>
+                <th
+                  className="cursor-pointer hover:bg-slate-100 select-none"
+                  onClick={() => handleSort('creditLimit')}
+                >
+                  Hạn mức <SortIcon field="creditLimit" />
+                </th>
+                <th>Rủi ro</th>
                 <th>Trạng thái</th>
                 <th className="text-center">Hành động</th>
               </tr>
             </thead>
 
             <tbody>
-              {filteredAndSortedList.length === 0 && (
+              {list.length === 0 && (
                 <tr>
                   <td
                     colSpan="8"
                     className="p-4 text-center text-gray-500"
                   >
-                    {list.length === 0 ? 'Không có khách hàng' : 'Không tìm thấy khách hàng phù hợp'}
+                    Không có khách hàng
                   </td>
                 </tr>
               )}
 
-              {filteredAndSortedList.map((customer) => (
+              {list.map((customer) => (
                 <tr key={customer.id}>
                   {/* NAME */}
                   <td>
@@ -375,7 +390,7 @@ const CustomerListPage = () => {
                         }
                       />
                     ) : (
-                      customer.name
+                      <span className="font-medium text-slate-800">{customer.name}</span>
                     )}
                   </td>
 
@@ -393,7 +408,7 @@ const CustomerListPage = () => {
                         }
                       />
                     ) : (
-                      customer.email
+                      <span className="text-slate-600 text-sm">{customer.email}</span>
                     )}
                   </td>
 
@@ -429,13 +444,15 @@ const CustomerListPage = () => {
                           })
                         }
                       >
-                        <option value="NET_7">Thanh toán sau 7 ngày</option>
-                        <option value="NET_15">Thanh toán sau 15 ngày</option>
-                        <option value="NET_30">Thanh toán sau 30 ngày</option>
+                        <option value="NET_7">7 ngày</option>
+                        <option value="NET_15">15 ngày</option>
+                        <option value="NET_30">30 ngày</option>
                       </select>
                     ) : (
-                      customer.paymentTerm === "NET_7" ? "7 ngày" :
-                        customer.paymentTerm === "NET_15" ? "15 ngày" : "30 ngày"
+                      <span className="text-sm">
+                        {customer.paymentTerm === "NET_7" ? "7 ngày" :
+                          customer.paymentTerm === "NET_15" ? "15 ngày" : "30 ngày"}
+                      </span>
                     )}
                   </td>
 
@@ -455,7 +472,7 @@ const CustomerListPage = () => {
                         }
                       />
                     ) : (
-                      customer.creditLimit?.toLocaleString() + " đ"
+                      <span className="font-medium">{customer.creditLimit?.toLocaleString()} đ</span>
                     )}
                   </td>
 
@@ -500,12 +517,12 @@ const CustomerListPage = () => {
                           })
                         }
                       >
-                        <option value="ACTIVE">Đang hoạt động</option>
-                        <option value="INACTIVE">Ngừng hoạt động</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="INACTIVE">Ngừng</option>
                       </select>
                     ) : (
                       <select
-                        className="fc-input"
+                        className="fc-input w-28 py-1 text-sm"
                         value={customer.status}
                         onChange={(e) =>
                           handleQuickStatusChange(
@@ -515,8 +532,8 @@ const CustomerListPage = () => {
                           )
                         }
                       >
-                        <option value="ACTIVE">Đang hoạt động</option>
-                        <option value="INACTIVE">Ngừng hoạt động</option>
+                        <option value="ACTIVE">Hoạt động</option>
+                        <option value="INACTIVE">Ngừng</option>
                       </select>
                     )}
                   </td>
@@ -580,9 +597,62 @@ const CustomerListPage = () => {
             </tbody>
           </table>
         </div>
+
+        {/* PAGINATION */}
+        {totalPages > 1 && (
+          <div className="mt-4 flex items-center justify-between">
+            <div className="text-sm text-slate-600">
+              Hiển thị {((currentPage - 1) * limit) + 1} - {Math.min(currentPage * limit, totalItems)} trên {totalItems} khách hàng
+            </div>
+
+            <div className="flex items-center gap-2">
+              <button
+                className="fc-btn fc-btn--secondary p-2"
+                disabled={currentPage === 1}
+                onClick={() => setCurrentPage(p => p - 1)}
+              >
+                <ChevronLeft size={18} />
+              </button>
+
+              {/* Page numbers */}
+              {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                let pageNum;
+                if (totalPages <= 5) {
+                  pageNum = i + 1;
+                } else if (currentPage <= 3) {
+                  pageNum = i + 1;
+                } else if (currentPage >= totalPages - 2) {
+                  pageNum = totalPages - 4 + i;
+                } else {
+                  pageNum = currentPage - 2 + i;
+                }
+                return (
+                  <button
+                    key={pageNum}
+                    className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
+                        ? 'bg-blue-600 text-white'
+                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      }`}
+                    onClick={() => setCurrentPage(pageNum)}
+                  >
+                    {pageNum}
+                  </button>
+                );
+              })}
+
+              <button
+                className="fc-btn fc-btn--secondary p-2"
+                disabled={currentPage === totalPages}
+                onClick={() => setCurrentPage(p => p + 1)}
+              >
+                <ChevronRight size={18} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
-      {/* ===== CONFIRM POPUP - IMPROVED ===== */}
+      {/* ===== CONFIRM POPUP ===== */}
       {showConfirm && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 backdrop-blur-sm"
@@ -592,7 +662,6 @@ const CustomerListPage = () => {
             className="bg-white rounded-2xl shadow-2xl p-8 w-[450px] transform transition-all animate-slideIn"
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Icon & Title */}
             <div className="flex flex-col items-center mb-6">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${confirmData?.type === 'delete'
                 ? 'bg-red-100'
@@ -619,21 +688,19 @@ const CustomerListPage = () => {
                 {confirmData?.type === 'delete'
                   ? 'Xác nhận xóa'
                   : confirmData?.type === 'status'
-                    ? 'Xác nhận thay đổi trạng thái'
+                    ? 'Xác nhận thay đổi'
                     : 'Xác nhận cập nhật'}
               </h3>
             </div>
 
-            {/* Message */}
             <p className="text-gray-600 text-center mb-8 leading-relaxed">
               {confirmData?.type === 'delete'
-                ? 'Bạn có chắc chắn muốn xóa khách hàng này không? Hành động này không thể hoàn tác.'
+                ? 'Bạn có chắc chắn muốn xóa khách hàng này?'
                 : confirmData?.type === 'status'
-                  ? `Bạn có chắc chắn muốn ${confirmData.newStatus === 'ACTIVE' ? 'kích hoạt' : 'ngừng hoạt động'} khách hàng này không?`
-                  : 'Bạn có chắc chắn muốn lưu thay đổi thông tin khách hàng không?'}
+                  ? `Đổi trạng thái sang ${confirmData.newStatus === 'ACTIVE' ? 'Hoạt động' : 'Ngừng'}?`
+                  : 'Xác nhận lưu thay đổi?'}
             </p>
 
-            {/* Buttons */}
             <div className="flex gap-4">
               <button
                 className="flex-1 px-6 py-3 rounded-lg border-2 border-gray-300 text-gray-700 font-semibold hover:bg-gray-50 transition-colors"
@@ -658,9 +725,7 @@ const CustomerListPage = () => {
                   }
                 }}
               >
-                {confirmData?.type === 'delete'
-                  ? 'Xóa'
-                  : 'Xác nhận'}
+                {confirmData?.type === 'delete' ? 'Xóa' : 'Xác nhận'}
               </button>
             </div>
           </div>
@@ -681,6 +746,15 @@ const CustomerListPage = () => {
 
         .animate-slideIn {
           animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-10px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+
+        .animate-fadeIn {
+          animation: fadeIn 0.2s ease-out;
         }
       `}</style>
     </div>
