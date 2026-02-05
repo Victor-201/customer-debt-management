@@ -30,6 +30,7 @@ const CustomerListPage = () => {
 
   // Filtering state
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [paymentTermFilter, setPaymentTermFilter] = useState('all');
   const [riskLevelFilter, setRiskLevelFilter] = useState('all');
@@ -49,6 +50,15 @@ const CustomerListPage = () => {
   // Active filters count
   const activeFiltersCount = [paymentTermFilter, riskLevelFilter, statusFilter].filter(f => f !== 'all').length;
 
+  // Debounce search term (500ms delay)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchTerm);
+    }, 500);
+
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
   // Fetch customers when page/sort changes
   useEffect(() => {
     dispatch(fetchCustomers({
@@ -56,12 +66,12 @@ const CustomerListPage = () => {
       limit,
       sortBy: sortField,
       sortOrder: sortDirection.toUpperCase(),
-      search: searchTerm || undefined,
+      search: debouncedSearch || undefined,
       paymentTerm: paymentTermFilter !== 'all' ? paymentTermFilter : undefined,
       riskLevel: riskLevelFilter !== 'all' ? riskLevelFilter : undefined,
       status: statusFilter !== 'all' ? statusFilter : undefined,
     }));
-  }, [dispatch, currentPage, limit, sortField, sortDirection, searchTerm, paymentTermFilter, riskLevelFilter, statusFilter]);
+  }, [dispatch, currentPage, limit, sortField, sortDirection, debouncedSearch, paymentTermFilter, riskLevelFilter, statusFilter]);
 
   // Handle sort toggle
   const handleSort = (field) => {
