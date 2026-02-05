@@ -226,7 +226,7 @@ const CustomerListPage = () => {
         <div className="mb-4 flex items-center gap-3 flex-wrap">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px] max-w-[300px]">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
+            <Search className="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
             <input
               type="text"
               placeholder="Tìm kiếm..."
