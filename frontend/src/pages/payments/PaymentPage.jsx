@@ -218,18 +218,6 @@ const PaymentPage = () => {
                     </div>
                 </div>
 
-                {/* Credit Card */}
-                <div className="glass-card p-5">
-                    <div className="text-sm font-medium text-gray-500">Thẻ tín dụng</div>
-                    <div className="mt-4">
-                        <div className="text-2xl font-bold text-gray-800">
-                            {formatCurrency(summary?.amountByMethod?.creditCard || 0)}
-                        </div>
-                        <div className="text-xs font-medium mt-1 text-gray-400">
-                            {summary?.byMethod?.creditCard || 0} phiếu thu
-                        </div>
-                    </div>
-                </div>
             </div>
 
             {/* Filter Bar */}
