@@ -268,7 +268,7 @@ const CustomerListPage = () => {
               )}
               {riskLevelFilter !== 'all' && (
                 <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${riskLevelFilter === 'HIGH_RISK' ? 'bg-red-100 text-red-700' :
-                    riskLevelFilter === 'WARNING' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
+                  riskLevelFilter === 'WARNING' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
                   }`}>
                   {riskLevelFilter === 'HIGH_RISK' ? 'Rủi ro cao' : riskLevelFilter === 'WARNING' ? 'Cảnh báo' : 'Bình thường'}
                   <X
@@ -347,16 +347,36 @@ const CustomerListPage = () => {
                 >
                   Khách hàng <SortIcon field="name" />
                 </th>
-                <th>Email</th>
-                <th>SĐT</th>
-                <th>Hình thức TT</th>
+                <th
+                  className="cursor-pointer hover:bg-slate-100 select-none"
+                  onClick={() => handleSort('email')}
+                >
+                  Email <SortIcon field="email" />
+                </th>
+                <th
+                  className="cursor-pointer hover:bg-slate-100 select-none"
+                  onClick={() => handleSort('phone')}
+                >
+                  SĐT <SortIcon field="phone" />
+                </th>
+                <th
+                  className="cursor-pointer hover:bg-slate-100 select-none"
+                  onClick={() => handleSort('paymentTerm')}
+                >
+                  Hình thức TT <SortIcon field="paymentTerm" />
+                </th>
                 <th
                   className="cursor-pointer hover:bg-slate-100 select-none"
                   onClick={() => handleSort('creditLimit')}
                 >
                   Hạn mức <SortIcon field="creditLimit" />
                 </th>
-                <th>Rủi ro</th>
+                <th
+                  className="cursor-pointer hover:bg-slate-100 select-none"
+                  onClick={() => handleSort('riskLevel')}
+                >
+                  Rủi ro <SortIcon field="riskLevel" />
+                </th>
                 <th>Trạng thái</th>
                 <th className="text-center">Hành động</th>
               </tr>
@@ -630,8 +650,8 @@ const CustomerListPage = () => {
                   <button
                     key={pageNum}
                     className={`w-8 h-8 rounded-lg text-sm font-medium transition-colors ${currentPage === pageNum
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
+                      ? 'bg-blue-600 text-white'
+                      : 'bg-slate-100 text-slate-700 hover:bg-slate-200'
                       }`}
                     onClick={() => setCurrentPage(pageNum)}
                   >
