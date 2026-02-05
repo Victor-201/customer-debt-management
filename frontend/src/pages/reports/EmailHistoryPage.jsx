@@ -273,11 +273,11 @@ const EmailHistoryPage = () => {
                         {/* Search */}
                         <div className="flex-1 min-w-[200px]">
                             <div className="relative">
-                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={16} />
                                 <input
                                     type="text"
                                     placeholder="Tìm theo tên, email, mã HĐ..."
-                                    className="fc-input w-full pl-10"
+                                    className="fc-input w-full pl-9"
                                     value={searchTerm}
                                     onChange={(e) => setSearchTerm(e.target.value)}
                                 />
