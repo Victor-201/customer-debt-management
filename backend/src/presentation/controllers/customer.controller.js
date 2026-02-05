@@ -30,8 +30,18 @@ class CustomerController {
 
   getAllCustomers = async (req, res) => {
     try {
-      const customers = await this.getAllCustomersUseCase.execute();
-      res.json(customers);
+      const { page, limit, sortBy, sortOrder, search, paymentTerm, riskLevel, status } = req.query;
+      const result = await this.getAllCustomersUseCase.execute({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        sortBy: sortBy || 'createdAt',
+        sortOrder: sortOrder || 'DESC',
+        search,
+        paymentTerm,
+        riskLevel,
+        status,
+      });
+      res.json(result);
     } catch (error) {
       this.#handleError(res, error);
     }
