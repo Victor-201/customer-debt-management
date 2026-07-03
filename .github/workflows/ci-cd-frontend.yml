@@ -1,0 +1,94 @@
+# ══════════════════════════════════════════════════════════════════════
+# customer-debt-management — Frontend CI/CD Pipeline
+# Standard: devops.skill.md Section 9
+#
+# Stack: React 18 + Vite 5 + Tailwind v4
+# Target: Cloudflare Pages (free, unlimited bandwidth, SPA support)
+#
+# Required GitHub Actions secrets:
+#   CLOUDFLARE_API_TOKEN    — Cloudflare API token with Pages:Edit permission
+#   CLOUDFLARE_ACCOUNT_ID   — Cloudflare account ID
+#   VITE_API_URL            — Production backend URL (injected at build time)
+# ══════════════════════════════════════════════════════════════════════
+
+name: frontend-ci-cd
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/ci-cd-frontend.yml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'frontend/**'
+  workflow_dispatch:
+
+concurrency:
+  group: frontend-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ── Step 1: Quality gate ───────────────────────────────────────────
+  quality:
+    name: Lint & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: frontend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Lint
+        run: yarn lint
+
+      - name: Build (inject production API URL)
+        env:
+          VITE_API_URL: ${{ secrets.VITE_API_URL }}
+        run: yarn build
+
+      - name: Upload dist artifact
+        if: github.ref == 'refs/heads/main'
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: frontend/dist/
+          retention-days: 7
+
+  # ── Step 2: Deploy to Cloudflare Pages (main only) ────────────────
+  deploy:
+    name: Deploy → Cloudflare Pages
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      deployments: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download dist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: frontend-dist-${{ github.sha }}
+          path: frontend/dist/
+
+      - name: Deploy to Cloudflare Pages
+        uses: cloudflare/pages-action@v1
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          projectName: customer-debt-management
+          directory: frontend/dist
+          gitHubToken: ${{ secrets.GITHUB_TOKEN }}
+          branch: main
