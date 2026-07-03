@@ -4,8 +4,6 @@ import {
     Loader2, FileText, Calendar, Bell, Copy, Code, Variable, Eye
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import ReactQuill from 'react-quill';
-import 'react-quill/dist/quill.snow.css';
 import emailApi from '../../api/email.api';
 import settingsApi from '../../api/settings.api';
 
@@ -368,13 +366,10 @@ const EmailSettingsPage = () => {
                                             border-color: #e2e8f0;
                                         }
                                     `}</style>
-                                    <ReactQuill
-                                        ref={quillRef}
-                                        theme="snow"
+                                    <textarea
+                                        className="fc-input w-full min-h-[300px] leading-relaxed resize-none p-4 rounded-xl"
                                         value={emailConfig.html}
-                                        onChange={(html) => setEmailConfig({ ...emailConfig, html })}
-                                        modules={modules}
-                                        formats={formats}
+                                        onChange={(e) => setEmailConfig({ ...emailConfig, html: e.target.value })}
                                         placeholder="Soạn nội dung email..."
                                     />
                                 </div>
