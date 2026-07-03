@@ -49,11 +49,22 @@ export default class EmailLogRepository extends EmailLogRepositoryInterface {
     return created.get({ plain: true });
   }
 
-  async findAll() {
-    const logs = await this.EmailLogModel.findAll({
+  async findAll({ page = 1, limit = 100 } = {}) {
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await this.EmailLogModel.findAndCountAll({
       order: [["sent_at", "DESC"]],
-      include: ["Customer", "Invoice"], // Ensuring these associations exist in the model
+      include: ["Customer", "Invoice"],
+      limit,
+      offset,
     });
-    return logs.map((log) => log.get({ plain: true }));
+
+    return {
+      data: rows.map((log) => log.get({ plain: true })),
+      total: count,
+      page,
+      limit,
+      totalPages: Math.ceil(count / limit),
+    };
   }
 }

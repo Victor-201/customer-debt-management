@@ -272,7 +272,7 @@
 .user-info__name {
   font-weight: 600;
   font-size: 13px;
-  color: #fff;
+  color: #1e293b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -281,7 +281,7 @@
 
 .user-info__email {
   font-size: 11px;
-  color: rgba(255, 255, 255, 0.5);
+  color: #64748b;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

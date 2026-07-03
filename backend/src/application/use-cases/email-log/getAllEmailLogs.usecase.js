@@ -3,7 +3,7 @@ export default class GetAllEmailLogsUseCase {
         this.emailLogRepository = emailLogRepository;
     }
 
-    async execute() {
-        return await this.emailLogRepository.findAll();
+    async execute(params = {}) {
+        return await this.emailLogRepository.findAll(params);
     }
 }

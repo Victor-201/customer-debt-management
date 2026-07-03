@@ -8,29 +8,9 @@ export const customerApi = {
     return apiClient.post("/api/customers", data);
   },
 
-  // ======================
-  // READ - LIST
-  // ======================
-  getListCustomers({
-    page = 1,
-    limit = 10,
-    sortBy,
-    sortOrder,
-    paymentTerm,
-    riskLevel,
-    status,
-  } = {}) {
-    return apiClient.get("/api/customers", {
-      params: {
-        page,
-        limit,
-        sortBy,
-        sortOrder,
-        paymentTerm,
-        riskLevel,
-        status,
-      },
-    });
+  // Lấy danh sách khách hàng (có phân trang)
+  getAllCustomers(params = {}) {
+    return apiClient.get("/api/customers", { params });
   },
 
   // ======================

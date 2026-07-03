@@ -5,12 +5,12 @@ import { customerApi } from "@/api/customer.api";
    ASYNC THUNKS
 ======================= */
 
-// Lấy danh sách khách hàng (ALL)
+// Lấy danh sách khách hàng (có phân trang)
 export const fetchCustomers = createAsyncThunk(
-  "customer/fetchList",
+  "customer/fetchAll",
   async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await customerApi.getListCustomers(params);
+      const res = await customerApi.getAllCustomers(params);
       return res.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || error.message);
@@ -107,7 +107,7 @@ const customerSlice = createSlice({
     pagination: {
       page: 1,
       limit: 10,
-      totalItems: 0,
+      total: 0,
       totalPages: 0,
     },
     selectedCustomer: null,
@@ -130,8 +130,14 @@ const customerSlice = createSlice({
       })
       .addCase(fetchCustomers.fulfilled, (state, action) => {
         state.loading = false;
-        state.list = action.payload.data;
-        state.pagination = action.payload.pagination;
+        // Handle paginated response: { data: [...], pagination: {...} }
+        if (action.payload?.data && action.payload?.pagination) {
+          state.list = action.payload.data;
+          state.pagination = action.payload.pagination;
+        } else {
+          // Fallback for non-paginated response
+          state.list = Array.isArray(action.payload) ? action.payload : [];
+        }
       })
       .addCase(fetchCustomers.rejected, (state, action) => {
         state.loading = false;

@@ -282,18 +282,34 @@ const InvoiceDetailPage = () => {
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {(invoice.items || []).map((item, index) => (
-                                        <tr key={item.id || index}>
-                                            <td className="font-medium">{item.description}</td>
-                                            <td className="text-right">{item.quantity}</td>
+                                    {(invoice.items && invoice.items.length > 0) ? (
+                                        invoice.items.map((item, index) => (
+                                            <tr key={item.id || index}>
+                                                <td className="font-medium">
+                                                    {item.description || `Mặt hàng ${index + 1}`}
+                                                </td>
+                                                <td className="text-right">{item.quantity || 1}</td>
+                                                <td className="text-right font-mono text-gray-600">
+                                                    {formatCurrency(item.unitPrice || 0)}
+                                                </td>
+                                                <td className="text-right font-mono font-semibold text-gray-900">
+                                                    {formatCurrency((item.quantity || 1) * (item.unitPrice || 0))}
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        /* If no items, show a single row with the total amount */
+                                        <tr>
+                                            <td className="font-medium">Mặt hàng 1</td>
+                                            <td className="text-right">1</td>
                                             <td className="text-right font-mono text-gray-600">
-                                                {formatCurrency(item.unitPrice)}
+                                                {formatCurrency(extractAmount(invoice.totalAmount))}
                                             </td>
                                             <td className="text-right font-mono font-semibold text-gray-900">
-                                                {formatCurrency(item.quantity * item.unitPrice)}
+                                                {formatCurrency(extractAmount(invoice.totalAmount))}
                                             </td>
                                         </tr>
-                                    ))}
+                                    )}
                                 </tbody>
                                 <tfoot>
                                     <tr>

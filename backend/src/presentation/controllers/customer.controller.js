@@ -30,15 +30,22 @@ class CustomerController {
 
   listCustomers = async (req, res) => {
     try {
-      const {
-        page = 1,
-        limit = 10,
-        sortBy = "createdAt",
-        sortOrder = "DESC",
+      const { page, limit, sortBy, sortOrder, search, paymentTerm, riskLevel, status } = req.query;
+      const result = await this.getAllCustomersUseCase.execute({
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        sortBy: sortBy || 'createdAt',
+        sortOrder: sortOrder || 'DESC',
+        search,
         paymentTerm,
         riskLevel,
         status,
-      } = req.query;
+      });
+      res.json(result);
+    } catch (error) {
+      this.#handleError(res, error);
+    }
+  };
 
       const result = await this.listCustomersUseCase.execute({
         page: Number(page),
