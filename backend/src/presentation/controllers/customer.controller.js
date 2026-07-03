@@ -47,23 +47,7 @@ class CustomerController {
     }
   };
 
-      const result = await this.listCustomersUseCase.execute({
-        page: Number(page),
-        limit: Number(limit),
-        sortBy,
-        sortOrder,
-        filters: {
-          paymentTerm,
-          riskLevel,
-          status,
-        },
-      });
 
-      res.json(result);
-    } catch (error) {
-      this.#handleError(res, error);
-    }
-  };
 
   getCustomerById = async (req, res) => {
     try {
