@@ -11,6 +11,14 @@ export const sequelize = new Sequelize(
     port: config.database.port,
     dialect: "postgres",
     logging: false,
+    ...(config.nodeEnv === "production" && {
+      dialectOptions: {
+        ssl: {
+          require: true,
+          rejectUnauthorized: false,
+        },
+      },
+    }),
   }
 );
 
