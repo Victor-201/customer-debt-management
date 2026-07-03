@@ -1,0 +1,67 @@
+# ══════════════════════════════════════════════════════════════════════
+# customer-debt-management — Render Blueprint
+# Standard: devops.skill.md Section 3.7 (Infrastructure as Code)
+#
+# Deploy with:  render deploy --config render.yaml
+# Docs:         https://render.com/docs/blueprint-spec
+#
+# Before first deploy:
+#   1. Create a Neon PostgreSQL project → copy connection string
+#   2. Set all env vars in Render Dashboard → Environment Groups
+#      OR pass them as secrets in GitHub Actions via RENDER_DEPLOY_HOOK
+# ══════════════════════════════════════════════════════════════════════
+
+services:
+  # ── Backend API (Node/Express) ──────────────────────────────────────
+  - type: web
+    name: cdm-backend
+    runtime: docker
+    dockerfilePath: ./deployment/docker/Dockerfile.backend
+    dockerContext: .
+    buildFilter:
+      paths:
+        - backend/**
+        - deployment/docker/Dockerfile.backend
+    plan: free                  # ⚠ Free tier: sleeps after 15 min idle
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3000"
+      - key: DATABASE_URL
+        sync: false             # Set in Render dashboard from Neon connection string
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_USERNAME
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_NAME
+        value: customer_debt_db
+      - key: JWT_SECRET
+        sync: false             # Set in Render dashboard
+      - key: JWT_REFRESH_SECRET
+        sync: false
+      - key: JWT_ACCESS_EXPIRY
+        value: "15m"
+      - key: JWT_REFRESH_EXPIRY
+        value: "7d"
+      - key: JWT_ISSUER
+        value: customer-debt-management
+      - key: JWT_AUDIENCE
+        value: customer-debt-management-users
+      - key: SALT_ROUNDS
+        value: "12"
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: EMAIL_FROM
+        value: "Customer Debt Management"

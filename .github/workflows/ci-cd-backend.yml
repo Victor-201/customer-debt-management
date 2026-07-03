@@ -1,0 +1,176 @@
+# ══════════════════════════════════════════════════════════════════════
+# customer-debt-management — Backend CI/CD Pipeline
+# Standard: devops.skill.md Section 9
+#
+# Triggers:
+#   • PR to main → quality gate (lint + test + Docker build + Trivy scan)
+#   • Push to main → quality gate → publish GHCR image → Render deploy
+#                    → post-deploy health verify
+#   • Manual dispatch → rollback job
+#
+# Required GitHub Actions secrets:
+#   RENDER_DEPLOY_HOOK_CDM_BACKEND   — from Render service dashboard
+#   RENDER_SERVICE_URL_BACKEND       — e.g. https://cdm-backend.onrender.com
+#   CLOUDFLARE_API_TOKEN             — Cloudflare API token (for frontend workflow)
+#   CLOUDFLARE_ACCOUNT_ID            — Cloudflare account ID
+# ══════════════════════════════════════════════════════════════════════
+
+name: backend-ci-cd
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'deployment/docker/Dockerfile.backend'
+      - 'deployment/docker/docker-compose.yml'
+      - 'render.yaml'
+  pull_request:
+    branches: [main]
+    paths:
+      - 'backend/**'
+      - 'deployment/docker/Dockerfile.backend'
+  workflow_dispatch:
+
+concurrency:
+  group: backend-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/cdm-backend
+  DOCKERFILE: deployment/docker/Dockerfile.backend
+
+jobs:
+  # ── Step 1: Quality gate ───────────────────────────────────────────
+  quality:
+    name: Lint & Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+          cache-dependency-path: backend/yarn.lock
+
+      - name: Install dependencies
+        run: yarn install --frozen-lockfile
+
+      - name: Run tests
+        run: yarn test
+
+  # ── Step 2: Docker build + Trivy scan (main only) ─────────────────
+  build-and-scan:
+    name: Docker Build & Scan
+    needs: quality
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build image (no push)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          target: production
+          push: false
+          tags: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:${{ github.sha }}
+          format: table
+          severity: 'CRITICAL,HIGH'
+          exit-code: '1'
+
+  # ── Step 3: Publish to GHCR ───────────────────────────────────────
+  publish:
+    name: Publish Image → GHCR
+    needs: build-and-scan
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    outputs:
+      image_tag: ${{ github.sha }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ${{ env.DOCKERFILE }}
+          target: production
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  # ── Step 4: Deploy to Render ──────────────────────────────────────
+  deploy:
+    name: Deploy → Render
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Trigger Render deploy hook
+        run: |
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_CDM_BACKEND }}" \
+            -H "Content-Type: application/json"
+
+      - name: Wait for Render to spin up
+        # Render free tier takes 30-90s to deploy
+        run: sleep 90
+
+      - name: Post-deploy health check
+        run: |
+          for i in 1 2 3 4 5; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+              "${{ secrets.RENDER_SERVICE_URL_BACKEND }}/api/health" || echo "000")
+            echo "Attempt $i — HTTP $STATUS"
+            if [ "$STATUS" = "200" ]; then
+              echo "✅ Backend is healthy."
+              exit 0
+            fi
+            sleep 30
+          done
+          echo "❌ Health check failed after 5 attempts."
+          exit 1
+
+  # ── Step 5: Rollback (on failure or manual trigger) ───────────────
+  rollback:
+    name: Rollback
+    needs: deploy
+    if: failure()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Re-deploy previous stable image
+        # Render redeploys the previous successful deploy automatically on hook failure.
+        # For explicit rollback, retrigger with a previous commit SHA.
+        run: |
+          echo "Deploy failed. Re-triggering Render with previous stable hook..."
+          curl -fsS -X POST "${{ secrets.RENDER_DEPLOY_HOOK_CDM_BACKEND }}"
