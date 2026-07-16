@@ -88,7 +88,7 @@ jobs:
         with:
           apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
-          projectName: customer-debt-management
+          projectName: victor-debt
           directory: frontend/dist
           gitHubToken: ${{ secrets.GITHUB_TOKEN }}
           branch: main
