@@ -10,8 +10,7 @@ const app = express();
 
 const allowedOrigins = [
   "http://localhost:5173",
-  "http://fecredit.hailamdev.space",
-  "https://fecredit.hailamdev.space",
+  "https://victor-debt.pages.dev",
   process.env.FRONTEND_URL,
 ].filter(Boolean);
 
